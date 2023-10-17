@@ -1,0 +1,33 @@
+parameters:
+  # Required
+  - name: "ENVIRONMENT"
+    type: string
+    values:
+      - DEV
+      - UAT
+  - name: "CHECKOUT_RESOURCE_REPO_NAME"
+    type: string
+    default: self
+
+steps:
+  - checkout: ${{parameters.CHECKOUT_RESOURCE_REPO_NAME}}
+  - script: |
+      rm -f e2e-tests/.env && cp e2e-tests/dev.env e2e-tests/.env
+    displayName: 'Set env for E2E test (DEV)'
+    condition: and(succeeded(), eq('${{parameters.ENVIRONMENT}}', 'DEV'))
+  - script: |
+      rm -f e2e-tests/.env && cp e2e-tests/uat.env e2e-tests/.env
+    displayName: 'Set env for E2E test (UAT)'
+    condition: and(succeeded(), eq('${{parameters.ENVIRONMENT}}', 'UAT'))
+  - script: |
+      cd e2e-tests && yarn install
+    displayName: 'Yarn install'
+  - script: |
+      cd e2e-tests &&  yarn test
+    displayName: 'Yarn test execution'
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/*-TEST.xml' 
+      searchFolder: '$(System.DefaultWorkingDirectory)'
+    condition: succeededOrFailed()
