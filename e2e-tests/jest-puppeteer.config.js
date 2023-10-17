@@ -3,7 +3,7 @@ module.exports = {
         dumpio: true,
         headless: true,
         product: 'chrome',
-        args: ["--no-sandbox"] // to fix
+        args: ["--no-sandbox"]
     },
     browserContext: 'incognito'
 }
