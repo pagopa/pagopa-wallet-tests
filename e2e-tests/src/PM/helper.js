@@ -6,7 +6,7 @@ export const onboardCardMethodWithError4xx = async (cardData) => {
     return url;
 };
 
-export const onboardCardMethodWithError5xx = async (cardData) => {
+export const onboardCardMethodWithNetworkError = async (cardData) => {
     const errorTitleSelector = '#inputCardPageErrorTitleId';
     page.setOfflineMode(true); // Set offline mode to simulate the opening of the modal
     await fillCardForm(cardData);

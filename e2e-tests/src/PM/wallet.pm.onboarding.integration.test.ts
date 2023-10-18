@@ -1,4 +1,4 @@
-import { onboardCardMethodWithError4xx, onboardCardMethodWithError5xx } from "./helper";
+import { onboardCardMethodWithError4xx, onboardCardMethodWithNetworkError } from "./helper";
 
 describe("Wallet pm onboarding tests", () => {
     /**
@@ -32,7 +32,7 @@ describe("Wallet pm onboarding tests", () => {
 
   it("Generic error while onboard card method", async () => {
     await page.goto(WALLET_URL.concat(VALID_SECURITY_TOKEN));
-    const resultErrorMessage = await onboardCardMethodWithError5xx(VALID_CARD_DATA);
+    const resultErrorMessage = await onboardCardMethodWithNetworkError(VALID_CARD_DATA);
     expect(resultErrorMessage).toContain("Spiacenti, si è verificato un errore imprevisto");
   });
 
