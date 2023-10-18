@@ -1,0 +1,37 @@
+trigger: none
+pr: none
+
+parameters:
+  - name: 'ENVIRONMENT'
+    displayName: 'Which environment to run tests for?'
+    type: string
+    values:
+      - DEV
+      - UAT
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Setup_Project
+    dependsOn: []
+    jobs:
+      - job: setup
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+        - checkout: self
+          displayName: 'Wallet'
+
+  - stage: E2E_Tests_Wallet
+    pool:
+      vmImage: 'ubuntu-latest'
+    dependsOn: Setup_Project
+    jobs:
+      - job: e2e_tests
+        steps:
+          - template: azure-templates/e2e-tests.yaml
+            parameters:
+              ENVIRONMENT: ${{parameters.ENVIRONMENT}}
+              CHECKOUT_RESOURCE_REPO_NAME: self
+
