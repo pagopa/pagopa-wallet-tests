@@ -30,7 +30,7 @@ describe("Wallet pm onboarding tests", () => {
   page.setDefaultNavigationTimeout(timeout);
   page.setDefaultTimeout(timeout)
   
-  it.skip("Successfully executed onboarding for XPAY", async () => {
+  it("Successfully executed onboarding for XPAY", async () => {
     const redirectUrl = await retrieveValidRedirectUrl(PM_HOST)
     await page.goto(redirectUrl);
     const resultUrl = await successfullyExecutionOnboarding(VALID_CARD_DATA_XPAY, true);
