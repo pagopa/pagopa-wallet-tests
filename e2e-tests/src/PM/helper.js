@@ -1,9 +1,18 @@
 
-export const onboardCardMethodWithError = async (cardData) => {
-    const errorTitleSelector = '#inputCardPageErrorTitleId';
+export const onboardCardMethodWithError4xx = async (cardData) => {
     await fillCardForm(cardData);
-    const errorMessageElem = await page.waitForXPath(errorTitleSelector);
-    return await errorMessageElem.evaluate(el => el.textContent);
+    await page.waitForNavigation();
+    const url = await page.url();
+    return url;
+};
+
+export const onboardCardMethodWithError5xx = async (cardData) => {
+    const errorTitleSelector = '#inputCardPageErrorTitleId';
+    page.setOfflineMode(true); // Set offline mode to simulate the opening of the modal
+    await fillCardForm(cardData);
+    const errorMessageElem = await page.waitForSelector(errorTitleSelector);
+    const errorMessage = await errorMessageElem.evaluate(el => el.textContent)
+    return errorMessage;
 };
 
 export const fillCardForm = async (cardData) => {
