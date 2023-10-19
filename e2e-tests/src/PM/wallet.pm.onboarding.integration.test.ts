@@ -37,7 +37,7 @@ describe("Wallet pm onboarding tests", () => {
     expect(resultUrl).toContain("outcome=0");
   });
 
-  it.skip("Successfully executed onboarding for VPOS", async () => {
+  it("Successfully executed onboarding for VPOS", async () => {
     const redirectUrl = await retrieveValidRedirectUrl(PM_HOST)
     await page.goto(redirectUrl);
     const resultUrl = await successfullyExecutionOnboarding(VALID_CARD_DATA_VPOS, false);

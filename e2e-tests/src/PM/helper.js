@@ -4,7 +4,8 @@ export const successfullyExecutionOnboarding = async (cardData, isXpay) => {
     if(isXpay){
       await execute_mock_authorization_xpay();
     } else{
-      await execute_mock_authorization_vpos();
+      //await execute_mock_authorization_vpos();
+      await page.waitForNavigation();
     }
     await page.waitForNavigation();
     const url = await page.url();
