@@ -24,7 +24,7 @@ describe("Wallet pm onboarding tests", () => {
    * Increase default test timeout (60000ms)
    * to support entire payment flow
    */
-  const timeout = 60_000
+  const timeout = 120_000
   jest.setTimeout(timeout);
   jest.retryTimes(1);
   page.setDefaultNavigationTimeout(timeout);
