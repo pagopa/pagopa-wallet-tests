@@ -1,4 +1,4 @@
-export const retrieveValidRedirectUrl = async (pmHost, paymentMethodId) => {
+export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
   const urlGetUser = `https://portal.test.pagopa.gov.it/pmmockserviceapi/cd/user/get`;
   const responseGetUser = await fetch(urlGetUser, {
     method: 'GET',
@@ -19,7 +19,7 @@ export const retrieveValidRedirectUrl = async (pmHost, paymentMethodId) => {
       body: JSON.stringify(user),
     });
     if (responsePutUser.status === 200) {
-      const urlStartSession = `${pmHost}/payment-wallet/v1/wallets`;
+      const urlStartSession = `${walletHost}/payment-wallet/v1/wallets`;
       const responseStartSession = await fetch(urlStartSession, {
         method: 'POST',
         headers: {
@@ -30,7 +30,7 @@ export const retrieveValidRedirectUrl = async (pmHost, paymentMethodId) => {
         body: JSON.stringify({
           services: ['PAGOPA'],
           useDiagnosticTracing: true,
-          paymentMethodId
+          paymentMethodId,
         }),
       });
       if (responseStartSession.status === 201) {

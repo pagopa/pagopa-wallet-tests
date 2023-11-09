@@ -4,7 +4,7 @@ describe('wallet payment npg activation tests', () => {
   /**
    * Test input and configuration
    */
-  const PM_HOST = String(process.env.PM_HOST);
+  const WALLET_HOST = String(process.env.WALLET_HOST);
   const PAYMENT_METHOD_ID = String(process.env.PAYMENT_METHOD_ID);
   const VALID_CARD_DATA = {
     number: String(process.env.CARD_NUMBER_XPAY),
@@ -27,7 +27,7 @@ describe('wallet payment npg activation tests', () => {
     /*
      * 1. Payment with valid notice code
      */
-    const redirectUrl = await retrieveValidRedirectUrl(PM_HOST, PAYMENT_METHOD_ID);
+    const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
     await page.goto(redirectUrl);
     await fillCardDataForm(VALID_CARD_DATA);
 
