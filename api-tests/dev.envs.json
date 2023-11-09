@@ -1,0 +1,103 @@
+{
+	"id": "e31a395d-11ca-47f6-a122-fdd35789309f",
+	"name": "Wallet Dev",
+	"values": [
+		{
+			"key": "HOSTNAME",
+			"value": "https://api.dev.platform.pagopa.it/payment-wallet/v1",
+			"enabled": true
+		},
+		{
+			"key": "WALLET_ID",
+			"value": "test",
+			"enabled": true
+		},
+		{
+			"key": "PAYMENT_METHOD_ID",
+			"value": "e7058cac-5e1a-4002-8994-5bab31e9f385",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "USE_DIAGNOSTIC_TRACING",
+			"value": "true",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "x-user-id",
+			"value": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "SESSION_TOKEN",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "ORDER_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "HOSTNAME_WEBVIEW",
+			"value": "https://api.dev.platform.pagopa.it/webview-payment-wallet/v1",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_SESSION_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_IFRAME_FIELD_URL",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_CORRELATION_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_IFRAME_FIELD_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_EXP_DATE",
+			"value": "05/26",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_CARD_NUMBER",
+			"value": "4349940199004549",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_CARD_CVV",
+			"value": "396",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_CARD_HOLDER_NAME",
+			"value": "Mario Rossi",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2023-11-09T13:51:20.067Z",
+	"_postman_exported_using": "Postman/10.19.17"
+}
