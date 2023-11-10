@@ -1247,7 +1247,7 @@
 			"response": []
 		},
 		{
-			"name": "Create new validation requests given a inizialized wallet",
+			"name": "Create new validation requests given a initialized wallet",
 			"request": {
 				"auth": {
 					"type": "noauth"
