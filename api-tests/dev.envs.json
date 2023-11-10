@@ -95,6 +95,12 @@
 			"value": "Mario Rossi",
 			"type": "default",
 			"enabled": true
+		},
+		{
+			"key": "WALLET_TOKEN_TEST",
+			"value": "Default Token Test",
+			"type": "secret",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
