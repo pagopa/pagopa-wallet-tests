@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "36e52e82-81db-48e5-9e80-b9b0ad29eeca",
+		"_postman_id": "3c9ea164-04ba-472e-abed-123b477b160d",
 		"name": "pagoPA Payment Wallet API",
 		"description": "API to handle payment wallets PagoPA for App IO, where a wallet is triple between user identifier, payment instrument and services (i.e pagoPA, bpd).\n\nThe wallet onboarding outcome and walletId are returned as query params to the app IO, for example \n/wallets/{walletId}/outcomes?outcome=0&walletId=123. The possible outcome are:\n- SUCCESS(0)\n- GENERIC_ERROR(1)\n- AUTH_ERROR(2)\n- TIMEOUT(4)\n- CANCELED_BY_USER(8)\n- INVALID_SESSION(14)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -536,6 +536,21 @@
 		},
 		{
 			"name": "Get wallet by user identifier",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding] Wallet retrieved successfully by it's user id with GET /wallets\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var wallets = pm.response.json().wallets;",
+							"    pm.expect(wallets.length).to.be.greaterThan(0);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -552,6 +567,11 @@
 					{
 						"key": "Accept",
 						"value": "application/json"
+					},
+					{
+						"key": "x-user-id",
+						"value": "{{x-user-id}}",
+						"type": "text"
 					}
 				],
 				"url": {
@@ -707,7 +727,7 @@
 						"exec": [
 							"const sdk = require('postman-collection');",
 							"",
-							"pm.test(\"[Wallet for onboarding] New wallet session created successfully with POST /wallets/:idWallet/sessions\", function () {",
+							"pm.test(\"[Wallet for onboarding] New wallet session created successfully with POST /wallets/{walletId}/sessions\", function () {",
 							"    pm.response.to.have.status(200);",
 							"",
 							"    const response = pm.response.json();",
@@ -1248,6 +1268,25 @@
 		},
 		{
 			"name": "Create new validation requests given a initialized wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding] Session wallet validated successfully with POST /wallets/{walletId}/sessions/{orderId}/validations\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const response = pm.response.json();",
+							"    const orderId = response.orderId;",
+							"    const details = response.details",
+							"    pm.expect(orderId).to.be.equals(pm.environment.get(\"ORDER_ID\"));",
+							"    pm.expect(details.type).to.be.equals(\"CARDS\");",
+							"    pm.expect(details.iframeUrl).to.be.not.null",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "noauth"
