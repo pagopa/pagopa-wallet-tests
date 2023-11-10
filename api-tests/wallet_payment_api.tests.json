@@ -337,7 +337,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Wallet for onboarding] New wallet created successfully with POST /wallets\", function () {",
+							"pm.test(\"[Wallet for onboarding] Wallet retrieved successfully by it's id with GET /wallets/{walletId}\", function () {",
 							"    pm.response.to.have.status(200);",
 							"    const userId = pm.response.json().userId;",
 							"    pm.environment.set(\"x-user-id\", userId);",
