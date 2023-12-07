@@ -5,6 +5,7 @@ parameters:
     values:
       - DEV
       - UAT
+    default: DEV
   - name: "CHECKOUT_RESOURCE_REPO_NAME"
     type: string
     default: self
