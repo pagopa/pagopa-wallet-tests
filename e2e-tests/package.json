@@ -5,8 +5,8 @@
   "author": "Fernando Granato",
   "license": "MIT",
   "scripts": {
-    "test:NPG": "dotenv -e .env jest --detectOpenHandles --reporters=jest-junit --testPathPattern='NPG'",
-    "test:PM": "dotenv -e .env jest --detectOpenHandles --reporters=jest-junit --testPathPattern='PM'",
+    "test:NPG": "dotenv -e dev.env jest src/NPG --detectOpenHandles --reporters=jest-junit",
+    "test:PM": "dotenv -e uat.env jest src/PM --detectOpenHandles --reporters=jest-junit",
     "test": "dotenv -e .env jest --detectOpenHandles --reporters=jest-junit",
     "lint": "eslint . -c .eslintrc.json"
   },
