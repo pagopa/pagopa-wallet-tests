@@ -7,7 +7,7 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
    * Increase default test timeout (60000ms)
    * to support entire payment flow
    */
-  const timeout = 30_000;
+  const timeout = 40_000;
   jest.setTimeout(timeout);
   jest.retryTimes(3);
   page.setDefaultNavigationTimeout(timeout);
@@ -42,6 +42,6 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
     await page.goto(redirectUrl);
     await fillCardDataForm(NOT_VALID_VISA_CARD_DATA);
     const outcome = await getOutcome();
-    expect(outcome).not.toBe(0);
+    expect(outcome).toBeGreaterThan(0);
   });
 });
