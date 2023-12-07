@@ -8,6 +8,7 @@ parameters:
     values:
       - DEV
       - UAT
+    default: DEV
 
 pool:
   vmImage: 'ubuntu-latest'
