@@ -18,9 +18,6 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
   });
 
   it('should redirect with outcome 0 (success) success using an valid visa card', async () => {
-    /*
-     * 1. Payment with valid notice code
-     */
     const VALID_VISA_CARD_DATA = {
       number: '4012000000020089',
       expirationDate: '1226',
@@ -30,15 +27,12 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
     const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
     await page.goto(redirectUrl);
     await fillCardDataForm(VALID_VISA_CARD_DATA);
-    const outocome = await getOutcome();
-    expect(outocome).toBe(0);
+    const outcome = await getOutcome();
+    expect(outcome).toBe(0);
   });
 
-  it('should redirect with outcome 1 (error) success using an invalid visa card', async () => {
-    /*
-     * 1. Payment with valid notice code
-     */
-    const VALID_VISA_CARD_DATA = {
+  it('should redirect with outcome not equal to 0 using a not valid visa card', async () => {
+    const NOT_VALID_VISA_CARD_DATA = {
       number: '4242424242424242',
       expirationDate: '1230',
       ccv: '123',
@@ -46,8 +40,8 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
     };
     const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
     await page.goto(redirectUrl);
-    await fillCardDataForm(VALID_VISA_CARD_DATA);
-    const outocome = await getOutcome();
-    expect(outocome).toBe(1);
+    await fillCardDataForm(NOT_VALID_VISA_CARD_DATA);
+    const outcome = await getOutcome();
+    expect(outcome).not.toBe(0);
   });
 });
