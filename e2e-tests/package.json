@@ -5,11 +5,14 @@
   "author": "Fernando Granato",
   "license": "MIT",
   "scripts": {
+    "test:NPG": "dotenv -e .env jest --detectOpenHandles --reporters=jest-junit --testPathPattern='NPG'",
+    "test:PM": "dotenv -e .env jest --detectOpenHandles --reporters=jest-junit --testPathPattern='PM'",
     "test": "dotenv -e .env jest --detectOpenHandles --reporters=jest-junit",
     "lint": "eslint . -c .eslintrc.json"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.15.4",
+    "@types/jest": "^29.5.7",
     "dotenv": "^16.3.1",
     "dotenv-cli": "^7.3.0",
     "eslint": "^8.49.0",
