@@ -1,11 +1,10 @@
 module.exports = {
-    preset: "jest-puppeteer",
-    testRegex: "./*integration.test\\.ts$",
-    reporters: [
-        'default',
-        [ 'jest-junit', {
-          outputDirectory: './test_reports',
-          outputName: `wallet-ui-TEST.xml`,
-        } ]
-      ]
+  preset: "jest-puppeteer",
+  reporters: [
+    'default',
+    [ 'jest-junit', {
+      outputDirectory: './test_reports',
+      outputName: `wallet-ui-TEST.xml`,
+    } ]
+  ]
 };

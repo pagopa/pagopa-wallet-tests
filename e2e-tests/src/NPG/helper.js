@@ -82,3 +82,30 @@ export const fillCardDataForm = async cardData => {
   await continueBtn.click();
   await page.waitForNavigation();
 };
+
+/**
+ * This function is usefull when we need to wait for the puppeter page instance get a certain
+ * url value based on the inclusion of the urlSubstring parameter
+ */
+export const waitUntilUrlContains = async (urlSubstring) => 
+  await page.waitForFunction(`window.location.href.includes("${urlSubstring}")`);
+
+/**
+ * This function wait for obtain the outcome parameter from the final result url
+ * when the gdi check phase, the 3ds challenge and esito phase ends
+ * @returns number
+ */
+export const getOutcome = async () => {
+  try {
+    expect(page.url()).toContain('/gdi-check');
+    await waitUntilUrlContains("/esito");
+    expect(page.url()).toContain('/esito');
+    await waitUntilUrlContains("/outcomes");
+    const url = new URL(page.url());
+    const outcome = new URLSearchParams(url.search).get("outcome");
+    if( outcome === null) return -1
+    return parseInt(outcome)
+  } catch {
+    return -1
+  }
+}
