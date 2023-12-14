@@ -1,5 +1,7 @@
+const { APIM_HOST } = process.env
+
 export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
-  const urlGetUser = `https://portal.test.pagopa.gov.it/pmmockserviceapi/cd/user/get`;
+  const urlGetUser = `${APIM_HOST}/pmmockserviceapi/cd/user/get`;
   const responseGetUser = await fetch(urlGetUser, {
     method: 'GET',
     headers: {
@@ -10,7 +12,7 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
   if (responseGetUser.status === 200) {
     const user = await responseGetUser.json();
     const walletTokenCreditCard = user.sessionToken;
-    const urlPutUser = `https://portal.test.pagopa.gov.it/pmmockserviceapi/cd/user/save`;
+    const urlPutUser = `${APIM_HOST}/pmmockserviceapi/cd/user/save`;
     const responsePutUser = await fetch(urlPutUser, {
       method: 'PUT',
       headers: {
@@ -87,7 +89,7 @@ export const fillCardDataForm = async cardData => {
  * This function is usefull when we need to wait for the puppeter page instance get a certain
  * url value based on the inclusion of the urlSubstring parameter
  */
-export const waitUntilUrlContains = async (urlSubstring) => 
+export const waitUntilUrlContains = async (urlSubstring) =>
   await page.waitForFunction(`window.location.href.includes("${urlSubstring}")`);
 
 /**
@@ -103,7 +105,7 @@ export const getOutcome = async () => {
     await waitUntilUrlContains("/outcomes");
     const url = new URL(page.url());
     const outcome = new URLSearchParams(url.search).get("outcome");
-    if( outcome === null) return -1
+    if (outcome === null) return -1
     return parseInt(outcome)
   } catch {
     return -1
