@@ -1,6 +1,6 @@
 {
 	"id": "7beb5739-3d3d-457a-89a0-338d1d9b9165",
-	"name": "Wallet UAT - CARDS",
+	"name": "Wallet UAT - PAYPAL",
 	"values": [
 		{
 			"key": "HOSTNAME",
@@ -14,7 +14,7 @@
 		},
 		{
 			"key": "PAYMENT_METHOD_ID",
-			"value": "f25399bf-c56f-4bd2-adc9-7aef87410609",
+			"value": "0d1450f4-b993-4f89-af5a-1770a45f5d71",
 			"type": "default",
 			"enabled": true
 		},
@@ -45,54 +45,6 @@
 		{
 			"key": "HOSTNAME_WEBVIEW",
 			"value": "https://api.uat.platform.pagopa.it/webview-payment-wallet/v1",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "NPG_SESSION_ID",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "NPG_IFRAME_FIELD_URL",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "NPG_CORRELATION_ID",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "NPG_IFRAME_FIELD_ID",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "NPG_EXP_DATE",
-			"value": "05/26",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "NPG_CARD_NUMBER",
-			"value": "4349940199004549",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "NPG_CARD_CVV",
-			"value": "396",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "NPG_CARD_HOLDER_NAME",
-			"value": "Mario Rossi",
 			"type": "default",
 			"enabled": true
 		},

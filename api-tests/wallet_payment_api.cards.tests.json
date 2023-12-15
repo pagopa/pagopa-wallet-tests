@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "e04c1b3f-3f18-44d7-b11d-acc06bdc804d",
+		"_postman_id": "5234f357-bb6b-49bd-8496-4cd56c79af84",
 		"name": "pagoPA Payment Wallet API - CARDS",
 		"description": "API to handle payment wallets PagoPA for App IO, where a wallet is triple between user identifier, payment instrument and services (i.e pagoPA, bpd).\n\nThe wallet onboarding outcome and walletId are returned as query params to the app IO, for example \n/wallets/{walletId}/outcomes?outcome=0&walletId=123. The possible outcome are:\n- SUCCESS(0)\n- GENERIC_ERROR(1)\n- AUTH_ERROR(2)\n- TIMEOUT(4)\n- CANCELED_BY_USER(8)\n- INVALID_SESSION(14)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -18,17 +18,20 @@
 							"    pm.response.to.have.status(201);",
 							"    const redirectUrl = pm.response.json().redirectUrl;",
 							"    pm.expect(redirectUrl).to.be.a(\"string\");",
+							"    pm.expect(redirectUrl).to.be.include(\"creditcard#\");",
 							"    const fragment = redirectUrl.split(\"#\")[1];",
 							"    const fragmentSplits = fragment.split(\"&\");",
 							"    pm.expect(fragmentSplits.length).to.be.equals(3);",
-							"    var walletId = fragmentSplits[0].split(\"=\")[1];",
-							"    var useDiagnosticTracing = fragmentSplits[1].split(\"=\")[1];",
-							"    var sessionToken = fragmentSplits[2].split(\"=\")[1]",
+							"    const walletId = fragmentSplits[0].split(\"=\")[1];",
+							"    const useDiagnosticTracing = fragmentSplits[1].split(\"=\")[1];",
+							"    const sessionToken = fragmentSplits[2].split(\"=\")[1];",
+							"    const paymentMethodId = fragmentSplits[3].split(\"=\")[1];",
 							"    pm.expect(walletId).to.be.not.null;",
 							"    pm.expect(useDiagnosticTracing).to.be.not.null;",
 							"    pm.expect(useDiagnosticTracing).to.be.eq(pm.environment.get(\"USE_DIAGNOSTIC_TRACING\"));",
+							"    pm.expect(paymentMethodId).to.be.eq(pm.environment.get(\"PAYMENT_METHOD_ID\"));",
 							"    pm.environment.set(\"WALLET_ID\", walletId);",
-							"    pm.environment.set(\"SESSION_TOKEN\", sessionToken)",
+							"    pm.environment.set(\"SESSION_TOKEN\", sessionToken);",
 							"});"
 						],
 						"type": "text/javascript"
@@ -195,11 +198,10 @@
 							"const sdk = require('postman-collection');",
 							"",
 							"pm.test(\"[Wallet for onboarding] New wallet session created successfully with POST /wallets/{walletId}/sessions\", function () {",
-							"    pm.response.to.have.status(200);",
-							"",
 							"    const response = pm.response.json();",
-							"    ",
-							"    const cardFormFieldsDataWithoutSrc = response.cardFormFields.map(form => {",
+							"    const sessionData = response.sessionData;",
+							"     pm.expect(sessionData.paymentMethodType).to.be.eq(\"cards\");",
+							"    const cardFormFieldsDataWithoutSrc = sessionData.cardFormFields.map(form => {",
 							"        const { src, ...rest } = form;",
 							"        return rest;",
 							"    });",
@@ -235,7 +237,7 @@
 							"function saveNpgData(response){",
 							"    console.log(\"Read NPG response data...\");",
 							"    const orderId = response.orderId;",
-							"    const fieldUrl = response.cardFormFields[0].src;",
+							"    const fieldUrl = response.sessionData.cardFormFields[0].src;",
 							"    ",
 							"    const parsedUrl = new sdk.Url(fieldUrl).toJSON();",
 							"    const correlationId = parsedUrl.query.find((queryParam) =>queryParam.key==\"correlationid\").value;",
@@ -246,7 +248,7 @@
 							"    console.log(`correlation id: [${correlationId}]`);",
 							"    console.log(`session id: [${sessionId}]`);",
 							"    console.log(`field id: [${fieldId}]`);",
-							"    pm.environment.set(\"ORDER_ID\", response.orderId);",
+							"    pm.environment.set(\"ORDER_ID\", orderId);",
 							"    pm.environment.set(\"NPG_IFRAME_FIELD_URL\", fieldUrl);",
 							"    pm.environment.set(\"NPG_CORRELATION_ID\", correlationId);",
 							"    pm.environment.set(\"NPG_SESSION_ID\", sessionId);",
@@ -275,6 +277,15 @@
 						"type": "text"
 					}
 				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"paymentMethodType\": \"cards\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
 					"raw": "{{HOSTNAME_WEBVIEW}}/wallets/{{WALLET_ID}}/sessions",
 					"host": [
