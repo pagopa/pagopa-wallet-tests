@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "3a94b5ac-91b6-4b5c-8068-92650908c1e6",
+		"_postman_id": "286a5102-b311-4826-bfbf-f37558e4cf34",
 		"name": "pagoPA Payment Wallet API - PAYPAL",
 		"description": "API to handle payment wallets PagoPA for App IO, where a wallet is triple between user identifier, payment instrument and services (i.e pagoPA, bpd).\n\nThe wallet onboarding outcome and walletId are returned as query params to the app IO, for example \n/wallets/{walletId}/outcomes?outcome=0&walletId=123. The possible outcome are:\n- SUCCESS(0)\n- GENERIC_ERROR(1)\n- AUTH_ERROR(2)\n- TIMEOUT(4)\n- CANCELED_BY_USER(8)\n- INVALID_SESSION(14)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -21,11 +21,11 @@
 							"    pm.expect(redirectUrl).to.be.include(\"apm#\");",
 							"    const fragment = redirectUrl.split(\"#\")[1];",
 							"    const fragmentSplits = fragment.split(\"&\");",
-							"    pm.expect(fragmentSplits.length).to.be.equals(3);",
+							"    pm.expect(fragmentSplits.length).to.be.equals(4);",
 							"    const walletId = fragmentSplits[0].split(\"=\")[1];",
 							"    const useDiagnosticTracing = fragmentSplits[1].split(\"=\")[1];",
-							"    const sessionToken = fragmentSplits[2].split(\"=\")[1];",
-							"    const paymentMethodId = fragmentSplits[3].split(\"=\")[1];",
+							"    const paymentMethodId = fragmentSplits[2].split(\"=\")[1];",
+							"    const sessionToken = fragmentSplits[3].split(\"=\")[1];",
 							"    pm.expect(walletId).to.be.not.null;",
 							"    pm.expect(useDiagnosticTracing).to.be.not.null;",
 							"    pm.expect(useDiagnosticTracing).to.be.eq(pm.environment.get(\"USE_DIAGNOSTIC_TRACING\"));",
@@ -40,7 +40,14 @@
 			],
 			"request": {
 				"auth": {
-					"type": "noauth"
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{WALLET_TOKEN_TEST}}",
+							"type": "string"
+						}
+					]
 				},
 				"method": "POST",
 				"header": [
@@ -51,11 +58,6 @@
 					{
 						"key": "Accept",
 						"value": "application/json"
-					},
-					{
-						"key": "Authorization",
-						"value": "Bearer {{WALLET_TOKEN_TEST}}",
-						"type": "secret"
 					},
 					{
 						"key": "x-user-id",
@@ -158,7 +160,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{bearerToken}}",
+							"value": "{{WALLET_TOKEN_TEST}}",
 							"type": "string"
 						}
 					]
