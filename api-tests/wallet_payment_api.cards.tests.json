@@ -1,0 +1,561 @@
+{
+	"info": {
+		"_postman_id": "5234f357-bb6b-49bd-8496-4cd56c79af84",
+		"name": "pagoPA Payment Wallet API - CARDS",
+		"description": "API to handle payment wallets PagoPA for App IO, where a wallet is triple between user identifier, payment instrument and services (i.e pagoPA, bpd).\n\nThe wallet onboarding outcome and walletId are returned as query params to the app IO, for example \n/wallets/{walletId}/outcomes?outcome=0&walletId=123. The possible outcome are:\n- SUCCESS(0)\n- GENERIC_ERROR(1)\n- AUTH_ERROR(2)\n- TIMEOUT(4)\n- CANCELED_BY_USER(8)\n- INVALID_SESSION(14)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23963988"
+	},
+	"item": [
+		{
+			"name": "Create a new wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding] New wallet created successfully with POST /wallets\", function () {",
+							"    pm.response.to.have.status(201);",
+							"    const redirectUrl = pm.response.json().redirectUrl;",
+							"    pm.expect(redirectUrl).to.be.a(\"string\");",
+							"    pm.expect(redirectUrl).to.be.include(\"creditcard#\");",
+							"    const fragment = redirectUrl.split(\"#\")[1];",
+							"    const fragmentSplits = fragment.split(\"&\");",
+							"    pm.expect(fragmentSplits.length).to.be.equals(3);",
+							"    const walletId = fragmentSplits[0].split(\"=\")[1];",
+							"    const useDiagnosticTracing = fragmentSplits[1].split(\"=\")[1];",
+							"    const sessionToken = fragmentSplits[2].split(\"=\")[1];",
+							"    const paymentMethodId = fragmentSplits[3].split(\"=\")[1];",
+							"    pm.expect(walletId).to.be.not.null;",
+							"    pm.expect(useDiagnosticTracing).to.be.not.null;",
+							"    pm.expect(useDiagnosticTracing).to.be.eq(pm.environment.get(\"USE_DIAGNOSTIC_TRACING\"));",
+							"    pm.expect(paymentMethodId).to.be.eq(pm.environment.get(\"PAYMENT_METHOD_ID\"));",
+							"    pm.environment.set(\"WALLET_ID\", walletId);",
+							"    pm.environment.set(\"SESSION_TOKEN\", sessionToken);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{WALLET_TOKEN_TEST}}",
+						"type": "secret"
+					},
+					{
+						"key": "x-user-id",
+						"value": "{{x-user-id}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"paymentMethodId\": \"{{PAYMENT_METHOD_ID}}\",\n  \"services\": [\n    \"PAGOPA\"\n  ],\n  \"useDiagnosticTracing\": \"{{USE_DIAGNOSTIC_TRACING}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/wallets",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"wallets"
+					]
+				},
+				"description": "Creates a new wallet"
+			},
+			"response": []
+		},
+		{
+			"name": "Get wallet by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding] Wallet retrieved successfully by it's id with GET /wallets/{walletId}\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const userId = pm.response.json().userId;",
+							"    pm.environment.set(\"x-user-id\", userId);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{bearerToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{HOSTNAME}}/wallets/{{WALLET_ID}}",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"wallets",
+						"{{WALLET_ID}}"
+					]
+				},
+				"description": "Returns a single wallet"
+			},
+			"response": []
+		},
+		{
+			"name": "Get wallet by user identifier",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding] Wallet retrieved successfully by it's user id with GET /wallets\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var wallets = pm.response.json().wallets;",
+							"    pm.expect(wallets.length).to.be.greaterThan(0);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{bearerToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "x-user-id",
+						"value": "{{x-user-id}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{HOSTNAME}}/wallets",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"wallets"
+					]
+				},
+				"description": "Returns a of wallets related to user"
+			},
+			"response": []
+		},
+		{
+			"name": "Create a new session wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const sdk = require('postman-collection');",
+							"",
+							"pm.test(\"[Wallet for onboarding] New wallet session created successfully with POST /wallets/{walletId}/sessions\", function () {",
+							"    const response = pm.response.json();",
+							"    const sessionData = response.sessionData;",
+							"     pm.expect(sessionData.paymentMethodType).to.be.eq(\"cards\");",
+							"    const cardFormFieldsDataWithoutSrc = sessionData.cardFormFields.map(form => {",
+							"        const { src, ...rest } = form;",
+							"        return rest;",
+							"    });",
+							"    const expectedCardFormFieldsDataWithoutSrc =",
+							"     [",
+							"            {",
+							"                \"type\": \"TEXT\",",
+							"                \"class\": \"CARD_FIELD\",",
+							"                \"id\": \"CARD_NUMBER\"",
+							"            },",
+							"            {",
+							"                \"type\": \"TEXT\",",
+							"                \"class\": \"CARD_FIELD\",",
+							"                \"id\": \"EXPIRATION_DATE\"",
+							"            },",
+							"            {",
+							"                \"type\": \"TEXT\",",
+							"                \"class\": \"CARD_FIELD\",",
+							"                \"id\": \"SECURITY_CODE\"",
+							"            },",
+							"            {",
+							"                \"type\": \"TEXT\",",
+							"                \"class\": \"CARD_FIELD\",",
+							"                \"id\": \"CARDHOLDER_NAME\"",
+							"            }",
+							"        ];",
+							"    saveNpgData(response);",
+							"    pm.expect(expectedCardFormFieldsDataWithoutSrc).eql(cardFormFieldsDataWithoutSrc);",
+							"    pm.expect(response.orderId).to.be.a(\"string\");",
+							" ",
+							"});",
+							"",
+							"function saveNpgData(response){",
+							"    console.log(\"Read NPG response data...\");",
+							"    const orderId = response.orderId;",
+							"    const fieldUrl = response.sessionData.cardFormFields[0].src;",
+							"    ",
+							"    const parsedUrl = new sdk.Url(fieldUrl).toJSON();",
+							"    const correlationId = parsedUrl.query.find((queryParam) =>queryParam.key==\"correlationid\").value;",
+							"    const sessionId= parsedUrl.query.find((queryParam) =>queryParam.key==\"sessionid\").value.replaceAll(\"%2F\",\"/\").replaceAll(\"%2B\",\"+\").replaceAll(\"%3D\",\"=\");",
+							"    const fieldId= parsedUrl.query.find((queryParam) =>queryParam.key==\"id\").value;",
+							"    console.log(`Order id: [${orderId}]`);",
+							"    console.log(`Field url: [${fieldUrl}]`);",
+							"    console.log(`correlation id: [${correlationId}]`);",
+							"    console.log(`session id: [${sessionId}]`);",
+							"    console.log(`field id: [${fieldId}]`);",
+							"    pm.environment.set(\"ORDER_ID\", orderId);",
+							"    pm.environment.set(\"NPG_IFRAME_FIELD_URL\", fieldUrl);",
+							"    pm.environment.set(\"NPG_CORRELATION_ID\", correlationId);",
+							"    pm.environment.set(\"NPG_SESSION_ID\", sessionId);",
+							"    pm.environment.set(\"NPG_IFRAME_FIELD_ID\", fieldId);",
+							"}",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{SESSION_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"paymentMethodType\": \"cards\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME_WEBVIEW}}/wallets/{{WALLET_ID}}/sessions",
+					"host": [
+						"{{HOSTNAME_WEBVIEW}}"
+					],
+					"path": [
+						"wallets",
+						"{{WALLET_ID}}",
+						"sessions"
+					]
+				},
+				"description": "This endpoint returns an object containing data on how a frontend can build a html form to allow direct exchanging of payment information to the payment gateway without `wallet` having to store PCI data (or other sensitive data tied to the payment method).The returned data is tied to a session on the payment gateway identified by the field `orderId`."
+			},
+			"response": []
+		},
+		{
+			"name": "Get NPG field (populate NPG cookies)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"user-agent": true,
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json; charset=utf-8",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Dest",
+						"value": "empty",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Mode",
+						"value": "cors",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Site",
+						"value": "same-origin",
+						"type": "text"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "{{$guid}}",
+						"type": "text"
+					},
+					{
+						"key": "Correlation-Id",
+						"value": "{{NPG_CORRELATION_ID}}",
+						"type": "text"
+					},
+					{
+						"key": "session",
+						"value": "{{NPG_SESSION_ID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://stg-ta.nexigroup.com/fe/build/field_settings/{{NPG_IFRAME_FIELD_ID}}?lang=ITA",
+					"protocol": "https",
+					"host": [
+						"stg-ta",
+						"nexigroup",
+						"com"
+					],
+					"path": [
+						"fe",
+						"build",
+						"field_settings",
+						"{{NPG_IFRAME_FIELD_ID}}"
+					],
+					"query": [
+						{
+							"key": "lang",
+							"value": "ITA"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fill NPG text data (populate iframe card data fields)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"user-agent": true,
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json; charset=utf-8",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Dest",
+						"value": "empty",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Mode",
+						"value": "cors",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Site",
+						"value": "same-origin",
+						"type": "text"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "{{$guid}}",
+						"type": "text"
+					},
+					{
+						"key": "Correlation-Id",
+						"value": "{{NPG_CORRELATION_ID}}",
+						"type": "text"
+					},
+					{
+						"key": "session",
+						"value": "{{NPG_SESSION_ID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"fieldValues\": [\n        {\n            \"id\": \"EXPIRATION_DATE\",\n            \"value\": \"{{NPG_EXP_DATE}}\"\n        },\n        {\n            \"id\": \"CARD_NUMBER\",\n            \"value\": \"{{NPG_CARD_NUMBER}}\"\n        },\n        {\n            \"id\": \"SECURITY_CODE\",\n            \"value\": \"{{NPG_CARD_CVV}}\"\n        },\n        {\n            \"id\": \"CARDHOLDER_NAME\",\n            \"value\": \"{{NPG_CARD_HOLDER_NAME}}\"\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://stg-ta.nexigroup.com/fe/build/text/",
+					"protocol": "https",
+					"host": [
+						"stg-ta",
+						"nexigroup",
+						"com"
+					],
+					"path": [
+						"fe",
+						"build",
+						"text",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create new validation requests given a initialized wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding] Session wallet validated successfully with POST /wallets/{walletId}/sessions/{orderId}/validations\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const response = pm.response.json();",
+							"    const orderId = response.orderId;",
+							"    const details = response.details",
+							"    pm.expect(orderId).to.be.equals(pm.environment.get(\"ORDER_ID\"));",
+							"    pm.expect(details.type).to.be.equals(\"CARDS\");",
+							"    pm.expect(details.iframeUrl).to.be.not.null",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{WALLET_TOKEN_TEST}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"paymentMethodType\": \"cards\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME_WEBVIEW}}/wallets/{{WALLET_ID}}/sessions/{{ORDER_ID}}/validations",
+					"host": [
+						"{{HOSTNAME_WEBVIEW}}"
+					],
+					"path": [
+						"wallets",
+						"{{WALLET_ID}}",
+						"sessions",
+						"{{ORDER_ID}}",
+						"validations"
+					]
+				},
+				"description": "This endpoint returns an object with a url to which to redirect in case of APM or a url on which to build an iframe for GDI check."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://${{hostname}}"
+		}
+	]
+}
