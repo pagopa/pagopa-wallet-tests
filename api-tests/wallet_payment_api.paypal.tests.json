@@ -14,7 +14,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Wallet for onboarding] New wallet created successfully with POST /wallets\", function () {",
+							"pm.test(\"[Wallet for onboarding - PAYPAL] New wallet created successfully with POST /wallets\", function () {",
 							"    pm.response.to.have.status(201);",
 							"    const redirectUrl = pm.response.json().redirectUrl;",
 							"    pm.expect(redirectUrl).to.be.a(\"string\");",
@@ -95,7 +95,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Wallet for onboarding] Wallet retrieved successfully by it's id with GET /wallets/{walletId}\", function () {",
+							"pm.test(\"[Wallet for onboarding - PAYPAL] Wallet retrieved successfully by it's id with GET /wallets/{walletId}\", function () {",
 							"    pm.response.to.have.status(200);",
 							"    const userId = pm.response.json().userId;",
 							"    pm.environment.set(\"x-user-id\", userId);",
@@ -144,7 +144,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Wallet for onboarding] Wallet retrieved successfully by it's user id with GET /wallets\", function () {",
+							"pm.test(\"[Wallet for onboarding - PAYPAL] Wallet retrieved successfully by it's user id with GET /wallets\", function () {",
 							"    pm.response.to.have.status(200);",
 							"    var wallets = pm.response.json().wallets;",
 							"    pm.expect(wallets.length).to.be.greaterThan(0);",
@@ -199,7 +199,7 @@
 						"exec": [
 							"const sdk = require('postman-collection');",
 							"",
-							"pm.test(\"[Wallet for onboarding] New wallet session created successfully with POST /wallets/{walletId}/sessions\", function () {",
+							"pm.test(\"[Wallet for onboarding - PAYPAL] New wallet session created successfully with POST /wallets/{walletId}/sessions\", function () {",
 							"    pm.response.to.have.status(200);",
 							"    const response = pm.response.json();",
 							"    const sessionData = response.sessionData;",
