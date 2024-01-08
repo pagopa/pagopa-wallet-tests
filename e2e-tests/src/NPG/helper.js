@@ -49,6 +49,118 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
   }
 };
 
+export const retrievePaymentRedirectUrl = async (walletHost) => {
+  // TODO inject secret
+  const secret = 'secret';
+  const RPTID_NM3 = '77777777777302001002012737200';
+  const urlUserWallet = `${walletHost}/payment-wallet/v1/wallets`;
+  const responseUserWallet = await fetch(urlUserWallet, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${secret}`,
+    }
+  });
+  if (responseUserWallet.status === 200) {
+    const walletData = await responseUserWallet.json();
+    const { walletId, paymentMethodId } = walletData.wallets.find(w => w?.details?.type === "CARDS");
+    const urlStartSession = `${walletHost}/ecommerce/io/v1/sessions`;
+    const responseStartSession = await fetch(urlStartSession, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      }
+    });
+    if(responseStartSession.status === 200) {
+      const sessionData = await responseStartSession.json();
+      const urlRprtIdInfo = `${walletHost}/ecommerce/io/v1/payment-requests/${RPTID_NM3}`;
+      const responseRptIdInfo = await fetch(urlRprtIdInfo, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.sessionToken}`,
+        }
+      });
+      if(responseRptIdInfo.status === 200) {
+        const rptidInfoData = await responseRptIdInfo.json();
+        const urlPaymentTransaction = `${walletHost}/ecommerce/io/v1/transactions`;
+        const responsePaymentTransaction = await fetch(urlPaymentTransaction, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.sessionToken}`,
+          },
+          body: JSON.stringify({
+            paymentNotices: [{
+              rptId: `${RPTID_NM3}`,
+              amount: 12000
+            }]
+          }),
+        })
+        if(responsePaymentTransaction.status === 200) {
+          const paymentTransactionData = await responsePaymentTransaction.json();
+          const urlFees = `${walletHost}/ecommerce/io/v1/payment-methods/${paymentMethodId}/fees`;
+
+          const feeBodyRequest = {
+            walletId,
+            language: "it",
+            paymentAmount: rptidInfoData.amount,
+            primaryCreditorInstitution: "77777777777",
+            idPspList: [],
+            isAllCCP: true,
+            transferList: [{creditorInstitution:"77777777777",digitalStamp:true,transferCategory:"string"}]
+          }
+          const responseFees = await fetch(urlFees, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${sessionData.sessionToken}`,
+            },
+            body: JSON.stringify(feeBodyRequest),
+          })
+          if (responseFees.status === 200) {
+            const feesData = await responseFees.json();
+            const urlAuthRequest = `${walletHost}/ecommerce/io/v1/transactions/${paymentTransactionData.transactionId}/auth-requests`;
+            const responseAuthRequest = await fetch(urlAuthRequest, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${sessionData.sessionToken}`,
+              },
+              body: JSON.stringify({
+                amount: rptidInfoData.amount,
+                fee: feesData.bundles[0].taxPayerFee,
+                pspId: feesData.bundles[0].idPsp,
+                paymentInstrumentId: paymentMethodId,
+                language: "IT",
+                isAllCCP: true,
+                walletId
+              }),
+            })
+            if (responseAuthRequest.status === 200) {
+              const authRequest = await responseAuthRequest.json();
+              return authRequest.authorizationUrl;
+            } else {
+              throw Error('Error during auth request');
+            }
+          } else {
+            throw Error('Error getting fees');
+          }
+        } else {
+          throw Error('Error during transaction');
+        }
+      } else {
+        throw Error('Error getting rptId');
+      }
+    } else {
+      throw Error('Error starting session');
+    }
+  } else {
+    throw Error('Error getting wallet');
+  }
+};
+
 export const fillCardDataForm = async cardData => {
   const cardNumberInput = '#frame_CARD_NUMBER';
   const expirationDateInput = '#frame_EXPIRATION_DATE';
