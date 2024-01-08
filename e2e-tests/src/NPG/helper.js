@@ -62,6 +62,7 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
     }
   });
   if (responseUserWallet.status === 200) {
+    console.debug('wallet 200');
     const walletData = await responseUserWallet.json();
     const { walletId, paymentMethodId } = walletData.wallets.find(w => w?.details?.type === "CARDS");
     const urlStartSession = `${walletHost}/ecommerce/io/v1/sessions`;
@@ -73,6 +74,7 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
       }
     });
     if(responseStartSession.status === 200) {
+      console.debug('session 200');
       const sessionData = await responseStartSession.json();
       const urlRprtIdInfo = `${walletHost}/ecommerce/io/v1/payment-requests/${RPTID_NM3}`;
       const responseRptIdInfo = await fetch(urlRprtIdInfo, {
@@ -83,6 +85,7 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
         }
       });
       if(responseRptIdInfo.status === 200) {
+        console.debug('rpt 200');
         const rptidInfoData = await responseRptIdInfo.json();
         const urlPaymentTransaction = `${walletHost}/ecommerce/io/v1/transactions`;
         const responsePaymentTransaction = await fetch(urlPaymentTransaction, {
@@ -99,6 +102,7 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
           }),
         })
         if(responsePaymentTransaction.status === 200) {
+          console.debug('transaction 200');
           const paymentTransactionData = await responsePaymentTransaction.json();
           const urlFees = `${walletHost}/ecommerce/io/v1/payment-methods/${paymentMethodId}/fees`;
 
@@ -120,6 +124,8 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
             body: JSON.stringify(feeBodyRequest),
           })
           if (responseFees.status === 200) {
+
+            console.debug('fees 200');
             const feesData = await responseFees.json();
             const urlAuthRequest = `${walletHost}/ecommerce/io/v1/transactions/${paymentTransactionData.transactionId}/auth-requests`;
             const responseAuthRequest = await fetch(urlAuthRequest, {
@@ -139,6 +145,8 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
               }),
             })
             if (responseAuthRequest.status === 200) {
+
+              console.debug('auth request 200');
               const authRequest = await responseAuthRequest.json();
               return authRequest.authorizationUrl;
             } else {

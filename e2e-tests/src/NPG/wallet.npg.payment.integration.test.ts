@@ -18,9 +18,13 @@ describe.only('wallet npg payment outcome check tests', () => {
   it('It Should redirect with outcome 0 on success', async () => {
 
     const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, WALLET_TOKEN);
+    console.debug(authorizationUrl);
     await page.goto(authorizationUrl);
 
     await page.waitForNavigation();
+    expect(page.url()).toContain('esito');
+    expect(page.url()).toContain('transactionId');
+    expect(page.url()).toContain('clientId=IO');
     await page.waitForNavigation();
     expect(page.url()).toContain('outcome=0');
   });
