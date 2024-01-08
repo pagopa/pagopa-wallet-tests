@@ -1,3 +1,5 @@
+import { randomIntFromInterval } from "../utils/numbers";
+
 const { APIM_HOST } = process.env
 
 export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
@@ -50,7 +52,7 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
 };
 
 export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
-  const RPTID_NM3 = '77777777777302001002012737200';
+  const RPTID_NM3 = "77777777777" + "302001" + randomIntFromInterval(0, 999999999999);
   const urlUserWallet = `${walletHost}/payment-wallet/v1/wallets`;
   const responseUserWallet = await fetch(urlUserWallet, {
     method: 'GET',

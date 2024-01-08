@@ -3,6 +3,7 @@ import {retrievePaymentRedirectUrl} from "./helper";
 const WALLET_HOST = String(process.env.WALLET_HOST);
 const WALLET_TOKEN = String(process.env.WALLET_TOKEN);
 
+// TODO remove only notation
 describe.only('wallet npg payment outcome check tests', () => {
   /**
    * Increase default test timeout (60000ms)
