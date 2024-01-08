@@ -49,16 +49,14 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
   }
 };
 
-export const retrievePaymentRedirectUrl = async (walletHost) => {
-  // TODO inject secret
-  const secret = 'secret';
+export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
   const RPTID_NM3 = '77777777777302001002012737200';
   const urlUserWallet = `${walletHost}/payment-wallet/v1/wallets`;
   const responseUserWallet = await fetch(urlUserWallet, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${secret}`,
+      Authorization: `Bearer ${walletToken}`,
     }
   });
   if (responseUserWallet.status === 200) {
@@ -69,7 +67,7 @@ export const retrievePaymentRedirectUrl = async (walletHost) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${secret}`,
+        Authorization: `Bearer ${walletToken}`,
       }
     });
     if(responseStartSession.status === 200) {

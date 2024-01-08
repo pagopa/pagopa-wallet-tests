@@ -1,6 +1,7 @@
 import {retrievePaymentRedirectUrl} from "./helper";
 
 const WALLET_HOST = String(process.env.WALLET_HOST);
+const WALLET_TOKEN = String(process.env.WALLET_TOKEN);
 
 describe.only('wallet npg payment outcome check tests', () => {
   /**
@@ -15,7 +16,7 @@ describe.only('wallet npg payment outcome check tests', () => {
 
   it('It Should redirect with outcome 0 on success', async () => {
 
-    const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST);
+    const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, WALLET_TOKEN);
     await page.goto(authorizationUrl);
 
     await page.waitForNavigation();
