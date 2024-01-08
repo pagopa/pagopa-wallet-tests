@@ -1,10 +1,9 @@
 import {retrievePaymentRedirectUrl} from "./helper";
 
 const WALLET_HOST = String(process.env.WALLET_HOST);
-const WALLET_TOKEN = String(process.env.WALLET_TOKEN);
+const WALLET_PAYMENT_TOKEN = String(process.env.WALLET_PAYMENT_TOKEN);
 
-// TODO remove only notation
-describe.only('wallet npg payment outcome check tests', () => {
+describe('wallet npg payment check tests', () => {
   /**
    * Increase default test timeout (60000ms)
    * to support entire payment flow
@@ -17,7 +16,7 @@ describe.only('wallet npg payment outcome check tests', () => {
 
   it('It Should redirect with outcome 0 on success', async () => {
 
-    const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, WALLET_TOKEN);
+    const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, WALLET_PAYMENT_TOKEN);
     console.debug(authorizationUrl);
     await page.goto(authorizationUrl);
 

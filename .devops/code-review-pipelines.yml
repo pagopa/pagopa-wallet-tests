@@ -35,4 +35,4 @@ stages:
             parameters:
               ENVIRONMENT: ${{parameters.ENVIRONMENT}}
               CHECKOUT_RESOURCE_REPO_NAME: self
-
+              WALLET_PAYMENT_TOKEN: $(WALLET_PAYMENT_TOKEN)
