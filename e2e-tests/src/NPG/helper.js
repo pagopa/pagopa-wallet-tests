@@ -1,3 +1,5 @@
+import { randomIntFromInterval } from "../utils/numbers";
+
 const { APIM_HOST } = process.env
 
 export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
@@ -46,6 +48,124 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
     }
   } else {
     throw Error('Error during user recovery');
+  }
+};
+
+export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
+  const RPTID_NM3 = "77777777777" + "302001" + randomIntFromInterval(0, 999999999999);
+  const urlUserWallet = `${walletHost}/payment-wallet/v1/wallets`;
+  const responseUserWallet = await fetch(urlUserWallet, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${walletToken}`,
+    }
+  });
+  if (responseUserWallet.status === 200) {
+    console.debug('wallet 200');
+    const walletData = await responseUserWallet.json();
+    const { walletId, paymentMethodId } = walletData.wallets.find(w => w?.details?.type === "CARDS");
+    const urlStartSession = `${walletHost}/ecommerce/io/v1/sessions`;
+    const responseStartSession = await fetch(urlStartSession, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${walletToken}`,
+      }
+    });
+    if(responseStartSession.status === 200) {
+      console.debug('session 200');
+      const sessionData = await responseStartSession.json();
+      const urlRprtIdInfo = `${walletHost}/ecommerce/io/v1/payment-requests/${RPTID_NM3}`;
+      const responseRptIdInfo = await fetch(urlRprtIdInfo, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.sessionToken}`,
+        }
+      });
+      if(responseRptIdInfo.status === 200) {
+        console.debug('rpt 200');
+        const rptidInfoData = await responseRptIdInfo.json();
+        const urlPaymentTransaction = `${walletHost}/ecommerce/io/v1/transactions`;
+        const responsePaymentTransaction = await fetch(urlPaymentTransaction, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.sessionToken}`,
+          },
+          body: JSON.stringify({
+            paymentNotices: [{
+              rptId: `${RPTID_NM3}`,
+              amount: 12000
+            }]
+          }),
+        })
+        if(responsePaymentTransaction.status === 200) {
+          console.debug('transaction 200');
+          const paymentTransactionData = await responsePaymentTransaction.json();
+          const urlFees = `${walletHost}/ecommerce/io/v1/payment-methods/${paymentMethodId}/fees`;
+
+          const feeBodyRequest = {
+            walletId,
+            language: "it",
+            paymentAmount: rptidInfoData.amount,
+            primaryCreditorInstitution: "77777777777",
+            idPspList: [],
+            isAllCCP: true,
+            transferList: [{creditorInstitution:"77777777777",digitalStamp:true,transferCategory:"string"}]
+          }
+          const responseFees = await fetch(urlFees, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${sessionData.sessionToken}`,
+            },
+            body: JSON.stringify(feeBodyRequest),
+          })
+          if (responseFees.status === 200) {
+
+            console.debug('fees 200');
+            const feesData = await responseFees.json();
+            const urlAuthRequest = `${walletHost}/ecommerce/io/v1/transactions/${paymentTransactionData.transactionId}/auth-requests`;
+            const responseAuthRequest = await fetch(urlAuthRequest, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${sessionData.sessionToken}`,
+              },
+              body: JSON.stringify({
+                amount: rptidInfoData.amount,
+                fee: feesData.bundles[0].taxPayerFee,
+                pspId: feesData.bundles[0].idPsp,
+                paymentInstrumentId: paymentMethodId,
+                language: "IT",
+                isAllCCP: true,
+                walletId
+              }),
+            })
+            if (responseAuthRequest.status === 200) {
+
+              console.debug('auth request 200');
+              const authRequest = await responseAuthRequest.json();
+              return authRequest.authorizationUrl;
+            } else {
+              throw Error('Error during auth request');
+            }
+          } else {
+            throw Error('Error getting fees');
+          }
+        } else {
+          throw Error('Error during transaction');
+        }
+      } else {
+        throw Error('Error getting rptId');
+      }
+    } else {
+      throw Error('Error starting session');
+    }
+  } else {
+    throw Error('Error getting wallet');
   }
 };
 

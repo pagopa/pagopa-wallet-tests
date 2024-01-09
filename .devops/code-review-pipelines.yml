@@ -35,4 +35,5 @@ stages:
             parameters:
               ENVIRONMENT: ${{parameters.ENVIRONMENT}}
               CHECKOUT_RESOURCE_REPO_NAME: self
-
+              USER_WALLET_TOKEN_DEV: $(USER_WALLET_TOKEN_DEV)
+              USER_WALLET_TOKEN_UAT: $(USER_WALLET_TOKEN_UAT)
