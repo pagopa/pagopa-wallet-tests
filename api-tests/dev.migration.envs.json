@@ -15,12 +15,6 @@
 			"enabled": true
 		},
 		{
-			"key": "WALLET_ID_PM",
-			"value": "9016183135",
-			"type": "default",
-			"enabled": true
-		},
-		{
 			"key": "USER_ID",
 			"value": "4b52c553-2a11-49c4-af4f-db5e64b78abd",
 			"type": "default",
@@ -34,6 +28,6 @@
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2024-02-29T11:19:11.359Z",
+	"_postman_exported_at": "2024-02-29T12:35:26.865Z",
 	"_postman_exported_using": "Postman/10.23.5"
 }

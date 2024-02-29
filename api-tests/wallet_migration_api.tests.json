@@ -26,6 +26,17 @@
 						],
 						"type": "text/javascript"
 					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"if(!pm.environment.get('WALLET_ID_PM')) {",
+							"    pm.environment.set('WALLET_ID_PM', Math.floor(Math.random() * 1_000_000))",
+							"}"
+						],
+						"type": "text/javascript"
+					}
 				}
 			],
 			"request": {
@@ -80,6 +91,15 @@
 							"    pm.expect(responseJson.userId).to.be.eq(pm.environment.get('USER_ID'))",
 							"    pm.expect(responseJson.paymentMethodId).to.be.eq(pm.environment.get('PAYMENT_METHOD_ID'))",
 							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
 						],
 						"type": "text/javascript"
 					}
