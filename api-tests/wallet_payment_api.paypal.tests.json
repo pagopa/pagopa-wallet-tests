@@ -111,7 +111,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{bearerToken}}",
+							"value": "{{WALLET_TOKEN_TEST}}",
 							"type": "string"
 						}
 					]
