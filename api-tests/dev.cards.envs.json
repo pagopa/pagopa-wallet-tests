@@ -74,19 +74,19 @@
 		},
 		{
 			"key": "NPG_EXP_DATE",
-			"value": "05/26",
+			"value": "12/31",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "NPG_CARD_NUMBER",
-			"value": "4349940199004549",
+			"value": "4109230300003014",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "NPG_CARD_CVV",
-			"value": "396",
+			"value": "554",
 			"type": "default",
 			"enabled": true
 		},
