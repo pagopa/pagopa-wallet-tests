@@ -1,0 +1,137 @@
+{
+	"info": {
+		"_postman_id": "ed74ad6b-b086-4fde-9535-c953a91a76b3",
+		"name": "Wallet CARDS Migration Integration",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32950386"
+	},
+	"item": [
+		{
+			"name": "Create new wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet PM Migration] New wallet created successfully with PUT /wallets/migrations\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson.walletId).to.be.a(\"string\")",
+							"    pm.expect(responseJson.walletIdPm).to.be.a(\"number\")",
+							"    pm.expect(responseJson.walletIdPm).to.be.eq(Number(pm.environment.get(\"WALLET_ID_PM\")))",
+							"    pm.expect(responseJson.contractId).to.be.a(\"string\")",
+							"    pm.expect(responseJson.status).to.be.a(\"string\")",
+							"    pm.environment.set('WALLET_ID', responseJson.walletId)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"if(!pm.environment.get('WALLET_ID_PM')) {",
+							"    pm.environment.set('WALLET_ID_PM', Math.floor(Math.random() * 1_000_000))",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Ocp-Apim-Subscription-Key",
+						"value": "{{MIGRATION_API_KEY_TEST}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"walletIdPm\": {{WALLET_ID_PM}},\n    \"fiscalCode\": \"{{FISCAL_CODE}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/payment-wallet-migrations/v1/migrations/wallets",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"payment-wallet-migrations",
+						"v1",
+						"migrations",
+						"wallets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get migrated wallet by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet PM migration] Get wallet migrated by id with GET /wallets/:idWallet\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson.walletId).to.be.a(\"string\")",
+							"    pm.expect(responseJson.userId).to.be.a(\"string\")",
+							"    pm.expect(responseJson.paymentMethodId).to.be.a(\"string\")",
+							"    pm.expect(responseJson.status).to.be.a(\"string\")",
+							"    pm.expect(responseJson.status).to.be.eq(\"CREATED\")",
+							"    pm.expect(responseJson.walletId).to.be.eq(pm.environment.get(\"WALLET_ID\"))",
+							"    pm.expect(responseJson.userId).to.be.eq(pm.environment.get('USER_ID'))",
+							"    pm.expect(responseJson.paymentMethodId).to.be.eq(pm.environment.get('PAYMENT_METHOD_ID'))",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{WALLET_TOKEN_TEST}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{HOSTNAME}}/payment-wallet/v1/wallets/{{WALLET_ID}}",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"payment-wallet",
+						"v1",
+						"wallets",
+						"{{WALLET_ID}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
