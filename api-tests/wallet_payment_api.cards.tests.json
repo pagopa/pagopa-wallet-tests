@@ -564,7 +564,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Wallet for onboarding - CARDS] Wallet retrieved successfully by it's id with GET /wallets/{walletId}\", function () {",
+							"pm.test(\"[Wallet for onboarding - CARDS] Wallet deleted successfully by it's id with DELETE /wallets/{walletId}\", function () {",
 							"    pm.response.to.have.status(204);",
 							"});"
 						],
