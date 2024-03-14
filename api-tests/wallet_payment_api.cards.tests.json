@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "2d50e89a-da5e-410a-b486-d2a78baa7d72",
+		"_postman_id": "25fd4e3b-a34c-4fd6-becc-860fbc59bdf0",
 		"name": "pagoPA Payment Wallet API - CARDS",
 		"description": "API to handle payment wallets PagoPA for App IO, where a wallet is triple between user identifier, payment instrument and services (i.e pagoPA, bpd).\n\nThe wallet onboarding outcome and walletId are returned as query params to the app IO, for example \n/wallets/{walletId}/outcomes?outcome=0&walletId=123. The possible outcome are:\n- SUCCESS(0)\n- GENERIC_ERROR(1)\n- AUTH_ERROR(2)\n- TIMEOUT(4)\n- CANCELED_BY_USER(8)\n- INVALID_SESSION(14)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23963988"
+		"_exporter_id": "23305473"
 	},
 	"item": [
 		{
@@ -554,6 +554,53 @@
 					]
 				},
 				"description": "This endpoint returns an object with a url to which to redirect in case of APM or a url on which to build an iframe for GDI check."
+			},
+			"response": []
+		},
+		{
+			"name": "Delete wallet by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding - CARDS] Wallet deleted successfully by it's id with DELETE /wallets/{walletId}\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{WALLET_TOKEN_TEST}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{HOSTNAME}}/wallets/{{WALLET_ID}}",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"wallets",
+						"{{WALLET_ID}}"
+					]
+				},
+				"description": "Delete a wallet by it's id"
 			},
 			"response": []
 		}
