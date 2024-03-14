@@ -600,7 +600,7 @@
 						"{{WALLET_ID}}"
 					]
 				},
-				"description": "Returns a single wallet"
+				"description": "Delete a wallet by it's id"
 			},
 			"response": []
 		}
