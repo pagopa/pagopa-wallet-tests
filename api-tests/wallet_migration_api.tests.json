@@ -22,6 +22,7 @@
 							"    pm.expect(responseJson.contractId).to.be.a(\"string\")",
 							"    pm.expect(responseJson.status).to.be.a(\"string\")",
 							"    pm.environment.set('WALLET_ID', responseJson.walletId)",
+							"    pm.environment.set(\"NEW_CONTRACT_ID\", responseJson.contractId)",
 							"});"
 						],
 						"type": "text/javascript"
