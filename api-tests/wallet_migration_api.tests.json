@@ -73,7 +73,7 @@
 			"response": []
 		},
 		{
-			"name": "Get migrated wallet by id",
+			"name": "Get created wallet by id",
 			"event": [
 				{
 					"listen": "test",
@@ -91,6 +91,124 @@
 							"    pm.expect(responseJson.userId).to.be.eq(pm.environment.get('USER_ID'))",
 							"    pm.expect(responseJson.paymentMethodId).to.be.eq(pm.environment.get('PAYMENT_METHOD_ID'))",
 							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{WALLET_TOKEN_TEST}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{HOSTNAME}}/payment-wallet/v1/wallets/{{WALLET_ID}}",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"payment-wallet",
+						"v1",
+						"wallets",
+						"{{WALLET_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update with card details",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet PM Migration] Update card details /wallets/migrations/updateDetails\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson.walletId).to.be.a(\"string\")",
+							"    pm.expect(responseJson.walletId).to.be.eq(pm.environment.get(\"WALLET_ID\"))",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Ocp-Apim-Subscription-Key",
+						"value": "{{MIGRATION_API_KEY_TEST}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"lastFourDigits\": \"7295\",\n  \"expiryDate\": \"12/25\",\n  \"cardId\": \"1234\",\n  \"paymentCircuit\": \"VISA\",\n  \"paymentGatewayCardId\": \"123\",\n  \"newContractIdentifier\": \"{{NEW_CONTRACT_ID}}\",\n  \"originalContractIdentifier\": \"{{$guid}}\",\n  \"cardBin\": \"12345678\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/payment-wallet-migrations/v1/migrations/wallets/updateDetails",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"payment-wallet-migrations",
+						"v1",
+						"migrations",
+						"wallets",
+						"updateDetails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get validated wallet by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet PM migration] Get wallet migrated by id with GET /wallets/:idWallet\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson.walletId).to.be.a(\"string\")",
+							"    pm.expect(responseJson.userId).to.be.a(\"string\")",
+							"    pm.expect(responseJson.paymentMethodId).to.be.a(\"string\")",
+							"    pm.expect(responseJson.status).to.be.a(\"string\")",
+							"    pm.expect(responseJson.status).to.be.eq(\"VALIDATED\")",
+							"    pm.expect(responseJson.details.type).to.be.eq(\"CARDS\")",
+							"    pm.expect(responseJson.details.bin).to.be.eq(\"12345678\")",
+							"    pm.expect(responseJson.details.lastFourDigits).to.be.eq(\"7295\")",
+							"    pm.expect(responseJson.details.expiryDate).to.be.eq(\"202512\")",
+							"    pm.expect(responseJson.walletId).to.be.eq(pm.environment.get(\"WALLET_ID\"))",
+							"    pm.expect(responseJson.userId).to.be.eq(pm.environment.get('USER_ID'))",
+							"    pm.expect(responseJson.paymentMethodId).to.be.eq(pm.environment.get('PAYMENT_METHOD_ID'))",
+							"});",
+							""
 						],
 						"type": "text/javascript"
 					}
