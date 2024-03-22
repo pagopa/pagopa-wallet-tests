@@ -269,7 +269,13 @@
 			],
 			"request": {
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "Ocp-Apim-Subscription-Key",
+						"value": "{{MIGRATION_API_KEY_TEST}}",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"newContractIdentifier\": \"{{NEW_CONTRACT_ID}}\"\n}",
