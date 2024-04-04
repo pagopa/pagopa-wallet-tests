@@ -234,7 +234,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"paymentMethodType\": \"paypal\",\n    \"pspId\": \"pspId\"\n}",
+					"raw": "{\n    \"paymentMethodType\": \"paypal\",\n    \"pspId\": \"BCITITMM\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
