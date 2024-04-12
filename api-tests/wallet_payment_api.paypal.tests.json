@@ -319,7 +319,7 @@
 			"response": []
 		},
 		{
-			"name": "Update wallet applications (ENABLED",
+			"name": "Update wallet applications (ENABLED)",
 			"event": [
 				{
 					"listen": "test",
