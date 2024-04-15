@@ -25,18 +25,18 @@
 							"    pm.environment.set(\"NEW_CONTRACT_ID\", responseJson.contractId)",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"if(!pm.environment.get('WALLET_ID_PM')) {",
-							"    pm.environment.set('WALLET_ID_PM', Math.floor(Math.random() * 1_000_000))",
-							"}"
+							"pm.environment.set('WALLET_ID_PM', Math.floor(Math.random() * 1_000_000))"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -148,7 +148,8 @@
 							"    pm.expect(responseJson.walletId).to.be.eq(pm.environment.get(\"WALLET_ID\"))",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -157,13 +158,13 @@
 				"header": [
 					{
 						"key": "Ocp-Apim-Subscription-Key",
-						"value": "{{MIGRATION_API_KEY_TEST}}",
+						"value": "{{MIGRATION_CSTAR_API_KEY_TEST}}",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"lastFourDigits\": \"7295\",\n  \"expiryDate\": \"12/25\",\n  \"cardId\": \"1234\",\n  \"paymentCircuit\": \"VISA\",\n  \"paymentGatewayCardId\": \"123\",\n  \"contractIdentifier\": \"{{NEW_CONTRACT_ID}}\",\n  \"newContractIdentifier\": \"{{$guid}}\",\n  \"cardBin\": \"12345678\"\n}",
+					"raw": "{\n  \"lastFourDigits\": \"7295\",\n  \"expiryDate\": \"12/25\",\n  \"paymentCircuit\": \"MC\",\n  \"paymentGatewayCardId\": \"123\",\n  \"contractIdentifier\": \"{{NEW_CONTRACT_ID}}\",\n  \"newContractIdentifier\": \"{{$guid}}\",\n  \"cardBin\": \"12345678\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -265,7 +266,8 @@
 							"    pm.response.to.have.status(204);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -274,7 +276,7 @@
 				"header": [
 					{
 						"key": "Ocp-Apim-Subscription-Key",
-						"value": "{{MIGRATION_API_KEY_TEST}}",
+						"value": "{{MIGRATION_CSTAR_API_KEY_TEST}}",
 						"type": "text"
 					}
 				],
