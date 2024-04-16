@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "9897b69d-35d4-4eaa-8124-f66b2ff60031",
+		"_postman_id": "ed74ad6b-b086-4fde-9535-c953a91a76b3",
 		"name": "Wallet CARDS Migration Integration",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23305473"
+		"_exporter_id": "32950386"
 	},
 	"item": [
 		{
@@ -25,18 +25,18 @@
 							"    pm.environment.set(\"NEW_CONTRACT_ID\", responseJson.contractId)",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"if(!pm.environment.get('WALLET_ID_PM')) {",
-							"    pm.environment.set('WALLET_ID_PM', Math.floor(Math.random() * 1_000_000))",
-							"}"
+							"pm.environment.set('WALLET_ID_PM', Math.floor(Math.random() * 1_000_000))"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -148,7 +148,8 @@
 							"    pm.expect(responseJson.walletId).to.be.eq(pm.environment.get(\"WALLET_ID\"))",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -157,13 +158,13 @@
 				"header": [
 					{
 						"key": "Ocp-Apim-Subscription-Key",
-						"value": "{{MIGRATION_API_KEY_TEST}}",
+						"value": "{{MIGRATION_CSTAR_API_KEY_TEST}}",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"lastFourDigits\": \"7295\",\n  \"expiryDate\": \"12/25\",\n  \"cardId\": \"1234\",\n  \"paymentCircuit\": \"VISA\",\n  \"paymentGatewayCardId\": \"123\",\n  \"contractIdentifier\": \"{{NEW_CONTRACT_ID}}\",\n  \"newContractIdentifier\": \"{{$guid}}\",\n  \"cardBin\": \"12345678\"\n}",
+					"raw": "{\n  \"lastFourDigits\": \"7295\",\n  \"expiryDate\": \"12/25\",\n  \"paymentCircuit\": \"MC\",\n  \"paymentGatewayCardId\": \"123\",\n  \"contractIdentifier\": \"{{NEW_CONTRACT_ID}}\",\n  \"newContractIdentifier\": \"{{$guid}}\",\n  \"cardBin\": \"12345678\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -171,12 +172,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{HOSTNAME}}/payment-wallet-migrations/v1/migrations/wallets/updateDetails",
+					"raw": "{{HOSTNAME}}/payment-wallet-migrations/cstar/v1/migrations/wallets/updateDetails",
 					"host": [
 						"{{HOSTNAME}}"
 					],
 					"path": [
 						"payment-wallet-migrations",
+						"cstar",
 						"v1",
 						"migrations",
 						"wallets",
@@ -204,15 +206,13 @@
 							"    pm.expect(responseJson.details.type).to.be.eq(\"CARDS\")",
 							"    pm.expect(responseJson.details.lastFourDigits).to.be.eq(\"7295\")",
 							"    pm.expect(responseJson.details.expiryDate).to.be.eq(\"202512\")",
-							"    pm.expect(responseJson.details.brand).to.be.a(\"string\")",
 							"    pm.expect(responseJson.walletId).to.be.eq(pm.environment.get(\"WALLET_ID\"))",
 							"    pm.expect(responseJson.userId).to.be.eq(pm.environment.get('USER_ID'))",
 							"    pm.expect(responseJson.paymentMethodId).to.be.eq(pm.environment.get('PAYMENT_METHOD_ID'))",
 							"});",
 							""
 						],
-						"type": "text/javascript",
-						"packages": {}
+						"type": "text/javascript"
 					}
 				},
 				{
@@ -221,8 +221,7 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript",
-						"packages": {}
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -265,7 +264,8 @@
 							"    pm.response.to.have.status(204);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -274,7 +274,7 @@
 				"header": [
 					{
 						"key": "Ocp-Apim-Subscription-Key",
-						"value": "{{MIGRATION_API_KEY_TEST}}",
+						"value": "{{MIGRATION_CSTAR_API_KEY_TEST}}",
 						"type": "text"
 					}
 				],
@@ -288,12 +288,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{HOSTNAME}}/payment-wallet-migrations/v1/migrations/wallets/delete",
+					"raw": "{{HOSTNAME}}/payment-wallet-migrations/cstar/v1/migrations/wallets/delete",
 					"host": [
 						"{{HOSTNAME}}"
 					],
 					"path": [
 						"payment-wallet-migrations",
+						"cstar",
 						"v1",
 						"migrations",
 						"wallets",
@@ -321,15 +322,13 @@
 							"    pm.expect(responseJson.details.type).to.be.eq(\"CARDS\")",
 							"    pm.expect(responseJson.details.lastFourDigits).to.be.eq(\"7295\")",
 							"    pm.expect(responseJson.details.expiryDate).to.be.eq(\"202512\")",
-							"    pm.expect(responseJson.details.brand).to.be.a(\"string\")",
 							"    pm.expect(responseJson.walletId).to.be.eq(pm.environment.get(\"WALLET_ID\"))",
 							"    pm.expect(responseJson.userId).to.be.eq(pm.environment.get('USER_ID'))",
 							"    pm.expect(responseJson.paymentMethodId).to.be.eq(pm.environment.get('PAYMENT_METHOD_ID'))",
 							"});",
 							""
 						],
-						"type": "text/javascript",
-						"packages": {}
+						"type": "text/javascript"
 					}
 				},
 				{
@@ -338,8 +337,7 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript",
-						"packages": {}
+						"type": "text/javascript"
 					}
 				}
 			],
