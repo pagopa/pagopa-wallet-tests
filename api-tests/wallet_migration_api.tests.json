@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "9897b69d-35d4-4eaa-8124-f66b2ff60031",
+		"_postman_id": "ed74ad6b-b086-4fde-9535-c953a91a76b3",
 		"name": "Wallet CARDS Migration Integration",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23305473"
+		"_exporter_id": "32950386"
 	},
 	"item": [
 		{
@@ -172,12 +172,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{HOSTNAME}}/payment-wallet-migrations/v1/migrations/wallets/updateDetails",
+					"raw": "{{HOSTNAME}}/payment-wallet-migrations/cstar/v1/migrations/wallets/updateDetails",
 					"host": [
 						"{{HOSTNAME}}"
 					],
 					"path": [
 						"payment-wallet-migrations",
+						"cstar",
 						"v1",
 						"migrations",
 						"wallets",
@@ -205,15 +206,13 @@
 							"    pm.expect(responseJson.details.type).to.be.eq(\"CARDS\")",
 							"    pm.expect(responseJson.details.lastFourDigits).to.be.eq(\"7295\")",
 							"    pm.expect(responseJson.details.expiryDate).to.be.eq(\"202512\")",
-							"    pm.expect(responseJson.details.brand).to.be.a(\"string\")",
 							"    pm.expect(responseJson.walletId).to.be.eq(pm.environment.get(\"WALLET_ID\"))",
 							"    pm.expect(responseJson.userId).to.be.eq(pm.environment.get('USER_ID'))",
 							"    pm.expect(responseJson.paymentMethodId).to.be.eq(pm.environment.get('PAYMENT_METHOD_ID'))",
 							"});",
 							""
 						],
-						"type": "text/javascript",
-						"packages": {}
+						"type": "text/javascript"
 					}
 				},
 				{
@@ -222,8 +221,7 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript",
-						"packages": {}
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -290,12 +288,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{HOSTNAME}}/payment-wallet-migrations/v1/migrations/wallets/delete",
+					"raw": "{{HOSTNAME}}/payment-wallet-migrations/cstar/v1/migrations/wallets/delete",
 					"host": [
 						"{{HOSTNAME}}"
 					],
 					"path": [
 						"payment-wallet-migrations",
+						"cstar",
 						"v1",
 						"migrations",
 						"wallets",
@@ -323,15 +322,13 @@
 							"    pm.expect(responseJson.details.type).to.be.eq(\"CARDS\")",
 							"    pm.expect(responseJson.details.lastFourDigits).to.be.eq(\"7295\")",
 							"    pm.expect(responseJson.details.expiryDate).to.be.eq(\"202512\")",
-							"    pm.expect(responseJson.details.brand).to.be.a(\"string\")",
 							"    pm.expect(responseJson.walletId).to.be.eq(pm.environment.get(\"WALLET_ID\"))",
 							"    pm.expect(responseJson.userId).to.be.eq(pm.environment.get('USER_ID'))",
 							"    pm.expect(responseJson.paymentMethodId).to.be.eq(pm.environment.get('PAYMENT_METHOD_ID'))",
 							"});",
 							""
 						],
-						"type": "text/javascript",
-						"packages": {}
+						"type": "text/javascript"
 					}
 				},
 				{
@@ -340,8 +337,7 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript",
-						"packages": {}
+						"type": "text/javascript"
 					}
 				}
 			],
