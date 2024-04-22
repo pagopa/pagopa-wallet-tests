@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "ed74ad6b-b086-4fde-9535-c953a91a76b3",
+		"_postman_id": "722762a4-a37d-4a84-b08f-086fdd583dd8",
 		"name": "Wallet CARDS Migration Integration",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "32950386"
@@ -164,7 +164,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"lastFourDigits\": \"7295\",\n  \"expiryDate\": \"12/25\",\n  \"paymentCircuit\": \"MC\",\n  \"paymentGatewayCardId\": \"123\",\n  \"contractIdentifier\": \"{{NEW_CONTRACT_ID}}\",\n  \"newContractIdentifier\": \"{{$guid}}\",\n  \"cardBin\": \"12345678\"\n}",
+					"raw": "{\n  \"lastFourDigits\": \"7295\",\n  \"expiryDate\": \"12/25\",\n  \"paymentCircuit\": \"MC\",\n  \"paymentGatewayCardId\": \"{{$guid}}\",\n  \"contractIdentifier\": \"{{NEW_CONTRACT_ID}}\",\n  \"newContractIdentifier\": \"{{$guid}}\",\n  \"cardBin\": \"12345678\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
