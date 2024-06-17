@@ -18,15 +18,14 @@ export type K6Config = t.TypeOf<typeof K6Config>;
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
+    URL_BASE_PATH: NonEmptyString,
+    API_SUBSCRIPTION_KEY: NonEmptyString,
     API_SUBSCRIPTION_KEY_GENERATE_CONTRACT: NonEmptyString,
-    API_SUBSCRIPTION_KEY_CSTAR_ROLE: NonEmptyString,
     URL_BASE_PATH_GENERATE_CONTRACT: NonEmptyString,
-    URL_BASE_PATH_CSTAR_ROLE: NonEmptyString,
     DELETE_RATIO: NumberFromString,
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
-    GENERATE_CONTRACT_FILE: BooleanFromString,
   }),
   K6Config,
 ]);

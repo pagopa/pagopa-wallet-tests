@@ -108,8 +108,8 @@ will update or delete the wallet using POST /migrations/updateDetails or POST /m
 
 | Parameter key                | Type   | Description                                             |
 |------------------------------|--------|---------------------------------------------------------|
+| API_SUBSCRIPTION_KEY                  | string | API key used to finalize contract import    |
+| URL_BASE_PATH                  | string | URL base path to import contract api group    |
 | API_SUBSCRIPTION_KEY_GENERATE_CONTRACT                  | string | API key used by generating contract     |
-| API_SUBSCRIPTION_KEY_CSTAR_ROLE                  | string | API key used to finalize contract import    |
 | URL_BASE_PATH_GENERATE_CONTRACT                  | string | URL base path to generate contract api group    |
-| URL_BASE_PATH_CSTAR_ROLE                  | string | URL base path to import contract api group    |
 | DELETE_RATIO  | number | Between 0 and 1. The percentage of contract DELETE  |

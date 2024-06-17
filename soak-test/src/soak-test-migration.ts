@@ -46,13 +46,12 @@ export let options = {
 const headerParams = {
     headers: {
         "Content-Type": "application/json",
-        "Ocp-Apim-Subscription-Key": config.API_SUBSCRIPTION_KEY_CSTAR_ROLE
+        "Ocp-Apim-Subscription-Key": config.API_SUBSCRIPTION_KEY
     },
 }
 
-const urlBasePathNexiV1 = getVersionedBaseUrl(config.URL_BASE_PATH_GENERATE_CONTRACT, "v1");
-const urlBasePathCstarV1 = getVersionedBaseUrl(config.URL_BASE_PATH_CSTAR_ROLE, "v1");
-
+const urlBasePathImportV1 = getVersionedBaseUrl(config.URL_BASE_PATH, "v1");
+const urlBasePathGenerateV1 = getVersionedBaseUrl(config.URL_BASE_PATH_GENERATE_CONTRACT, "v1");
 
 export function setup() {
     console.log("Setup", JSON.stringify(config))
@@ -64,7 +63,7 @@ export default function () {
     const requestPm = randomPmRequest();
     console.log(requestPm);
     const response = http.put(
-        `${urlBasePathNexiV1}/migrations/wallets`,
+        `${urlBasePathGenerateV1}/migrations/wallets`,
         JSON.stringify(requestPm),
         {
             headers: {
@@ -93,7 +92,7 @@ export default function () {
         // delete wallet
         const request = generateDeleteRequest(responseBody.contractId);
         const response = http.post(
-            `${urlBasePathCstarV1}/migrations/delete`,
+            `${urlBasePathImportV1}/migrations/delete`,
             JSON.stringify(request),
             {
                 headers: {
@@ -113,7 +112,7 @@ export default function () {
         // update wallet
         const request = generateUpdateRequest(responseBody.contractId);
         const response = http.post(
-            `${urlBasePathCstarV1}/migrations/updateDetails`,
+            `${urlBasePathImportV1}/migrations/updateDetails`,
             JSON.stringify(request),
             {
                 headers: {
