@@ -1,0 +1,125 @@
+# azure-pipelines.yml
+trigger: none
+
+parameters:
+  - name: "DESCRIPTION"
+    type: string
+    default: "Load test"
+  - name: "rate"
+    displayName: "rate"
+    type: string
+    default: "10"
+  - name: "duration"
+    displayName: "Duration (e.g. 10s)"
+    type: string
+  - name: "rampingDuration"
+    displayName: "Ramping Duration (e.g. 10s)"
+    type: string
+  - name: "preAllocatedVUs"
+    displayName: "preAllocatedVUs"
+    type: string
+    default: "10"
+  - name: "maxVUs"
+    displayName: "maxVUs"
+    type: string
+    default: "10"
+  - name: "URL_BASE_PATH"
+    displayName: "URL_BASE_PATH"
+    type: string
+    values:
+      - "https://api.dev.platform.pagopa.it/payment-wallet-migrations/cstar/"
+      - "https://api.uat.platform.pagopa.it/payment-wallet-migrations/cstar/"
+  - name: "URL_BASE_PATH_GENERATE_CONTRACT"
+    displayName: "URL_BASE_PATH_GENERATE_CONTRACT"
+    type: string
+    values:
+      - "https://api.dev.platform.pagopa.it/payment-wallet-migrations/"
+      - "https://api.uat.platform.pagopa.it/payment-wallet-migrations/"
+  - name: "SCRIPT"
+    displayName: "Script name"
+    type: string
+    values:
+      - soak-migration
+  # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
+  - name: "projectDir"
+    type: string
+    default: "." # current folder is default
+  # if not set, the Node version will be red from .node-version and -nvmrc files, in this order
+  - name: "nodeVersion"
+    type: string
+    default: "none"
+  - name: "BYPASS_APIM"
+    displayName: "BYPASS_APIM"
+    type: boolean
+    default: False
+    values:
+      - False
+      - True
+  - name: "USE_BLUE_DEPLOYMENT"
+    displayName: "Use Blue instances"
+    type: boolean
+    default: false
+    values:
+      - false
+      - true
+  - name: "DEVOPS_POOL_NAME"
+    displayName: "Pool name"
+    type: string
+    default: "Default"
+    values:
+      - "Default"
+      - "pagopa-dev-loadtest-linux"
+      - "pagopa-uat-loadtest-linux"
+    
+stages : 
+  - stage : 'run_with_APIM'
+    displayName: 'Run with APIM'
+    condition: eq(${{parameters.BYPASS_APIM}}, false)
+    jobs:
+      - job: performance_test_with_APIM
+        pool:
+          ${{ if eq(parameters.DEVOPS_POOL_NAME, 'Default') }}:
+            vmImage: 'ubuntu-latest'
+          ${{ else }}:
+            name: ${{ parameters.DEVOPS_POOL_NAME }}
+        steps:
+          - template: azure-templates/soak-tests.yaml
+            parameters:
+              URL_BASE_PATH: ${{ parameters['URL_BASE_PATH'] }} 
+              URL_BASE_PATH_GENERATE_CONTRACT: ${{ parameters['URL_BASE_PATH_GENERATE_CONTRACT'] }}
+              rate: ${{ parameters['rate'] }} 
+              duration: ${{ parameters['duration'] }} 
+              preAllocatedVUs: ${{ parameters['preAllocatedVUs'] }}
+              maxVUs: ${{ parameters['maxVUs'] }} 
+              projectDir: ${{ parameters['projectDir']}}
+              nodeVersion: ${{ parameters['nodeVersion']}}
+              SCRIPT: ${{ parameters['SCRIPT']}}
+              DESCRIPTION: ${{ parameters['DESCRIPTION']}}
+              rampingDuration: ${{ parameters['rampingDuration']}}
+              USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT']}}
+              
+  - stage : 'run_without_APIM'
+    displayName: 'Run without APIM'
+    condition: eq(${{parameters.BYPASS_APIM}}, true)
+    jobs:
+      - job: performance_test_without_APIM
+        pool:
+          ${{ if eq(parameters.DEVOPS_POOL_NAME, 'Default') }}:
+            vmImage: 'ubuntu-latest'
+          ${{ else }}:
+            name: ${{ parameters.DEVOPS_POOL_NAME }}
+        steps :
+          - template: azure-templates/soak-tests.yaml
+            parameters:
+              URL_BASE_PATH: ${{ parameters['URL_BASE_PATH'] }}
+              URL_BASE_PATH_GENERATE_CONTRACT: ${{ parameters['URL_BASE_PATH_GENERATE_CONTRACT'] }}
+              rate: ${{ parameters['rate'] }} 
+              duration: ${{ parameters['duration'] }} 
+              preAllocatedVUs: ${{ parameters['preAllocatedVUs'] }}
+              maxVUs: ${{ parameters['maxVUs'] }}
+              projectDir: ${{ parameters['projectDir']}}
+              nodeVersion: ${{ parameters['nodeVersion']}}
+              SCRIPT: ${{ parameters['SCRIPT']}}
+              DESCRIPTION: ${{ parameters['DESCRIPTION']}}
+              rampingDuration: ${{ parameters['rampingDuration']}}
+              USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT']}}
