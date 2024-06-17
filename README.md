@@ -100,3 +100,16 @@ Template parameters:
 |------------------------------|--------|---------------------------------------------------------|
 | ENVIRONMENT                  | string | Environment for which execute e2e test (DEV or UAT)     |
 | CHECKOUT_RESOURCE_REPO_NAME  | string | The name used during wallet-tests repository checkout |
+
+## Soak tests
+### Migration tests
+Every step of migration test will generate a new contract id by calling PUT /migrations/wallets and then
+will update or delete the wallet using POST /migrations/updateDetails or POST /migrations/delete.
+
+| Parameter key                | Type   | Description                                             |
+|------------------------------|--------|---------------------------------------------------------|
+| API_SUBSCRIPTION_KEY_GENERATE_CONTRACT                  | string | API key used by generating contract     |
+| API_SUBSCRIPTION_KEY_CSTAR_ROLE                  | string | API key used to finalize contract import    |
+| URL_BASE_PATH_GENERATE_CONTRACT                  | string | URL base path to generate contract api group    |
+| URL_BASE_PATH_CSTAR_ROLE                  | string | URL base path to import contract api group    |
+| DELETE_RATIO  | number | Between 0 and 1. The percentage of contract DELETE  |
