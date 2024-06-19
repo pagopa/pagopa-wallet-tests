@@ -1,10 +1,7 @@
-import http, { RefinedResponse } from "k6/http";
+import http from "k6/http";
 import { getConfigOrThrow, getVersionedBaseUrl } from "./common/config";
 import { check, fail } from "k6";
 import { WalletPmCardDetailsRequest } from "./generated/wallet-migration-v1/WalletPmCardDetailsRequest";
-import { SharedArray } from "k6/data";
-//import file from 'k6/x/file';
-import vu from 'k6/execution';
 import { charsetAlphanumeric, randomIntBetween, randomString, uuid } from "./common/utils";
 import { WalletPmDeleteRequest } from "./generated/wallet-migration-v1/WalletPmDeleteRequest";
 import { WalletPmAssociationRequest } from "./generated/wallet-migration-nexi-v1/WalletPmAssociationRequest";
@@ -20,18 +17,13 @@ const apiTags = {
 
 export let options = {
     scenarios: {
-        contacts: {
-            executor: 'ramping-arrival-rate',
-            startRate: 0,
+        constant_request_rate: {
+            executor: 'constant-arrival-rate',
+            rate: config.rate,
             timeUnit: '1s',
+            duration: config.duration,
             preAllocatedVUs: config.preAllocatedVUs,
             maxVUs: config.maxVUs,
-            stages: [
-                { target: 1, duration: '3s' }
-                // { target: config.rate, duration: config.rampingDuration },
-                // { target: config.rate, duration: config.duration },
-                // { target: 0, duration: config.rampingDuration },
-            ],
         },
     },
     thresholds: {
@@ -61,7 +53,6 @@ export default function () {
 
     // 1. Generate contract id
     const requestPm = randomPmRequest();
-    console.log(requestPm);
     const response = http.put(
         `${urlBasePathGenerateV1}/migrations/wallets`,
         JSON.stringify(requestPm),
@@ -92,7 +83,7 @@ export default function () {
         // delete wallet
         const request = generateDeleteRequest(responseBody.contractId);
         const response = http.post(
-            `${urlBasePathImportV1}/migrations/delete`,
+            `${urlBasePathImportV1}/migrations/wallets/delete`,
             JSON.stringify(request),
             {
                 headers: {
@@ -112,7 +103,7 @@ export default function () {
         // update wallet
         const request = generateUpdateRequest(responseBody.contractId);
         const response = http.post(
-            `${urlBasePathImportV1}/migrations/updateDetails`,
+            `${urlBasePathImportV1}/migrations/wallets/updateDetails`,
             JSON.stringify(request),
             {
                 headers: {
@@ -120,7 +111,7 @@ export default function () {
                     ...headerParams.headers
                 },
                 timeout: '10s',
-                tags: { name: apiTags.generateContract },
+                tags: { name: apiTags.updateWallet },
             }
         );
         check(
@@ -141,6 +132,8 @@ function randomPmRequest(): WalletPmAssociationRequest {
 
 function generateUpdateRequest(contractId: string): WalletPmCardDetailsRequest {
     const expireDate = new Date();
+    const monthAsString = expireDate.getMonth().toString();
+    const formattedMonth = monthAsString.length == 1 ? `0${monthAsString}` : monthAsString;
     return {
         contractIdentifier: contractId,
         cardBin: randomIntBetween(10_000_000, 99_999_999),
@@ -148,7 +141,7 @@ function generateUpdateRequest(contractId: string): WalletPmCardDetailsRequest {
         newContractIdentifier: contractId,
         paymentCircuit: "VISA",
         paymentGatewayCardId: uuid().split("-").join(""),
-        expiryDate: `${expireDate.getMonth()}/${expireDate.getFullYear().toString().slice(-2)}`
+        expiryDate: `${formattedMonth}/${expireDate.getFullYear().toString().slice(-2)}`
     }
 }
 
