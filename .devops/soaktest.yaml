@@ -27,6 +27,8 @@ parameters:
     displayName: "URL_BASE_PATH"
     type: string
     values:
+      - "https://api.dev.platform.pagopa.it/"
+      - "https://api.uat.platform.pagopa.it/"
       - "https://api.dev.platform.pagopa.it/payment-wallet-migrations/cstar/"
       - "https://api.uat.platform.pagopa.it/payment-wallet-migrations/cstar/"
   - name: "URL_BASE_PATH_GENERATE_CONTRACT"
@@ -39,7 +41,8 @@ parameters:
     displayName: "Script name"
     type: string
     values:
-      - soak-migration
+      - soak-test-migration
+      - soak-test-onboard-wallet
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string

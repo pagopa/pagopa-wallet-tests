@@ -26,6 +26,8 @@ export const IConfig = t.intersection([
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
+    WALLET_TOKEN: NonEmptyString,
+    ONBOARD_APM_RATIO: NumberFromString,
   }),
   K6Config,
 ]);
