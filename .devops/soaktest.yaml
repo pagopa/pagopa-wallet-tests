@@ -39,7 +39,11 @@ parameters:
     displayName: "Script name"
     type: string
     values:
-      - soak-migration
+      - soak-test-migration
+  - name: "DELETE_RATIO"
+    displayName: "DELETE_RATIO"
+    type: number
+    default: 0
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string
@@ -123,3 +127,4 @@ stages :
               DESCRIPTION: ${{ parameters['DESCRIPTION']}}
               rampingDuration: ${{ parameters['rampingDuration']}}
               USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT']}}
+              DELETE_RATIO: ${{ parameters['DELETE_RATIO'] }}

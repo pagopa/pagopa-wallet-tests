@@ -27,9 +27,10 @@ parameters:
   - name: "SCRIPT"
     displayName: "Script name"
     type: string
-  - name: "NOTICE_CODE_PREFIX"
-    displayName: "NOTICE_CODE_PREFIX"
-    type: string
+  - name: "DELETE_RATIO"
+    displayName: "DELETE_RATIO"
+    type: number
+    default: 0
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string
@@ -87,6 +88,7 @@ steps:
         -e URL_BASE_PATH_GENERATE_CONTRACT=${{ parameters.URL_BASE_PATH_GENERATE_CONTRACT }} \
         -e API_SUBSCRIPTION_KEY='$(API_SUBSCRIPTION_KEY)' \
         -e API_SUBSCRIPTION_KEY_GENERATE_CONTRACT='$(API_SUBSCRIPTION_KEY_GENERATE_CONTRACT)' \
+        -e DELETE_RATIO=${{ paramters.DELETE_RATIO }} \
         -e rate=${{ parameters.rate }} \
         -e duration=${{ parameters.duration }} \
         -e preAllocatedVUs=${{ parameters.preAllocatedVUs }} \
