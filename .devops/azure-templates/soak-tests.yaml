@@ -1,0 +1,101 @@
+parameters:
+  - name: "DESCRIPTION"
+    type: string
+    default: "Load test"
+  - name: "rate"
+    displayName: "rate"
+    type: string
+    default: "10"
+  - name: "duration"
+    displayName: "duration"
+    type: string
+    default: "1m"
+  - name: "preAllocatedVUs"
+    displayName: "preAllocatedVUs"
+    type: string
+    default: "10"
+  - name: "maxVUs"
+    displayName: "maxVUs"
+    type: string
+    default: "10"
+  - name: "URL_BASE_PATH"
+    displayName: "URL_BASE_PATH"
+    type: string
+  - name: "URL_BASE_PATH_GENERATE_CONTRACT"
+    displayName: "URL_BASE_PATH_GENERATE_CONTRACT"
+    type: string
+  - name: "SCRIPT"
+    displayName: "Script name"
+    type: string
+  - name: "DELETE_RATIO"
+    displayName: "DELETE_RATIO"
+    type: number
+    default: 0
+  # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
+  - name: "projectDir"
+    type: string
+    default: "." # current folder is default
+  # if not set, the Node version will be red from .node-version and -nvmrc files, in this order
+  - name: "nodeVersion"
+    type: string
+    default: "none"
+  - name: "rampingDuration"
+    displayName: "rampingDuration"
+    type: string
+  - name: "USE_BLUE_DEPLOYMENT"
+    displayName: "Use Blue instances"
+    type: boolean
+    default: false
+steps:
+  # If a Node version is defined explicitly by parameter, such version is used
+  # Else, version is red from .node-version file
+  # Else, version is red from .nvmrc file
+  - ${{ if ne(parameters.nodeVersion, 'none') }}:
+      - bash: |
+          echo "current folder: $(pwd)"
+          FROM_PARAM=${{ parameters.nodeVersion }}
+          echo "set FROM_PARAM='$FROM_PARAM'"
+          echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_PARAM"
+        workingDirectory: ${{ parameters.projectDir }}
+        displayName: "Determine Node.js version from template param"
+  - ${{ if eq(parameters.nodeVersion, 'none') }}:
+      - bash: |
+          echo "current folder: $(pwd)"
+          FROM_SOURCE=$(cat .node-version || cat .nvmrc)
+          ls .node-version && echo ".node-version found, value: '$(cat .node-version)'" || echo ".node-version not found" 
+          ls .nvmrc && echo ".nvmrc found, value: '$(cat .nvmrc)'" || echo ".nvmrc not found" 
+          echo "set FROM_SOURCE='$FROM_SOURCE'"
+          echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_SOURCE"
+        workingDirectory: ${{ parameters.projectDir }}
+        displayName: "Determine Node.js version from source"
+  - task: UseNode@1
+    inputs:
+      version: $(NODE_VERSION)
+    displayName: "Set up Node.js"
+  - script: |
+      npm install --global yarn
+    displayName: Install Yarn
+  - script: |
+      yarn install && yarn generate && yarn webpack
+    displayName: Install and Run webpack
+  - script: |
+      docker pull loadimpact/k6
+    displayName: Pull k6 image
+  - script: |
+      docker run -i \
+        -v $(pwd)/dist:/dist \
+        -e URL_BASE_PATH=${{ parameters.URL_BASE_PATH }} \
+        -e URL_BASE_PATH_GENERATE_CONTRACT=${{ parameters.URL_BASE_PATH_GENERATE_CONTRACT }} \
+        -e API_SUBSCRIPTION_KEY='$(API_SUBSCRIPTION_KEY)' \
+        -e API_SUBSCRIPTION_KEY_GENERATE_CONTRACT='$(API_SUBSCRIPTION_KEY_GENERATE_CONTRACT)' \
+        -e DELETE_RATIO=${{ paramters.DELETE_RATIO }} \
+        -e rate=${{ parameters.rate }} \
+        -e duration=${{ parameters.duration }} \
+        -e preAllocatedVUs=${{ parameters.preAllocatedVUs }} \
+        -e maxVUs=${{ parameters.maxVUs }} \
+        -e rampingDuration=${{ parameters.rampingDuration }} \
+        -e USE_BLUE_DEPLOYMENT=${{ parameters.USE_BLUE_DEPLOYMENT }} \
+        loadimpact/k6 \
+        run /dist/${{ parameters.SCRIPT }}.js  --summary-trend-stats "avg,min,med,max,p(90),p(95),p(99)" \
+    timeoutInMinutes: 120
+    displayName: Run k6 ${{ parameters.SCRIPT }} on ${{ parameters.DESCRIPTION }} 
