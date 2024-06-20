@@ -32,7 +32,6 @@ export let options = {
 };
 
 const urlBasePath = getVersionedBaseUrl(config.URL_BASE_PATH, "payment-wallet/v1");
-const paymentMethodIds = paymentMethodsIdsFor(urlBasePath);
 
 export function setup() {
     if (!config.WALLET_TOKEN) {
