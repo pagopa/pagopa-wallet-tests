@@ -43,6 +43,7 @@ parameters:
     values:
       - soak-test-migration
       - soak-test-onboard-wallet
+      - soak-test-get-wallets-by-user
   - name: "ONBOARD_APM_RATIO"
     displayName: "ONBOARD_APM_RATIO"
   - name: "MIGRATION_DELETE_RATIO"
