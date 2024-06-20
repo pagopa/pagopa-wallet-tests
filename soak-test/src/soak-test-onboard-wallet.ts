@@ -21,7 +21,20 @@ const apiTags = {
 }
 
 export let options = {
-    iterations: 1,
+    scenarios: {
+        constant_request_rate: {
+            executor: 'ramping-arrival-rate',
+            startRate: 0,
+            timeUnit: '1s',
+            preAllocatedVUs: config.preAllocatedVUs,
+            maxVUs: config.maxVUs,
+            stages: [
+                { target: config.rate, duration: config.rampingDuration },
+                { target: config.rate, duration: config.duration },
+                { target: 0, duration: config.rampingDuration },
+              ],
+        },
+    },
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed

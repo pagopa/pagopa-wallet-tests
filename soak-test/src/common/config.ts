@@ -1,6 +1,5 @@
-import { NonEmptyString, WithinRangeString } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { IntegerFromString, NumberFromString, WithinRangeNumber } from "@pagopa/ts-commons/lib/numbers";
-import { BooleanFromString } from "@pagopa/ts-commons/lib/booleans";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
@@ -22,6 +21,7 @@ export const IConfig = t.intersection([
     API_SUBSCRIPTION_KEY: NonEmptyString,
     API_SUBSCRIPTION_KEY_GENERATE_CONTRACT: NonEmptyString,
     URL_BASE_PATH_GENERATE_CONTRACT: NonEmptyString,
+    USE_BLUE_DEPLOYMENT: NonEmptyString
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
