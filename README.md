@@ -106,10 +106,12 @@ Template parameters:
 Every step of migration test will generate a new contract id by calling PUT /migrations/wallets and then
 will update or delete the wallet using POST /migrations/updateDetails or POST /migrations/delete.
 
-| Parameter key                          | Type   | Description                                        |
-|----------------------------------------|--------|----------------------------------------------------|
-| API_SUBSCRIPTION_KEY                   | string | API key used to finalize contract import           |
-| URL_BASE_PATH                          | string | URL base path to import contract api group         |
-| API_SUBSCRIPTION_KEY_GENERATE_CONTRACT | string | API key used by generating contract                |
-| URL_BASE_PATH_GENERATE_CONTRACT        | string | URL base path to generate contract api group       |
-| DELETE_RATIO                           | number | Between 0 and 1. The percentage of contract DELETE |
+| Parameter key                          | Type   | Description                                              |
+|----------------------------------------|--------|----------------------------------------------------------|
+| API_SUBSCRIPTION_KEY                   | string | API key used to finalize contract import                 |
+| URL_BASE_PATH                          | string | URL base path to import contract api group               |
+| API_SUBSCRIPTION_KEY_GENERATE_CONTRACT | string | API key used by generating contract                      |
+| URL_BASE_PATH_GENERATE_CONTRACT        | string | URL base path to generate contract api group             |
+| MIGRATION_DELETE_RATIO                 | number | Between 0 and 1. The percentage of contract DELETE       |
+| ONBOARD_APM_RATIO                      | number | Between 0 and 1. The percentage of Paypal wallet onboard |
+

@@ -29,8 +29,8 @@ parameters:
     type: string
   - name: "ONBOARD_APM_RATIO"
     displayName: "ONBOARD_APM_RATIO"
-  - name: "DELETE_RATIO"
-    displayName: "DELETE_RATIO"
+  - name: "MIGRATION_DELETE_RATIO"
+    displayName: "MIGRATION_DELETE_RATIO"
     type: number
     default: 0
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
@@ -91,7 +91,7 @@ steps:
         -e API_SUBSCRIPTION_KEY='$(API_SUBSCRIPTION_KEY)' \
         -e API_SUBSCRIPTION_KEY_GENERATE_CONTRACT='$(API_SUBSCRIPTION_KEY_GENERATE_CONTRACT)' \
         -e ONBOARD_APM_RATIO=${{ parameters.ONBOARD_APM_RATIO }} \
-        -e DELETE_RATIO=${{ paramters.DELETE_RATIO }} \
+        -e MIGRATION_DELETE_RATIO=${{ paramters.MIGRATION_DELETE_RATIO }} \
         -e rate=${{ parameters.rate }} \
         -e duration=${{ parameters.duration }} \
         -e preAllocatedVUs=${{ parameters.preAllocatedVUs }} \

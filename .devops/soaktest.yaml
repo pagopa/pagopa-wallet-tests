@@ -45,8 +45,8 @@ parameters:
       - soak-test-onboard-wallet
   - name: "ONBOARD_APM_RATIO"
     displayName: "ONBOARD_APM_RATIO"
-  - name: "DELETE_RATIO"
-    displayName: "DELETE_RATIO"
+  - name: "MIGRATION_DELETE_RATIO"
+    displayName: "MIGRATION_MIGRATION_DELETE_RATIO"
     type: number
     default: 0
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
@@ -107,7 +107,7 @@ stages :
               rampingDuration: ${{ parameters['rampingDuration']}}
               USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT'] }}
               ONBOARD_APM_RATIO: ${{ parameters['ONBOARD_APM_RATIO'] }}
-              DELETE_RATIO: ${{ parameters['DELETE_RATIO'] }}
+              MIGRATION_DELETE_RATIO: ${{ parameters['MIGRATION_DELETE_RATIO'] }}
               
   - stage : 'run_without_APIM'
     displayName: 'Run without APIM'
@@ -135,4 +135,4 @@ stages :
               rampingDuration: ${{ parameters['rampingDuration']}}
               USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT']}}
               ONBOARD_APM_RATIO: ${{ parameters['ONBOARD_APM_RATIO']}}
-              DELETE_RATIO: ${{ parameters['DELETE_RATIO'] }}
+              MIGRATION_MIGRATION_DELETE_RATIO: ${{ parameters['MIGRATION_DELETE_RATIO'] }}
