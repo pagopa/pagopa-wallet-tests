@@ -1,5 +1,5 @@
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { IntegerFromString, NumberFromString } from "@pagopa/ts-commons/lib/numbers";
+import { NonEmptyString, WithinRangeString } from "@pagopa/ts-commons/lib/strings";
+import { IntegerFromString, NumberFromString, WithinRangeNumber } from "@pagopa/ts-commons/lib/numbers";
 import { BooleanFromString } from "@pagopa/ts-commons/lib/booleans";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import * as E from "fp-ts/lib/Either";
@@ -22,11 +22,11 @@ export const IConfig = t.intersection([
     API_SUBSCRIPTION_KEY: NonEmptyString,
     API_SUBSCRIPTION_KEY_GENERATE_CONTRACT: NonEmptyString,
     URL_BASE_PATH_GENERATE_CONTRACT: NonEmptyString,
-    DELETE_RATIO: NumberFromString,
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
     WALLET_TOKEN: NonEmptyString,
+    DELETE_RATIO: NumberFromString.pipe(WithinRangeNumber(0.0, 1.0)),
     ONBOARD_APM_RATIO: NumberFromString,
   }),
   K6Config,
