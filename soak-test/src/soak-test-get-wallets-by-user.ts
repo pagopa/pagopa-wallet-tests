@@ -33,7 +33,7 @@ export let options = {
 };
 
 const DEFAULT_TOKEN_VALIDITY = 24 * 60; // 1 day
-const urlBasePath = getVersionedBaseUrl(config.URL_BASE_PATH, "payment-wallet/v1");
+const urlBasePath = getVersionedBaseUrl(config.URL_BASE_PATH, "io-payment-wallet/v1");
 const environment = getEnvironment(config.URL_BASE_PATH);
 
 let walletToken: string;
@@ -42,11 +42,14 @@ export function setup() {
     if (!config.WALLET_USER_ID) {
         fail("Missing WALLET_USER_ID")
     }
-    walletToken = createWalletToken(environment, config.WALLET_USER_ID, DEFAULT_TOKEN_VALIDITY);
 }
 
 export default function () {
     
+    if (!walletToken) {
+        walletToken = createWalletToken(environment, config.WALLET_USER_ID!!, DEFAULT_TOKEN_VALIDITY);
+    }
+
     // Get wallets by user id
     let response = http.get(
         `${urlBasePath}/wallets`,
