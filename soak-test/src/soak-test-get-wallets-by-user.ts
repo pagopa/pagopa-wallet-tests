@@ -1,7 +1,8 @@
 import http from "k6/http";
 import { getConfigOrThrow, getVersionedBaseUrl } from "./common/config";
 import { check, fail } from "k6";
-import { paymentMethodsIdsFor, randomPaymentMethod } from "./common/payment-methods";
+import { createWalletToken } from "./common/session";
+import { getEnvironment } from "./common/utils";
 
 const config = getConfigOrThrow();
 
@@ -31,12 +32,17 @@ export let options = {
     },
 };
 
+const DEFAULT_TOKEN_VALIDITY = 24 * 60; // 1 day
 const urlBasePath = getVersionedBaseUrl(config.URL_BASE_PATH, "payment-wallet/v1");
+const environment = getEnvironment(config.URL_BASE_PATH);
+
+let walletToken: string;
 
 export function setup() {
-    if (!config.WALLET_TOKEN) {
-        fail("Missing WALLET_TOKEN")
+    if (!config.WALLET_USER_ID) {
+        fail("Missing WALLET_USER_ID")
     }
+    walletToken = createWalletToken(environment, config.WALLET_USER_ID, DEFAULT_TOKEN_VALIDITY);
 }
 
 export default function () {
@@ -47,7 +53,7 @@ export default function () {
         {
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${config.WALLET_TOKEN}`
+                "Authorization": `Bearer ${walletToken}`,
             },
             timeout: '10s',
             tags: { name: apiTags.getWallets },

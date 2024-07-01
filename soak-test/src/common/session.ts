@@ -1,11 +1,10 @@
 import { fail } from "k6";
 import http from "k6/http";
+import { Environment } from "./utils";
 
 type CreateSessionResponse = {
     token: string
 }
-
-export type Environment = "dev" | "uat"
 
 const mockSessionUrl = {
     "dev": "https://api.dev.platform.pagopa.it/session-wallet/mock/v1/session",

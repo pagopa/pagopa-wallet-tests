@@ -43,7 +43,7 @@ const headerParams = {
 }
 
 const urlBasePathImportV1 = getVersionedBaseUrl(config.URL_BASE_PATH, "v1");
-const urlBasePathGenerateV1 = getVersionedBaseUrl(config.URL_BASE_PATH_GENERATE_CONTRACT, "v1");
+const urlBasePathGenerateV1 = getVersionedBaseUrl(config.URL_BASE_PATH_GENERATE_CONTRACT!!, "v1");
 
 export function setup() {
     console.log("Setup", JSON.stringify(config))
@@ -59,7 +59,7 @@ export default function () {
         {
             headers: {
                 "Content-Type": "application/json",
-                "Ocp-Apim-Subscription-Key": config.API_SUBSCRIPTION_KEY_GENERATE_CONTRACT
+                "Ocp-Apim-Subscription-Key": config.API_SUBSCRIPTION_KEY_GENERATE_CONTRACT!!
             },
             timeout: '10s',
             tags: { name: apiTags.generateContract },

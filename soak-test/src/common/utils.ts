@@ -31,3 +31,9 @@ export function extractFragment(url: string, fragmentName: string): string {
 export function chooseWithRatio(ratio: number): boolean {
     return Math.random() <= ratio;
 }
+
+
+export type Environment = "dev" | "uat"
+export function getEnvironment(baseUrl: string): Environment {
+    return baseUrl.indexOf("uat") >= 0 ? "uat" : "dev";
+}

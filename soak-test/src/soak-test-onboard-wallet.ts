@@ -1,7 +1,7 @@
 import http from "k6/http";
 import { getConfigOrThrow, getVersionedBaseUrl } from "./common/config";
 import { check, fail, sleep } from "k6";
-import { extractFragment } from "./common/utils";
+import { extractFragment, getEnvironment } from "./common/utils";
 import { WalletCreateRequest } from "./generated/wallet/WalletCreateRequest";
 import { SessionInputData1, SessionInputData2 } from "./generated/wallet-webview/SessionInputData";
 import { SessionInputDataTypeCardsEnum } from "./generated/wallet-webview/SessionInputDataTypeCards";
@@ -50,7 +50,9 @@ export let options = {
 
 const POLLING_ATTEMPTS = 5
 const DEFAULT_APM_PSP = "BCITITMM"
+const DEFAULT_TOKEN_VALIDITY = 24 * 60; // 1 day
 
+const environment = getEnvironment(config.URL_BASE_PATH);
 const urlBasePath = getVersionedBaseUrl(config.URL_BASE_PATH, "io-payment-wallet/v1");
 const urlBasePathWebView = getVersionedBaseUrl(config.URL_BASE_PATH, "webview-payment-wallet/v1");
 const paymentMethodIds = paymentMethodsIdsFor(urlBasePath);
@@ -74,11 +76,7 @@ export default function () {
     const paymentMethodId = paymentMethodIds[paymentMethod];
     
     if (!walletToken) {
-        walletToken = createWalletToken(
-            (urlBasePath.indexOf("uat") > 0) ? "uat" : "dev",
-            config.WALLET_USER_ID!!, 
-            30
-        );
+        walletToken = createWalletToken(environment, config.WALLET_USER_ID!!, DEFAULT_TOKEN_VALIDITY);
     }
 
     // 1. Create wallet
