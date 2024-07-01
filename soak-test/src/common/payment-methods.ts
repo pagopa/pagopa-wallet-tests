@@ -13,8 +13,8 @@ const paymentMethodIdsDev: Record<PaymentMethod, string> = {
 
 // These ids are for UAT
 const paymentMethodIdsUat: Record<PaymentMethod, string> = {
-    [PaymentMethod.CARDS]: "378d0b4f-8b69-46b0-8215-07785fe1aad4",
-    [PaymentMethod.PAYPAL]: "8991c3f1-4ac4-418c-a359-5aaa9199bbeb",
+    [PaymentMethod.CARDS]: "f25399bf-c56f-4bd2-adc9-7aef87410609",
+    [PaymentMethod.PAYPAL]: "0d1450f4-b993-4f89-af5a-1770a45f5d71",
 };
 
 export function randomPaymentMethod(apmRatio: number): PaymentMethod {

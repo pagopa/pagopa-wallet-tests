@@ -9,6 +9,7 @@ import { SessionWalletCreateResponse } from "./generated/wallet-webview/SessionW
 import { WalletCreateResponse } from "./generated/wallet/WalletCreateResponse";
 import { SessionInputDataTypePaypalEnum } from "./generated/wallet-webview/SessionInputDataTypePaypal";
 import { PaymentMethod, paymentMethodsIdsFor, randomPaymentMethod } from "./common/payment-methods";
+import { createWalletToken } from "./common/session";
 
 const config = getConfigOrThrow();
 
@@ -21,20 +22,21 @@ const apiTags = {
 }
 
 export let options = {
-    scenarios: {
-        constant_request_rate: {
-            executor: 'ramping-arrival-rate',
-            startRate: 0,
-            timeUnit: '1s',
-            preAllocatedVUs: config.preAllocatedVUs,
-            maxVUs: config.maxVUs,
-            stages: [
-                { target: config.rate, duration: config.rampingDuration },
-                { target: config.rate, duration: config.duration },
-                { target: 0, duration: config.rampingDuration },
-              ],
-        },
-    },
+    iterations: 1,
+    // scenarios: {
+    //     constant_request_rate: {
+    //         executor: 'ramping-arrival-rate',
+    //         startRate: 0,
+    //         timeUnit: '1s',
+    //         preAllocatedVUs: config.preAllocatedVUs,
+    //         maxVUs: config.maxVUs,
+    //         stages: [
+    //             { target: config.rate, duration: config.rampingDuration },
+    //             { target: config.rate, duration: config.duration },
+    //             { target: 0, duration: config.rampingDuration },
+    //           ],
+    //     },
+    // },
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
@@ -49,22 +51,35 @@ export let options = {
 const POLLING_ATTEMPTS = 5
 const DEFAULT_APM_PSP = "BCITITMM"
 
-const urlBasePath = getVersionedBaseUrl(config.URL_BASE_PATH, "payment-wallet/v1");
+const urlBasePath = getVersionedBaseUrl(config.URL_BASE_PATH, "io-payment-wallet/v1");
 const urlBasePathWebView = getVersionedBaseUrl(config.URL_BASE_PATH, "webview-payment-wallet/v1");
 const paymentMethodIds = paymentMethodsIdsFor(urlBasePath);
 
+let walletToken: string;
+
 export function setup() {
-    if (!config.WALLET_TOKEN) {
-        fail("Missing WALLET_TOKEN")
+    if (!config.WALLET_USER_ID) {
+        fail("Missing WALLET_USER_ID")
     }
     if (config.ONBOARD_APM_RATIO == undefined) {
         fail("Missing ONBOARD_APM_RATIO")
     }
+    
+    console.log(`Using Wallet User Id: ${config.WALLET_USER_ID}`);
+    console.log(`Using Blue Deployment: ${config.USE_BLUE_DEPLOYMENT}`);
 }
 
 export default function () {
     const paymentMethod = randomPaymentMethod(config.ONBOARD_APM_RATIO ?? 0);
     const paymentMethodId = paymentMethodIds[paymentMethod];
+    
+    if (!walletToken) {
+        walletToken = createWalletToken(
+            (urlBasePath.indexOf("uat") > 0) ? "uat" : "dev",
+            config.WALLET_USER_ID!!, 
+            30
+        );
+    }
 
     // 1. Create wallet
     const request: WalletCreateRequest = {
@@ -78,7 +93,7 @@ export default function () {
         {
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${config.WALLET_TOKEN}`,
+                "Authorization": `Bearer ${walletToken}`,
                 ...(config.USE_BLUE_DEPLOYMENT == "True" ? {"deployment": "blue" } : {}),
             },
             timeout: '10s',
@@ -95,6 +110,7 @@ export default function () {
     if (response.status != 201 || response.json() == null) {
         fail(`Error during wallet create ${response.status}`);
     }
+
 
     const walletResponse = response.json() as WalletCreateResponse
     const walletId = extractFragment(walletResponse.redirectUrl, "walletId")
@@ -156,28 +172,28 @@ export default function () {
     const orderId = session.orderId
 
     // 3. Create validation
-    response = http.post(
-        `${urlBasePathWebView}/wallets/${walletId}/sessions/${orderId}/validations`,
-        JSON.stringify({}),
-        {
-            ...sessionHeaders,
-            timeout: '10s',
-            tags: { name: apiTags.createValidation },
-        }
-    );
-    check(
-        response,
-        { "Response from POST /wallets/{walletId}/sessions/{orderId}/validations was 200": (r) => r.status == 200},
-        { name: apiTags.createValidation }
-    );
+    if (paymentMethod == PaymentMethod.CARDS) {
+        response = http.post(
+            `${urlBasePathWebView}/wallets/${walletId}/sessions/${orderId}/validations`,
+            JSON.stringify({}),
+            {
+                ...sessionHeaders,
+                timeout: '10s',
+                tags: { name: apiTags.createValidation },
+            }
+        );
+        check(
+            response,
+            { "Response from POST /wallets/{walletId}/sessions/{orderId}/validations was 200": (r) => r.status == 200},
+            { name: apiTags.createValidation }
+        );
 
-    if (response.status != 200) {
-        fail(`Error during POST validations ${response.url} ${response.status}`);
+        if (response.status != 200) {
+            fail(`Error during POST validations ${response.url} ${response.status}`);
+        }
     }
 
-    // 4. Notify?
-
-    // 5. Polling
+    // 4. Polling
     for (let i = 0; i < POLLING_ATTEMPTS; i++) {
         response = http.get(
             `${urlBasePathWebView}/wallets/${walletId}/sessions/${orderId}`,

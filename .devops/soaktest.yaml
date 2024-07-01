@@ -50,6 +50,10 @@ parameters:
     displayName: "MIGRATION_MIGRATION_DELETE_RATIO"
     type: number
     default: 0
+  - name: "WALLET_USER_ID"
+    type: string
+    displayName: "WALLET_USER_ID"
+    description: "User id to use for onboarding"
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string
@@ -109,6 +113,7 @@ stages :
               USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT'] }}
               ONBOARD_APM_RATIO: ${{ parameters['ONBOARD_APM_RATIO'] }}
               MIGRATION_DELETE_RATIO: ${{ parameters['MIGRATION_DELETE_RATIO'] }}
+              WALLET_USER_ID: ${{ parameters['WALLET_USER_ID'] }}
               
   - stage : 'run_without_APIM'
     displayName: 'Run without APIM'

@@ -19,15 +19,15 @@ export const IConfig = t.intersection([
   t.interface({
     URL_BASE_PATH: NonEmptyString,
     API_SUBSCRIPTION_KEY: NonEmptyString,
-    API_SUBSCRIPTION_KEY_GENERATE_CONTRACT: NonEmptyString,
-    URL_BASE_PATH_GENERATE_CONTRACT: NonEmptyString,
     USE_BLUE_DEPLOYMENT: NonEmptyString
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
-    WALLET_TOKEN: NonEmptyString,
-    MIGRATION_DELETE_RATIO: NumberFromString.pipe(WithinRangeNumber(0.0, 1.0)),
-    ONBOARD_APM_RATIO: NumberFromString.pipe(WithinRangeNumber(0.0, 1.0)),
+    WALLET_USER_ID: NonEmptyString,
+    MIGRATION_DELETE_RATIO: NumberFromString.pipe(WithinRangeNumber(0.0, 1.1)),
+    ONBOARD_APM_RATIO: NumberFromString.pipe(WithinRangeNumber(0.0, 1.1)),
+    API_SUBSCRIPTION_KEY_GENERATE_CONTRACT: NonEmptyString,
+    URL_BASE_PATH_GENERATE_CONTRACT: NonEmptyString,
   }),
   K6Config,
 ]);
