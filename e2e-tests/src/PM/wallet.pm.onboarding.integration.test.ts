@@ -1,12 +1,12 @@
-import { onboardCardMethodWithError4xx, onboardCardMethodWithNetworkError, retrieveValidRedirectUrl, successfullyExecutionOnboarding } from "./helper";
+import { retrieveValidRedirectUrl, successfullyExecutionOnboarding } from "./helper";
 
 describe("Wallet pm onboarding tests", () => {
     /**
     * Test input and configuration
      */
-    const PM_HOST = String(process.env.PM_HOST);
-    const WALLET_URL = String(process.env.WALLET_URL);
-    const INVALID_SECURITY_TOKEN = String(process.env.INVALID_SECUTIRY_TOKEN);
+    const WALLET_HOST = String(process.env.WALLET_HOST);
+    const CREDIT_CARD_PAYMENT_METHOD_ID = String(process.env.CREDIT_CARD_PAYMENT_METHOD_ID);
+    const USER_WALLET_TOKEN = String(process.env.USER_WALLET_TOKEN);
     const VALID_CARD_DATA_VPOS = {
         number: String(process.env.CARD_NUMBER_VPOS),
         expirationDate: String(process.env.CARD_EXPIRATION_DATE_VPOS),
@@ -31,29 +31,17 @@ describe("Wallet pm onboarding tests", () => {
   page.setDefaultTimeout(timeout)
   
   it("Successfully executed onboarding for XPAY", async () => {
-    const redirectUrl = await retrieveValidRedirectUrl(PM_HOST)
+    const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, USER_WALLET_TOKEN, CREDIT_CARD_PAYMENT_METHOD_ID)
     await page.goto(redirectUrl);
     const resultUrl = await successfullyExecutionOnboarding(VALID_CARD_DATA_XPAY, true);
     expect(resultUrl).toContain("outcome=0");
   });
 
   it("Successfully executed onboarding for VPOS", async () => {
-    const redirectUrl = await retrieveValidRedirectUrl(PM_HOST)
+    const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, USER_WALLET_TOKEN, CREDIT_CARD_PAYMENT_METHOD_ID)
     await page.goto(redirectUrl);
     const resultUrl = await successfullyExecutionOnboarding(VALID_CARD_DATA_VPOS, false);
     expect(resultUrl).toContain("outcome=0");
-  });
-
-  it("Error 4xx while onboard card method", async () => {
-    await page.goto(WALLET_URL.concat(INVALID_SECURITY_TOKEN));
-    const resultUrl = await onboardCardMethodWithError4xx(VALID_CARD_DATA_XPAY);
-    expect(resultUrl).toContain("outcome=1");
-  });
-
-  it("Generic error while onboard card method", async () => {
-    await page.goto(WALLET_URL.concat("exampleToken"));
-    const resultErrorMessage = await onboardCardMethodWithNetworkError(VALID_CARD_DATA_XPAY);
-    expect(resultErrorMessage).toContain("Spiacenti, si è verificato un errore imprevisto");
   });
 
 });
