@@ -101,21 +101,35 @@ export const retrieveValidRedirectUrl = async (pmHost) => {
           body: JSON.stringify(user)
         });
         if(responsePutUser.status === 200){
-            const urlStartSession = `${pmHost}/payment-wallet/v1/wallets`;
-            const responseStartSession = await fetch(urlStartSession, {
+          const urlStartSession = `${pmHost}/session-wallet/v1/session`;
+          const responseStartSession = await fetch(urlStartSession, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${walletTokenCreditCard}`
+            }
+          });
+          if(responseStartSession.status === 201){
+            const sessionResponse = await responsePostWallet.json();
+            const urlPostWallet = `${pmHost}/io-payment-wallet/v1/wallets`;
+            const responsePostWallet = await fetch(urlPostWallet, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${walletTokenCreditCard}`
+                "Authorization": `Bearer ${sessionResponse.token}`
               }
             });
-            if(responseStartSession.status === 201){
-                const session = await responseStartSession.json();
+            if(responsePostWallet.status === 201){
+                const session = await responsePostWallet.json();
                 return session.redirectUrl
             }else{
-                console.log(responseStartSession.status)
-                throw Error("Error while start session");
+                console.log(responsePostWallet.status)
+                throw Error("Error while creating wallet");
             }
+          }else{
+              console.log(responseStartSession.status)
+              throw Error("Error while start session");
+          }  
         } else {
             throw Error("Error while saving user");
         }
