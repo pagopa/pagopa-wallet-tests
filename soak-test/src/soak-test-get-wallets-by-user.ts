@@ -2,7 +2,8 @@ import http from "k6/http";
 import { getConfigOrThrow, getVersionedBaseUrl } from "./common/config";
 import { check, fail } from "k6";
 import { createWalletToken } from "./common/session";
-import { getEnvironment } from "./common/utils";
+import { generateProgressiveUUID, generateUuidArray, getEnvironment } from "./common/utils";
+import { SharedArray } from "k6/data";
 
 const config = getConfigOrThrow();
 
@@ -36,19 +37,19 @@ const DEFAULT_TOKEN_VALIDITY = 24 * 60; // 1 day
 const urlBasePath = getVersionedBaseUrl(config.URL_BASE_PATH, "io-payment-wallet/v1");
 const environment = getEnvironment(config.URL_BASE_PATH);
 
-let walletToken: string;
+const userIds = new SharedArray("userIds", () => {
+    if (!config.WALLET_USER_ID_START || !config.WALLET_USER_COUNT) {
+        fail("Missing mandatory WALLET_USER_ID_START and WALLET_USER_COUNT")
+    }
+    return generateProgressiveUUID(config.WALLET_USER_ID_START!!, config.WALLET_USER_COUNT!!);
+});
 
 export function setup() {
-    if (!config.WALLET_USER_ID) {
-        fail("Missing WALLET_USER_ID")
-    }
 }
 
 export default function () {
-    
-    if (!walletToken) {
-        walletToken = createWalletToken(environment, config.WALLET_USER_ID!!, DEFAULT_TOKEN_VALIDITY);
-    }
+    const userId = userIds[Math.floor(Math.random() * userIds.length)];
+    const walletToken = createWalletToken(environment, userId, DEFAULT_TOKEN_VALIDITY);
 
     // Get wallets by user id
     let response = http.get(

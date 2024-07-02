@@ -23,12 +23,12 @@ export const IConfig = t.intersection([
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
-    WALLET_USER_ID: NonEmptyString,
     MIGRATION_DELETE_RATIO: NumberFromString.pipe(WithinRangeNumber(0.0, 1.1)),
     ONBOARD_APM_RATIO: NumberFromString.pipe(WithinRangeNumber(0.0, 1.1)),
     API_SUBSCRIPTION_KEY_GENERATE_CONTRACT: NonEmptyString,
     URL_BASE_PATH_GENERATE_CONTRACT: NonEmptyString,
-    WALLET_IDS: t.array(t.string)
+    WALLET_USER_ID_START: NumberFromString,
+    WALLET_USER_COUNT: NumberFromString,
   }),
   K6Config,
 ]);

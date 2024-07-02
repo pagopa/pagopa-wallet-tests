@@ -1,7 +1,7 @@
 import http from "k6/http";
 import { getConfigOrThrow, getVersionedBaseUrl } from "./common/config";
 import { check, fail, sleep } from "k6";
-import { extractFragment, getEnvironment } from "./common/utils";
+import { extractFragment, generateProgressiveUUID, generateUuidArray, getEnvironment } from "./common/utils";
 import { WalletCreateRequest } from "./generated/wallet/WalletCreateRequest";
 import { SessionInputData1, SessionInputData2 } from "./generated/wallet-webview/SessionInputData";
 import { SessionInputDataTypeCardsEnum } from "./generated/wallet-webview/SessionInputDataTypeCards";
@@ -10,6 +10,7 @@ import { WalletCreateResponse } from "./generated/wallet/WalletCreateResponse";
 import { SessionInputDataTypePaypalEnum } from "./generated/wallet-webview/SessionInputDataTypePaypal";
 import { PaymentMethod, paymentMethodsIdsFor, randomPaymentMethod } from "./common/payment-methods";
 import { createWalletToken } from "./common/session";
+import { SharedArray } from "k6/data";
 
 const config = getConfigOrThrow();
 
@@ -22,7 +23,7 @@ const apiTags = {
 }
 
 export let options = {
-    iterations: 1,
+    iterations: 5,
     // scenarios: {
     //     constant_request_rate: {
     //         executor: 'ramping-arrival-rate',
@@ -57,29 +58,28 @@ const urlBasePath = getVersionedBaseUrl(config.URL_BASE_PATH, "io-payment-wallet
 const urlBasePathWebView = getVersionedBaseUrl(config.URL_BASE_PATH, "webview-payment-wallet/v1");
 const paymentMethodIds = paymentMethodsIdsFor(urlBasePath);
 
-let walletToken: string;
+const userIds = new SharedArray("userIds", () => {
+    if (!config.WALLET_USER_ID_START || !config.WALLET_USER_COUNT) {
+        fail("Missing mandatory WALLET_USER_ID_START and WALLET_USER_COUNT")
+    }
+    return generateProgressiveUUID(config.WALLET_USER_ID_START!!, config.WALLET_USER_COUNT!!);
+});
 
 export function setup() {
-    if (!config.WALLET_USER_ID) {
-        fail("Missing WALLET_USER_ID")
-    }
     if (config.ONBOARD_APM_RATIO == undefined) {
         fail("Missing ONBOARD_APM_RATIO")
     }
-    
-    console.log(`Using Wallet User Id: ${config.WALLET_USER_ID}`);
+
+    console.log(userIds);
     console.log(`Using Blue Deployment: ${config.USE_BLUE_DEPLOYMENT}`);
 }
 
-
-
 export default function () {
+    const userId = userIds[Math.floor(Math.random() * userIds.length)];
     const paymentMethod = randomPaymentMethod(config.ONBOARD_APM_RATIO ?? 0);
     const paymentMethodId = paymentMethodIds[paymentMethod];
     
-    if (!walletToken) {
-        walletToken = createWalletToken(environment, config.WALLET_USER_ID!!, DEFAULT_TOKEN_VALIDITY);
-    }
+    const token = createWalletToken(environment, userId, DEFAULT_TOKEN_VALIDITY)
 
     // 1. Create wallet
     const request: WalletCreateRequest = {
@@ -93,7 +93,7 @@ export default function () {
         {
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${walletToken}`,
+                "Authorization": `Bearer ${token}`,
                 ...(config.USE_BLUE_DEPLOYMENT == "True" ? {"deployment": "blue" } : {}),
             },
             timeout: '10s',

@@ -37,3 +37,26 @@ export type Environment = "dev" | "uat"
 export function getEnvironment(baseUrl: string): Environment {
     return baseUrl.indexOf("uat") >= 0 ? "uat" : "dev";
 }
+
+export function generateUuidArray(maxLength: number): string[] {
+    const uuids: string[] = [];
+    for (let i = 0; i < maxLength; i++) {
+        uuids.push(uuid());
+    }
+    return uuids;
+}
+
+export function generateProgressiveUUID(startProgressive: number, size: number): string[] {
+    const maxProgressiveDigits = 12;
+
+    // Array to store generated UUIDs
+    const uuids: string[] = [];
+
+    for (let i = startProgressive; i <= startProgressive + size; i++) {
+        const progressivePart = i.toString().padStart(maxProgressiveDigits, '0');
+        const uuid = `00000000-0000-0000-0000-${progressivePart}`;
+        uuids.push(uuid);
+    }
+
+    return uuids;
+}

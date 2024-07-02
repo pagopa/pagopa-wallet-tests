@@ -18,7 +18,7 @@
     "generate:ts-from-yaml:wallet-migration-nexi-v1": "shx rm -rf src/generated/wallet-migration-nexi-v1 && shx mkdir -p src/generated/wallet-migration-nexi-v1 && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/wallet-app/api/payment-wallet-migrations/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet-migration-nexi-v1",
     "generate:ts-from-yaml:wallet-migration-v1": "shx rm -rf src/generated/wallet-migration-v1 && shx mkdir -p src/generated/wallet-migration-v1 && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/wallet-app/api/payment-wallet-migrations-for-cstar/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet-migration-v1",
     "generate:ts-from-yaml:wallet": "shx rm -rf src/generated/wallet && shx mkdir -p src/generated/wallet && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/pay-wallet-app/api/payment-wallet/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet",
-    "generate:ts-from-yaml:wallet-webview": "shx rm -rf src/generated/wallet-webview && shx mkdir -p src/generated/wallet-webview && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/pay-wallet-app/api/webview-payment-wallet/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet-webview",   
+    "generate:ts-from-yaml:wallet-webview": "shx rm -rf src/generated/wallet-webview && shx mkdir -p src/generated/wallet-webview && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/pay-wallet-app/api/webview-payment-wallet/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet-webview",
     "soak-migration": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-migration.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\"",
     "soak-onboard-wallet": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-onboard-wallet.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\"",
     "soak-get-wallets": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-get-wallets-by-user.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\"",
@@ -49,11 +49,14 @@
   "dependencies": {
     "@pagopa/ts-commons": "^13.1.1",
     "@types/uuid": "^9.0.8",
+    "axios": "^1.7.2",
     "fp-ts": "^2.16.6",
     "io-ts": "^2.2.21",
     "k6": "0.0.0",
     "k6-stat": "^1.0.6",
-    "ts-loader": "^9.5.1",
-    "k6-utils": "1.4.0"
-  }
+    "ts-loader": "^9.5.1"
+  },
+  "browser": {
+    "fs": false
+}
 }
