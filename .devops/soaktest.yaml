@@ -27,6 +27,8 @@ parameters:
     displayName: "URL_BASE_PATH"
     type: string
     values:
+      - "https://api.dev.platform.pagopa.it/"
+      - "https://api.uat.platform.pagopa.it/"
       - "https://api.dev.platform.pagopa.it/payment-wallet-migrations/cstar/"
       - "https://api.uat.platform.pagopa.it/payment-wallet-migrations/cstar/"
   - name: "URL_BASE_PATH_GENERATE_CONTRACT"
@@ -40,10 +42,18 @@ parameters:
     type: string
     values:
       - soak-test-migration
-  - name: "DELETE_RATIO"
-    displayName: "DELETE_RATIO"
+      - soak-test-onboard-wallet
+      - soak-test-get-wallets-by-user
+  - name: "ONBOARD_APM_RATIO"
+    displayName: "ONBOARD_APM_RATIO"
+  - name: "MIGRATION_DELETE_RATIO"
+    displayName: "MIGRATION_MIGRATION_DELETE_RATIO"
     type: number
     default: 0
+  - name: "WALLET_USER_ID"
+    type: string
+    displayName: "WALLET_USER_ID"
+    description: "User id to use for onboarding"
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string
@@ -100,7 +110,10 @@ stages :
               SCRIPT: ${{ parameters['SCRIPT']}}
               DESCRIPTION: ${{ parameters['DESCRIPTION']}}
               rampingDuration: ${{ parameters['rampingDuration']}}
-              USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT']}}
+              USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT'] }}
+              ONBOARD_APM_RATIO: ${{ parameters['ONBOARD_APM_RATIO'] }}
+              MIGRATION_DELETE_RATIO: ${{ parameters['MIGRATION_DELETE_RATIO'] }}
+              WALLET_USER_ID: ${{ parameters['WALLET_USER_ID'] }}
               
   - stage : 'run_without_APIM'
     displayName: 'Run without APIM'
@@ -127,4 +140,5 @@ stages :
               DESCRIPTION: ${{ parameters['DESCRIPTION']}}
               rampingDuration: ${{ parameters['rampingDuration']}}
               USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT']}}
-              DELETE_RATIO: ${{ parameters['DELETE_RATIO'] }}
+              ONBOARD_APM_RATIO: ${{ parameters['ONBOARD_APM_RATIO']}}
+              MIGRATION_MIGRATION_DELETE_RATIO: ${{ parameters['MIGRATION_DELETE_RATIO'] }}

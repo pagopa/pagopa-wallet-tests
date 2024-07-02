@@ -27,8 +27,12 @@ parameters:
   - name: "SCRIPT"
     displayName: "Script name"
     type: string
-  - name: "DELETE_RATIO"
-    displayName: "DELETE_RATIO"
+  - name: "WALLET_USER_ID"
+    displayName: "WALLET_USER_ID"
+  - name: "ONBOARD_APM_RATIO"
+    displayName: "ONBOARD_APM_RATIO"
+  - name: "MIGRATION_DELETE_RATIO"
+    displayName: "MIGRATION_DELETE_RATIO"
     type: number
     default: 0
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
@@ -88,7 +92,9 @@ steps:
         -e URL_BASE_PATH_GENERATE_CONTRACT=${{ parameters.URL_BASE_PATH_GENERATE_CONTRACT }} \
         -e API_SUBSCRIPTION_KEY='$(API_SUBSCRIPTION_KEY)' \
         -e API_SUBSCRIPTION_KEY_GENERATE_CONTRACT='$(API_SUBSCRIPTION_KEY_GENERATE_CONTRACT)' \
-        -e DELETE_RATIO=${{ paramters.DELETE_RATIO }} \
+        -e ONBOARD_APM_RATIO=${{ parameters.ONBOARD_APM_RATIO }} \
+        -e MIGRATION_DELETE_RATIO=${{ paramters.MIGRATION_DELETE_RATIO }} \
+        -e WALLET_USER_ID?${{ parameters.WALLET_USER_ID }} \
         -e rate=${{ parameters.rate }} \
         -e duration=${{ parameters.duration }} \
         -e preAllocatedVUs=${{ parameters.preAllocatedVUs }} \

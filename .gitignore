@@ -104,3 +104,6 @@ dist
 /.idea/
 
 soak-test/src/generated
+
+.env.uat
+.env.dev
