@@ -9,33 +9,20 @@
 	},
 	"item": [
 		{
-			"name": "Create a new wallet",
+			"name": "Start session",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Wallet for onboarding - PAYPAL] New wallet created successfully with POST /wallets\", function () {",
-							"    pm.response.to.have.status(201);",
-							"    const redirectUrl = pm.response.json().redirectUrl;",
-							"    pm.expect(redirectUrl).to.be.a(\"string\");",
-							"    pm.expect(redirectUrl).to.be.include(\"apm#\");",
-							"    const fragment = redirectUrl.split(\"#\")[1];",
-							"    const fragmentSplits = fragment.split(\"&\");",
-							"    pm.expect(fragmentSplits.length).to.be.equals(4);",
-							"    const walletId = fragmentSplits[0].split(\"=\")[1];",
-							"    const useDiagnosticTracing = fragmentSplits[1].split(\"=\")[1];",
-							"    const paymentMethodId = fragmentSplits[2].split(\"=\")[1];",
-							"    const sessionToken = fragmentSplits[3].split(\"=\")[1];",
-							"    pm.expect(walletId).to.be.not.null;",
-							"    pm.expect(useDiagnosticTracing).to.be.not.null;",
-							"    pm.expect(useDiagnosticTracing).to.be.eq(pm.environment.get(\"USE_DIAGNOSTIC_TRACING\"));",
-							"    pm.expect(paymentMethodId).to.be.eq(pm.environment.get(\"PAYMENT_METHOD_ID\"));",
-							"    pm.environment.set(\"WALLET_ID\", walletId);",
-							"    pm.environment.set(\"SESSION_TOKEN\", sessionToken);",
+							"pm.test(\"[Wallet for IO - Wallet Payment] - Start session\", () => {",
+							"  pm.response.to.have.status(201);",
+							"  const responseJson = pm.response.json();",
+							"  pm.environment.set(\"SHARED_SESSION_TOKEN\", responseJson.token);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -62,13 +49,12 @@
 					},
 					{
 						"key": "x-user-id",
-						"value": "{{x-user-id}}",
-						"type": "text"
+						"value": "{{x-user-id}}"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"paymentMethodId\": \"{{PAYMENT_METHOD_ID}}\",\n  \"services\": [\n    \"PAGOPA\"\n  ],\n  \"useDiagnosticTracing\": \"{{USE_DIAGNOSTIC_TRACING}}\"\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"headerFamily": "json",
@@ -77,9 +63,156 @@
 					}
 				},
 				"url": {
-					"raw": "{{HOSTNAME}}/wallets",
+					"raw": "{{ENV}}/session-wallet/v1/session",
 					"host": [
-						"{{HOSTNAME}}"
+						"{{ENV}}"
+					],
+					"path": [
+						"session-wallet",
+						"v1",
+						"session"
+					]
+				},
+				"description": "Creates a new wallet"
+			},
+			"response": []
+		},
+		{
+			"name": "Get payment methods",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding - CARDS] Payment methods retrieved successfully with GET /payment-methods\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var paymentMethods = pm.response.json().paymentMethods;",
+							"    pm.expect(paymentMethods.length).to.be.greaterThan(0);",
+							"    var paymentMethodName = pm.environment.get(\"PAYMENT_METHOD_NAME\");",
+							"    var paymentMethodId = paymentMethods",
+							"    .filter(p => ",
+							"    (p.status === \"ENABLED\" &&",
+							"    (p.methodManagement === \"ONBOARDABLE\" || p.methodManagement === \"ONBOARDABLE_ONLY\" || p.methodManagement === \"ONBOARDABLE_WITH_PAYMENT\") &&",
+							"    p.name == paymentMethodName))[0]?.id;",
+							"",
+							"    if(paymentMethodId) {",
+							"        pm.expect(paymentMethodId).to.be.a.string;",
+							"        pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethodId);",
+							"        console.log(`Set paymentMethodId ${paymentMethodId} successfully for payment method name ${pm.environment.get(\"PAYMENT_METHOD_NAME\")}`)",
+							"    } else {",
+							"        throw Error(`No payment method found for payment method name ${pm.environment.get(\"PAYMENT_METHOD_NAME\")}`);",
+							"    }",
+							"",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SHARED_SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{ENV}}{{SERVICE}}/payment-methods",
+					"host": [
+						"{{ENV}}{{SERVICE}}"
+					],
+					"path": [
+						"payment-methods"
+					]
+				},
+				"description": "Returns a single wallet"
+			},
+			"response": []
+		},
+		{
+			"name": "Create a new wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding - PAYPAL] New wallet created successfully with POST /wallets\", function () {",
+							"    pm.response.to.have.status(201);",
+							"    const redirectUrl = pm.response.json().redirectUrl;",
+							"    pm.expect(redirectUrl).to.be.a(\"string\");",
+							"    pm.expect(redirectUrl).to.be.include(\"apm#\");",
+							"    const fragment = redirectUrl.split(\"#\")[1];",
+							"    const fragmentSplits = fragment.split(\"&\");",
+							"    pm.expect(fragmentSplits.length).to.be.equals(4);",
+							"    const walletId = fragmentSplits[0].split(\"=\")[1];",
+							"    const useDiagnosticTracing = fragmentSplits[1].split(\"=\")[1];",
+							"    const paymentMethodId = fragmentSplits[2].split(\"=\")[1];",
+							"    const sessionToken = fragmentSplits[3].split(\"=\")[1];",
+							"    pm.expect(walletId).to.be.not.null;",
+							"    pm.expect(useDiagnosticTracing).to.be.not.null;",
+							"    pm.expect(useDiagnosticTracing).to.be.eq(pm.environment.get(\"USE_DIAGNOSTIC_TRACING\"));",
+							"    pm.expect(paymentMethodId).to.be.eq(pm.environment.get(\"PAYMENT_METHOD_ID\"));",
+							"    pm.environment.set(\"WALLET_ID\", walletId);",
+							"    pm.environment.set(\"SESSION_TOKEN\", sessionToken);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SHARED_SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "x-user-id",
+						"value": "{{x-user-id}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"paymentMethodId\": \"{{PAYMENT_METHOD_ID}}\",\n  \"applications\": [\n    \"PAGOPA\"\n  ],\n  \"useDiagnosticTracing\": \"{{USE_DIAGNOSTIC_TRACING}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ENV}}{{SERVICE}}/wallets",
+					"host": [
+						"{{ENV}}{{SERVICE}}"
 					],
 					"path": [
 						"wallets"
@@ -96,13 +229,19 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Wallet for onboarding - PAYPAL] Wallet retrieved successfully by it's id with GET /wallets/{walletId}\", function () {",
+							"pm.test(\"[Wallet for onboarding - CARDS] Wallet retrieved successfully by it's id with GET /wallets/{walletId}\", function () {",
 							"    pm.response.to.have.status(200);",
-							"    const userId = pm.response.json().userId;",
+							"    const wallet = pm.response.json();",
+							"    const userId = wallet.userId;",
 							"    pm.environment.set(\"x-user-id\", userId);",
+							"    const status = wallet.status;",
+							"    const paymentMethodId = wallet.paymentMethodId; ",
+							"    pm.expect(status).to.be.equals(\"CREATED\");",
+							"    pm.expect(paymentMethodId).to.be.equals(pm.environment.get(\"PAYMENT_METHOD_ID\"));",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -112,7 +251,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{WALLET_TOKEN_TEST}}",
+							"value": "{{SHARED_SESSION_TOKEN}}",
 							"type": "string"
 						}
 					]
@@ -125,9 +264,9 @@
 					}
 				],
 				"url": {
-					"raw": "{{HOSTNAME}}/wallets/{{WALLET_ID}}",
+					"raw": "{{ENV}}{{SERVICE}}/wallets/{{WALLET_ID}}",
 					"host": [
-						"{{HOSTNAME}}"
+						"{{ENV}}{{SERVICE}}"
 					],
 					"path": [
 						"wallets",
@@ -160,13 +299,21 @@
 							"",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
 			"request": {
 				"auth": {
-					"type": "noauth"
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
 				},
 				"method": "POST",
 				"header": [
@@ -177,7 +324,8 @@
 					{
 						"key": "Authorization",
 						"value": "Bearer {{SESSION_TOKEN}}",
-						"type": "text"
+						"type": "text",
+						"disabled": true
 					}
 				],
 				"body": {
@@ -205,53 +353,6 @@
 			"response": []
 		},
 		{
-			"name": "Delete wallet by id",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[Wallet for onboarding - PAYPAL] Wallet deleted successfully by it's id with DELETE /wallets/{walletId}\", function () {",
-							"    pm.response.to.have.status(204);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{WALLET_TOKEN_TEST}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"url": {
-					"raw": "{{HOSTNAME}}/wallets/{{WALLET_ID}}",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"wallets",
-						"{{WALLET_ID}}"
-					]
-				},
-				"description": "Returns a single wallet"
-			},
-			"response": []
-		},
-		{
 			"name": "Get wallet by user identifier",
 			"event": [
 				{
@@ -273,137 +374,6 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"setTimeout(function(){",
-							"          console.log(\"Sleeping for 10 seconds before next request (waiting for notification).\");",
-							"  }, 10000);"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{WALLET_TOKEN_TEST}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "x-user-id",
-						"value": "{{x-user-id}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{HOSTNAME}}/wallets",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"wallets"
-					]
-				},
-				"description": "Returns a of wallets related to user"
-			},
-			"response": []
-		},
-		{
-			"name": "Update wallet applications (ENABLED)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[Wallet for onboarding - CARDS] New wallet created successfully with POST /wallets\", function () {",
-							"    pm.response.to.have.status(204);",
-							"});",
-							"",
-							"",
-							"const createWalletRequestObject = {",
-							"  url: pm.environment.get(\"HOSTNAME\") + \"/wallets/\" + pm.environment.get(\"WALLET_ID\"),",
-							"  method: 'GET',",
-							"  header: {",
-							"    'Content-Type': 'application/json',",
-							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
-							"    'Authorization': `Bearer ${pm.environment.get(\"WALLET_TOKEN_TEST\")}`",
-							"",
-							"  }",
-							"};",
-							"",
-							"pm.sendRequest(createWalletRequestObject, (error, response) => {",
-							"  if (error) {",
-							"    throw error;",
-							"  } else {",
-							"    const responseJson = response.json();",
-							"    pm.expect(responseJson.walletId).to.be.equals(pm.environment.get(\"WALLET_ID\"));",
-							"    const applications = responseJson.applications;",
-							"    pm.expect(applications.length).to.equals(1);",
-							"    pm.expect(applications[0].name).to.be.a(\"string\");",
-							"    pm.expect(applications[0].name).equals(\"PAGOPA\");",
-							"    pm.expect(applications[0].status).to.be.a(\"string\");",
-							"    pm.expect(applications[0].status).equals(\"ENABLED\");",
-							"  }",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"const paymentMethodId = pm.environment.get(\"PAYMENT_METHOD_ID\");",
-							"const useDiagnosticSettings = pm.environment.get(\"USE_DIAGNOSTIC_TRACING\");",
-							"",
-							"const createWalletRequestBody = {",
-							"  \"useDiagnosticTracing\": useDiagnosticSettings,",
-							"  \"paymentMethodId\": paymentMethodId",
-							"};",
-							"",
-							"",
-							"const createWalletRequestObject = {",
-							"  url: pm.environment.get(\"HOSTNAME\") + \"/wallets\",",
-							"  method: 'POST',",
-							"  header: {",
-							"    'Content-Type': 'application/json',",
-							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
-							"    'x-client-id': 'IO',",
-							"    'Authorization': `Bearer ${pm.environment.get(\"WALLET_TOKEN_TEST\")}`",
-							"",
-							"  },",
-							"  body: {",
-							"    mode: 'raw',",
-							"    raw: JSON.stringify(createWalletRequestBody)",
-							"  }",
-							"};",
-							"",
-							"pm.sendRequest(createWalletRequestObject, (error, response) => {",
-							"  if (error) {",
-							"    throw error;",
-							"  } else {",
-							"    const redirectUrl = response.json().redirectUrl;",
-							"    pm.expect(redirectUrl).to.be.a(\"string\");",
-							"    pm.expect(redirectUrl).to.be.include(\"apm#\");",
-							"    const fragment = redirectUrl.split(\"#\")[1];",
-							"    const fragmentSplits = fragment.split(\"&\");",
-							"    pm.expect(fragmentSplits.length).to.be.equals(4);",
-							"    const walletId = fragmentSplits[0].split(\"=\")[1];",
-							"    console.log(walletId);",
-							"    pm.environment.set(\"WALLET_ID\", walletId);",
-							"  }",
-							"});",
 							""
 						],
 						"type": "text/javascript",
@@ -417,33 +387,97 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{WALLET_TOKEN_TEST}}",
+							"value": "{{SHARED_SESSION_TOKEN}}",
 							"type": "string"
 						}
 					]
 				},
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"applications\": [\n    {\n      \"name\": \"PAGOPA\",\n      \"status\": \"ENABLED\"\n    }\n  ]\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "x-user-id",
+						"value": "{{x-user-id}}"
 					}
-				},
+				],
 				"url": {
-					"raw": "{{HOSTNAME}}/wallets/{{WALLET_ID}}/applications",
+					"raw": "{{ENV}}{{SERVICE}}/wallets",
 					"host": [
-						"{{HOSTNAME}}"
+						"{{ENV}}{{SERVICE}}"
+					],
+					"path": [
+						"wallets"
+					]
+				},
+				"description": "Returns a of wallets related to user"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete wallet by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding - PAYPAL] Wallet deleted successfully by it's id with DELETE /wallets/{walletId}\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"const getWalletById = {",
+							"  url: pm.environment.get(\"ENV\") + pm.environment.get(\"SERVICE\") + \"/wallets/\" + pm.environment.get(\"WALLET_ID\"),",
+							"  method: 'GET',",
+							"  header: {",
+							"    'Authorization': `Bearer ${pm.environment.get(\"SHARED_SESSION_TOKEN\")}`",
+							"  }",
+							"};",
+							"",
+							"pm.sendRequest(getWalletById, (error, response) => {",
+							"  if (error) {",
+							"    throw error;",
+							"  } else {",
+							"    pm.expect(response.code).to.be.equals(200);",
+							"    pm.expect(response.json().status).to.be.equals(\"DELETED\");",
+							"  }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SHARED_SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{ENV}}{{SERVICE}}/wallets/{{WALLET_ID}}",
+					"host": [
+						"{{ENV}}{{SERVICE}}"
 					],
 					"path": [
 						"wallets",
-						"{{WALLET_ID}}",
-						"applications"
+						"{{WALLET_ID}}"
 					]
-				}
+				},
+				"description": "Returns a single wallet"
 			},
 			"response": []
 		},
@@ -454,23 +488,23 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Wallet for onboarding - CARDS] New wallet created successfully with POST /wallets\", function () {",
+							"pm.test(\"[Wallet for onboarding - CARDS] DISABLE application status with PUT /wallets/:walletId/applications\", function () {",
 							"    pm.response.to.have.status(204);",
 							"});",
 							"",
 							"",
-							"const createWalletRequestObject = {",
-							"  url: pm.environment.get(\"HOSTNAME\") + \"/wallets/\" + pm.environment.get(\"WALLET_ID\"),",
+							"const getWalletRequestObject = {",
+							"  url: pm.environment.get(\"ENV\") + pm.environment.get(\"SERVICE\") + \"/wallets/\" + pm.environment.get(\"WALLET_ID\"),",
 							"  method: 'GET',",
 							"  header: {",
 							"    'Content-Type': 'application/json',",
 							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
-							"    'Authorization': `Bearer ${pm.environment.get(\"WALLET_TOKEN_TEST\")}`",
+							"    'Authorization': `Bearer ${pm.environment.get(\"SHARED_SESSION_TOKEN\")}`",
 							"",
 							"  }",
 							"};",
 							"",
-							"pm.sendRequest(createWalletRequestObject, (error, response) => {",
+							"pm.sendRequest(getWalletRequestObject, (error, response) => {",
 							"  if (error) {",
 							"    throw error;",
 							"  } else {",
@@ -506,13 +540,13 @@
 							"",
 							"",
 							"const createWalletRequestObject = {",
-							"  url: pm.environment.get(\"HOSTNAME\") + \"/wallets\",",
+							"  url: pm.environment.get(\"ENV\") + pm.environment.get(\"SERVICE\") + \"/wallets\",",
 							"  method: 'POST',",
 							"  header: {",
 							"    'Content-Type': 'application/json',",
 							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
 							"    'x-client-id': 'IO',",
-							"    'Authorization': `Bearer ${pm.environment.get(\"WALLET_TOKEN_TEST\")}`",
+							"    'Authorization': `Bearer ${pm.environment.get(\"SHARED_SESSION_TOKEN\")}`",
 							"",
 							"  },",
 							"  body: {",
@@ -549,7 +583,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{WALLET_TOKEN_TEST}}",
+							"value": "{{SHARED_SESSION_TOKEN}}",
 							"type": "string"
 						}
 					]
@@ -566,9 +600,168 @@
 					}
 				},
 				"url": {
-					"raw": "{{HOSTNAME}}/wallets/{{WALLET_ID}}/applications",
+					"raw": "{{ENV}}{{SERVICE}}/wallets/{{WALLET_ID}}/applications",
 					"host": [
-						"{{HOSTNAME}}"
+						"{{ENV}}{{SERVICE}}"
+					],
+					"path": [
+						"wallets",
+						"{{WALLET_ID}}",
+						"applications"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update wallet applications (ENABLED)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding - CARDS] ENABLE application status with PUT /wallets/:walletId/applications\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"",
+							"const getWalletRequestObject = {",
+							"  url: pm.environment.get(\"ENV\") + pm.environment.get(\"SERVICE\") + \"/wallets/\" + pm.environment.get(\"WALLET_ID\"),",
+							"  method: 'GET',",
+							"  header: {",
+							"    'Content-Type': 'application/json',",
+							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
+							"    'Authorization': `Bearer ${pm.environment.get(\"SHARED_SESSION_TOKEN\")}`",
+							"",
+							"  }",
+							"};",
+							"",
+							"pm.sendRequest(getWalletRequestObject, (error, response) => {",
+							"  if (error) {",
+							"    throw error;",
+							"  } else {",
+							"    const responseJson = response.json();",
+							"    pm.expect(responseJson.walletId).to.be.equals(pm.environment.get(\"WALLET_ID\"));",
+							"    const applications = responseJson.applications;",
+							"    pm.expect(applications.length).to.equals(1);",
+							"    pm.expect(applications[0].name).to.be.a(\"string\");",
+							"    pm.expect(applications[0].name).equals(\"PAGOPA\");",
+							"    pm.expect(applications[0].status).to.be.a(\"string\");",
+							"    pm.expect(applications[0].status).equals(\"ENABLED\");",
+							"  }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"/*onst paymentMethodId = pm.environment.get(\"PAYMENT_METHOD_ID\");",
+							"const useDiagnosticSettings = pm.environment.get(\"USE_DIAGNOSTIC_TRACING\");",
+							"",
+							"const createWalletRequestBody = {",
+							"  \"applications\": [",
+							"    \"PAGOPA\"",
+							"  ],",
+							"  \"useDiagnosticTracing\": useDiagnosticSettings,",
+							"  \"paymentMethodId\": paymentMethodId",
+							"};",
+							"",
+							"",
+							"const createWalletRequestObject = {",
+							"  url: pm.environment.get(\"ENV\") + pm.environment.get(\"SERVICE\") + \"/wallets\",",
+							"  method: 'POST',",
+							"  header: {",
+							"    'Content-Type': 'application/json',",
+							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
+							"    'x-client-id': 'IO',",
+							"    'Authorization': `Bearer ${pm.environment.get(\"SHARED_SESSION_TOKEN\")}`",
+							"",
+							"  },",
+							"  body: {",
+							"    mode: 'raw',",
+							"    raw: JSON.stringify(createWalletRequestBody)",
+							"  }",
+							"};",
+							"",
+							"pm.sendRequest(createWalletRequestObject, (error, response) => {",
+							"  if (error) {",
+							"    throw error;",
+							"  } else {",
+							"    const redirectUrl = response.json().redirectUrl;",
+							"    pm.expect(redirectUrl).to.be.a(\"string\");",
+							"    pm.expect(redirectUrl).to.be.include(\"apm#\");",
+							"    const fragment = redirectUrl.split(\"#\")[1];",
+							"    const fragmentSplits = fragment.split(\"&\");",
+							"    pm.expect(fragmentSplits.length).to.be.equals(4);",
+							"    const walletId = fragmentSplits[0].split(\"=\")[1];",
+							"    console.log(walletId);",
+							"    pm.environment.set(\"WALLET_ID\", walletId);",
+							"  }",
+							"});",
+							"*/",
+							"",
+							"",
+							"const getWalletRequestObject = {",
+							"  url: pm.environment.get(\"ENV\") + pm.environment.get(\"SERVICE\") + \"/wallets/\" + pm.environment.get(\"WALLET_ID\"),",
+							"  method: 'GET',",
+							"  header: {",
+							"    'Content-Type': 'application/json',",
+							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
+							"    'Authorization': `Bearer ${pm.environment.get(\"SHARED_SESSION_TOKEN\")}`",
+							"",
+							"  }",
+							"};",
+							"",
+							"pm.sendRequest(getWalletRequestObject, (error, response) => {",
+							"  if (error) {",
+							"    throw error;",
+							"  } else {",
+							"    const responseJson = response.json();",
+							"    pm.expect(responseJson.walletId).to.be.equals(pm.environment.get(\"WALLET_ID\"));",
+							"    const applications = responseJson.applications;",
+							"    pm.expect(applications.length).to.equals(1);",
+							"    pm.expect(applications[0].name).to.be.a(\"string\");",
+							"    pm.expect(applications[0].name).equals(\"PAGOPA\");",
+							"    pm.expect(applications[0].status).to.be.a(\"string\");",
+							"    pm.expect(applications[0].status).equals(\"DISABLED\");",
+							"  }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SHARED_SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"applications\": [\n    {\n      \"name\": \"PAGOPA\",\n      \"status\": \"ENABLED\"\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ENV}}{{SERVICE}}/wallets/{{WALLET_ID}}/applications",
+					"host": [
+						"{{ENV}}{{SERVICE}}"
 					],
 					"path": [
 						"wallets",

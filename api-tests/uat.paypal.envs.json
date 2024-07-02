@@ -1,10 +1,16 @@
 {
-	"id": "7beb5739-3d3d-457a-89a0-338d1d9b9165",
+	"id": "2bb03859-7523-441d-b0be-e40d74b17eca",
 	"name": "Wallet UAT - PAYPAL",
 	"values": [
 		{
-			"key": "HOSTNAME",
-			"value": "https://api.uat.platform.pagopa.it/payment-wallet/v1",
+			"key": "ENV",
+			"value": "https://api.uat.platform.pagopa.it",
+			"enabled": true
+		},
+		{
+			"key": "SERVICE",
+			"value": "/io-payment-wallet/v1",
+			"type": "default",
 			"enabled": true
 		},
 		{
@@ -14,7 +20,7 @@
 		},
 		{
 			"key": "PAYMENT_METHOD_ID",
-			"value": "0d1450f4-b993-4f89-af5a-1770a45f5d71",
+			"value": "",
 			"type": "default",
 			"enabled": true
 		},
@@ -53,9 +59,21 @@
 			"value": "Default Token Test",
 			"type": "secret",
 			"enabled": true
+		},
+		{
+			"key": "PAYMENT_METHOD_NAME",
+			"value": "PAYPAL",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "SHARED_SESSION_TOKEN",
+			"value": "",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2023-11-09T15:46:36.252Z",
-	"_postman_exported_using": "Postman/10.19.17"
+	"_postman_exported_at": "2024-06-28T09:29:48.588Z",
+	"_postman_exported_using": "Postman/11.2.24"
 }

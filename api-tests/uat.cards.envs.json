@@ -1,20 +1,26 @@
 {
-	"id": "7beb5739-3d3d-457a-89a0-338d1d9b9165",
-	"name": "Wallet UAT - CARDS",
+	"id": "d8660dd9-227f-4033-b420-4bb35e0cc6a4",
+	"name": "Wallet UAT- CARDS",
 	"values": [
 		{
-			"key": "HOSTNAME",
-			"value": "https://api.uat.platform.pagopa.it/payment-wallet/v1",
+			"key": "ENV",
+			"value": "https://api.uat.platform.pagopa.it",
+			"enabled": true
+		},
+		{
+			"key": "SERVICE",
+			"value": "/io-payment-wallet/v1",
+			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "WALLET_ID",
-			"value": "",
+			"value": "test",
 			"enabled": true
 		},
 		{
 			"key": "PAYMENT_METHOD_ID",
-			"value": "f25399bf-c56f-4bd2-adc9-7aef87410609",
+			"value": "",
 			"type": "default",
 			"enabled": true
 		},
@@ -74,19 +80,19 @@
 		},
 		{
 			"key": "NPG_EXP_DATE",
-			"value": "05/26",
+			"value": "12/31",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "NPG_CARD_NUMBER",
-			"value": "4349940199004549",
+			"value": "4109230300003014",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "NPG_CARD_CVV",
-			"value": "396",
+			"value": "554",
 			"type": "default",
 			"enabled": true
 		},
@@ -101,9 +107,21 @@
 			"value": "Default Token Test",
 			"type": "secret",
 			"enabled": true
+		},
+		{
+			"key": "SHARED_SESSION_TOKEN",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PAYMENT_METHOD_NAME",
+			"value": "CARDS",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2023-11-09T15:46:36.252Z",
-	"_postman_exported_using": "Postman/10.19.17"
+	"_postman_exported_at": "2024-06-28T09:53:07.667Z",
+	"_postman_exported_using": "Postman/11.2.24"
 }
