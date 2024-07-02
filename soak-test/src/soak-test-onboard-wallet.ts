@@ -71,6 +71,8 @@ export function setup() {
     console.log(`Using Blue Deployment: ${config.USE_BLUE_DEPLOYMENT}`);
 }
 
+
+
 export default function () {
     const paymentMethod = randomPaymentMethod(config.ONBOARD_APM_RATIO ?? 0);
     const paymentMethodId = paymentMethodIds[paymentMethod];
@@ -122,31 +124,8 @@ export default function () {
         },
     }
 
-    // Pre 2. -> APM retrieve available psps
-    let selectedPspId = undefined;
-    if (paymentMethod == PaymentMethod.PAYPAL) {
-        response = http.get(
-            `${urlBasePathWebView}/wallets/${walletId}/psps`,
-            {
-                ...sessionHeaders,
-                timeout: '10s',
-                tags: { name: apiTags.getPsps },
-            }
-        );
-        check(
-            response,
-            { "Response from GET /wallets/{walletId}/psps was 200": (r) => r.status == 200},
-            { name: apiTags.getPsps }
-        );
-        if (response.status != 200 && response.json() == null) {
-            fail(`Failed to get psp list ${response.status}`)
-        }
-
-        selectedPspId = DEFAULT_APM_PSP
-    }
-
     // 2. POST /sessions
-    const requestInputData = generateSessionInputData(paymentMethod == PaymentMethod.PAYPAL, selectedPspId);
+    const requestInputData = generateSessionInputData(paymentMethod == PaymentMethod.PAYPAL, DEFAULT_APM_PSP);
     response = http.post(
         `${urlBasePathWebView}/wallets/${walletId}/sessions`,
         JSON.stringify(requestInputData),

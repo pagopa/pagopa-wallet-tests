@@ -21,7 +21,8 @@
     "generate:ts-from-yaml:wallet-webview": "shx rm -rf src/generated/wallet-webview && shx mkdir -p src/generated/wallet-webview && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/pay-wallet-app/api/webview-payment-wallet/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet-webview",   
     "soak-migration": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-migration.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\"",
     "soak-onboard-wallet": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-onboard-wallet.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\"",
-    "soak-get-wallets": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-get-wallets-by-user.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\""
+    "soak-get-wallets": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-get-wallets-by-user.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\"",
+    "soak-get-wallet-authdata": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-get-wallet-auth-data.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\""
   },
   "author": "",
   "license": "ISC",

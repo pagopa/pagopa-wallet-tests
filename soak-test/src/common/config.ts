@@ -28,6 +28,7 @@ export const IConfig = t.intersection([
     ONBOARD_APM_RATIO: NumberFromString.pipe(WithinRangeNumber(0.0, 1.1)),
     API_SUBSCRIPTION_KEY_GENERATE_CONTRACT: NonEmptyString,
     URL_BASE_PATH_GENERATE_CONTRACT: NonEmptyString,
+    WALLET_IDS: t.array(t.string)
   }),
   K6Config,
 ]);
