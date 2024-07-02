@@ -216,17 +216,34 @@ export const checkAndClickPaypalFirstPsps = async () => {
 
 export const fillPaypalAuth = async paypalCredentials => {
   const usernameInput = '#email';
+  const btnNext = '#btnNext';
+  //const pwInputContainer = '#login_passworddiv';
   const pwInput = '#password';
-  const loginButtonId = '#btnLogin';
-  const paypalUsername = await page.waitForSelector(usernameInput, {timeout: 5000});
-  await page.click(paypalUsername, { clickCount: 3 });
-  await page.keyboard.type(paypalCredentials.username);
-  const paypalPW = await page.waitForSelector(pwInput, {timeout: 5000});
-  await page.click(paypalPW, { clickCount: 3 });
-  await page.keyboard.type(paypalCredentials.password);
-  const loginButton = await page.waitForSelector(loginButtonId, {timeout: 5000});
-  await page.click(loginButton);
-  await page.waitForNavigation();
+  const loginButton = '#btnLogin';
+  const payButton = '#consentButton';
+
+  const targets = await browser.targets()
+  const popup = await targets[targets.length -1].page()
+  await popup.waitForNavigation()
+  await popup.waitForSelector(usernameInput, {timeout: 10000});
+  await popup.click(usernameInput, { clickCount: 3 });
+  await popup.keyboard.type(paypalCredentials.username);
+  await popup.waitForSelector(btnNext, {timeout: 10000});
+  await popup.click(btnNext);
+  //await popup.waitForSelector(pwInputContainer, {timeout: 10000});
+  await popup.waitForSelector(pwInput, {timeout: 10000});
+  await new Promise(r => setTimeout(r, 2000));
+  await popup.focus(pwInput);
+  await new Promise(r => setTimeout(r, 2000));
+  popup.keyboard.type(paypalCredentials.password);
+  await new Promise(r => setTimeout(r, 2000)); 
+  const login = await popup.waitForSelector(loginButton, {timeout: 10000, visible: true});
+  await new Promise(r => setTimeout(r, 2000)); 
+  await login.click();
+  await popup.waitForFunction(`window.location.href.includes("https://www.sandbox.paypal.com/webapps/hermes")`);
+  await popup.waitForSelector(payButton, {timeout: 10000});
+  await new Promise(r => setTimeout(r, 2000)); 
+  await popup.click(payButton);
 }
 
 export const fillCardDataForm = async cardData => {
