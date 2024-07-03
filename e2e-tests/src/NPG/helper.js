@@ -208,9 +208,9 @@ export const clickPaypalButton = async () => {
 }
 
 export const checkAndClickPaypalFirstPsps = async () => {
-  const radioButtonIntesa = await page.waitForSelector('#root > div > div > div > div.MuiBox-root.css-0 > div.MuiFormControl-root.css-tzsjye > div > label:nth-child(1) > span.MuiButtonBase-root.MuiRadio-root.MuiRadio-colorPrimary.PrivateSwitchBase-root.MuiRadio-root.MuiRadio-colorPrimary.MuiRadio-root.MuiRadio-colorPrimary.css-fa98ss > input')
+  const radioButtonIntesa = await page.waitForSelector('#BCITITMM')
   await radioButtonIntesa.click()
-  const submitPsp = await page.waitForXPath('/html/body/div/div/div/div/div[2]/div[3]/div/button')
+  const submitPsp = await page.waitForSelector('#apmSubmit')
   await submitPsp.click()
 }
 
@@ -302,4 +302,36 @@ export const getOutcome = async (url) => {
       return -1;
     }
     return parseInt(outcome)
+}
+
+export const cleantWalletOnboarded = async (walletHost, walletId) => {
+  const walletToken = WALLET_TOKEN
+  const urlStartSession = `${walletHost}/session-wallet/v1/session`;
+    const responseStartSession = await fetch(urlStartSession, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${walletToken}`,
+      }
+    });
+    if(responseStartSession.status === 201) {
+      console.debug('session 201');
+      const sessionData = await responseStartSession.json();
+      const sessionToken = sessionData.token;
+      const urlPostWallet = `${walletHost}/io-payment-wallet/v1/wallets/${walletId}`;
+      const responsePostWallet = await fetch(urlPostWallet, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${sessionToken}`
+        }
+      });
+      if(responsePostWallet.status === 204) {
+        console.debug("Wallet deleted 204");
+      } else {
+        throw Error('Error deleting wallet');
+      }
+  } else {
+    throw Error('Error starting session');
+  }
 }

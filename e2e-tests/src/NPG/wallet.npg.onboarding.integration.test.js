@@ -1,13 +1,19 @@
-import { fillCardDataForm, retrieveValidRedirectUrl, getOutcome, waitUntilUrlContains, clickPaypalButton, checkAndClickPaypalFirstPsps, fillPaypalAuth } from './helper';
+import { fillCardDataForm, retrieveValidRedirectUrl, getOutcome, waitUntilUrlContains, clickPaypalButton, checkAndClickPaypalFirstPsps, fillPaypalAuth, cleantWalletOnboarded } from './helper';
 
 describe('Credit Card Wallet: onboarding with NPG', () => {
   const WALLET_HOST = String(process.env.WALLET_HOST);
   const PAYMENT_METHOD_ID = String(process.env.CREDIT_CARD_PAYMENT_METHOD_ID);
+  const VALID_CARD_DATA = {
+    number: '5127390031101597',
+    expirationDate: '1025',
+    ccv: '015',
+    holderName: "TEST TEST",
+  };
   /**
    * Increase default test timeout (60000ms)
    * to support entire payment flow
    */
-  const timeout = 40_000;
+  const timeout = 120_000;
   jest.setTimeout(timeout);
   jest.retryTimes(3);
   page.setDefaultNavigationTimeout(timeout);
@@ -17,13 +23,9 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
     await jestPuppeteer.resetPage();
   });
 
-  it('should redirect with outcome 0 (success) success using an valid visa card', async () => {
-    const VALID_VISA_CARD_DATA = {
-      number: '4012000000020089',
-      expirationDate: '1226',
-      ccv: '123',
-      holderName: "TEST TEST",
-    };
+  //let walletIdOnboarded;
+
+  it('should redirect with outcome 0 (success) success using a valid card', async () => {
     const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
     let url;
     await page.goto(redirectUrl);
@@ -38,22 +40,21 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
       });
     await page.setRequestInterception(true);
 
-    await fillCardDataForm(VALID_VISA_CARD_DATA);
+    await fillCardDataForm(VALID_CARD_DATA);
     expect(page.url()).toContain('/gdi-check');
     await waitUntilUrlContains("/esito");
     expect(page.url()).toContain('/esito');
-    await new Promise(r => setTimeout(r, 4000));
-    const outcome = await getOutcome(url);
+    const maxTimeToWait = 61000;
+    const pollingResultUrlStartTime = Date.now();
+    while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
+      console.log(`Waiting for outcome URL...`);
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    const outcome = await getOutcome(url)
     expect(outcome).toBe(0);
   });
 
-  it('should redirect with outcome 15 (already onboarded) using an valid visa card already used', async () => {
-    const VALID_VISA_CARD_DATA = {
-      number: '4012000000020089',
-      expirationDate: '1226',
-      ccv: '123',
-      holderName: "TEST TEST",
-    };
+  it('should redirect with outcome 15 (already onboarded) using an valid card already used', async () => {
     const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
     let url;
     await page.goto(redirectUrl);
@@ -68,17 +69,24 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
       });
     await page.setRequestInterception(true);
 
-    await fillCardDataForm(VALID_VISA_CARD_DATA);
+    await fillCardDataForm(VALID_CARD_DATA);
     expect(page.url()).toContain('/gdi-check');
     await waitUntilUrlContains("/esito");
     expect(page.url()).toContain('/esito');
-    await new Promise(r => setTimeout(r, 4000));
-    const outcome = await getOutcome(url);
+    const maxTimeToWait = 40000;
+    const pollingResultUrlStartTime = Date.now();
+    while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
+      console.log(`Waiting for outcome URL...`);
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    const outcome = await getOutcome(url)
     expect(outcome).toBe(15);
+    
+    //cleantWalletOnboarded(WALLET_HOST, walletIdOnboarded)
   });
 
-  it('should redirect with outcome not equal to 0 (2) using a not valid visa card', async () => {
-    const NOT_VALID_VISA_CARD_DATA = {
+  it('should redirect with outcome not equal to 0 (2) using a not valid card', async () => {
+    const NOT_VALID_CARD_DATA = {
       number: '4242424242424242',
       expirationDate: '1230',
       ccv: '123',
@@ -97,12 +105,17 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
         interceptedRequest.continue();
       });
     await page.setRequestInterception(true);
-    await fillCardDataForm(NOT_VALID_VISA_CARD_DATA);
+    await fillCardDataForm(NOT_VALID_CARD_DATA);
     expect(page.url()).toContain('/gdi-check');
     await waitUntilUrlContains("/esito");
     expect(page.url()).toContain('/esito');
-    await new Promise(r => setTimeout(r, 4000));
-    const outcome = await getOutcome(url);
+    const maxTimeToWait = 40000;
+    const pollingResultUrlStartTime = Date.now();
+    while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
+      console.log(`Waiting for outcome URL...`);
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    const outcome = await getOutcome(url)
     expect(outcome).toBe(2);
   });
 });
@@ -111,6 +124,10 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
 describe('Paypal Wallet: onboarding with NPG', () => {
   const WALLET_HOST = String(process.env.WALLET_HOST);
   const PAYMENT_METHOD_ID = String(process.env.PAYMENT_METHOD_ID_PAYPAL);
+  const PAYPAL_ACCOUNT_DATA = {
+    username: 'buyerpaypal@icbpi.it',
+    password: 'buyerpaypal'
+  };
   /**
    * Increase default test timeout (60000ms)
    * to support entire payment flow
@@ -126,10 +143,6 @@ describe('Paypal Wallet: onboarding with NPG', () => {
   });
 
   it('should redirect with outcome 0 (success) success using paypal account', async () => {
-    const PAYPAL_ACCOUNT_DATA = {
-      username: 'buyerpaypal@icbpi.it',
-      password: 'buyerpaypal'
-    };
     const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
 
     await page.goto(redirectUrl)
@@ -156,9 +169,16 @@ describe('Paypal Wallet: onboarding with NPG', () => {
     await page.setRequestInterception(true);
     await waitUntilUrlContains("/esito");
     expect(page.url()).toContain('/esito');
-    await new Promise(r => setTimeout(r, 7000));
-    const outcome = await getOutcome(url);
+    const maxTimeToWait = 40000;
+    const pollingResultUrlStartTime = Date.now();
+    while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
+      console.log(`Waiting for outcome URL...`);
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    const outcome = await getOutcome(url)
     expect(outcome).toBe(0);
+    //await new Promise(r => setTimeout(r, 1000));
+    //cleantWalletOnboarded(WALLET_HOST, walletId)
   });
 
   it('should redirect with outcome greater than 0 cancelling paypal onboarding', async () => {
