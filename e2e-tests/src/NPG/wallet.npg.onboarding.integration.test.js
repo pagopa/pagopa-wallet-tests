@@ -1,4 +1,4 @@
-import { fillCardDataForm, retrieveValidRedirectUrl, getOutcome, waitUntilUrlContains, clickPaypalButton, checkAndClickPaypalFirstPsps, fillPaypalAuth, cleantWalletOnboarded } from './helper';
+import { fillCardDataForm, retrieveValidRedirectUrl, getOutcome, waitUntilUrlContains, clickPaypalButton, checkAndClickPaypalFirstPsps, fillPaypalAuth, cleantWalletOnboarded, getWalletId } from './helper';
 
 describe('Credit Card Wallet: onboarding with NPG', () => {
   const WALLET_HOST = String(process.env.WALLET_HOST);
@@ -23,7 +23,7 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
     await jestPuppeteer.resetPage();
   });
 
-  //let walletIdOnboarded;
+  let walletIdOnboarded;
 
   it('should redirect with outcome 0 (success) success using a valid card', async () => {
     const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
@@ -50,6 +50,7 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
       console.log(`Waiting for outcome URL...`);
       await new Promise(r => setTimeout(r, 1000));
     }
+    walletIdOnboarded = await getWalletId(url)
     const outcome = await getOutcome(url)
     expect(outcome).toBe(0);
   });
@@ -80,9 +81,8 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
       await new Promise(r => setTimeout(r, 1000));
     }
     const outcome = await getOutcome(url)
+    await cleantWalletOnboarded(WALLET_HOST, walletIdOnboarded)
     expect(outcome).toBe(15);
-    
-    //cleantWalletOnboarded(WALLET_HOST, walletIdOnboarded)
   });
 
   it('should redirect with outcome not equal to 0 (2) using a not valid card', async () => {
@@ -175,10 +175,11 @@ describe('Paypal Wallet: onboarding with NPG', () => {
       console.log(`Waiting for outcome URL...`);
       await new Promise(r => setTimeout(r, 1000));
     }
+    const walletIdOnboarded = await getWalletId(url)
     const outcome = await getOutcome(url)
+    await new Promise(r => setTimeout(r, 1000));
+    await cleantWalletOnboarded(WALLET_HOST, walletIdOnboarded)
     expect(outcome).toBe(0);
-    //await new Promise(r => setTimeout(r, 1000));
-    //cleantWalletOnboarded(WALLET_HOST, walletId)
   });
 
   it('should redirect with outcome greater than 0 cancelling paypal onboarding', async () => {

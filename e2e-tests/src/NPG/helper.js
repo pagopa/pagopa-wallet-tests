@@ -304,7 +304,23 @@ export const getOutcome = async (url) => {
     return parseInt(outcome)
 }
 
+/**
+ * This function wait for obtain the walletOd parameter from the final result url
+ * when the gdi check phase, the 3ds challenge and esito phase ends
+ * @returns number
+ */
+export const getWalletId = async (url) => {
+  console.log(url)
+  const walletId = new URLSearchParams(url?.split("?")[1]).get("walletId");
+  console.debug(`walletId ${walletId}`);
+  if(walletId == null) {
+    return "";
+  }
+  return walletId
+}
+
 export const cleantWalletOnboarded = async (walletHost, walletId) => {
+  console.debug(`Deleting wallet ${walletId}`)
   const walletToken = WALLET_TOKEN
   const urlStartSession = `${walletHost}/session-wallet/v1/session`;
     const responseStartSession = await fetch(urlStartSession, {
