@@ -1,13 +1,12 @@
 export const successfullyExecutionOnboarding = async (cardData, isXpay) => {
   let url = undefined;
   page.on('request', interceptedRequest => {
-    if (interceptedRequest.isInterceptResolutionHandled()) return;
-    if (
-      interceptedRequest.url().indexOf('payment-wallet-outcomes') > 0
-    ) {
+    if (interceptedRequest.url().indexOf('payment-wallet-outcomes') > 0) {
       url = interceptedRequest.url();
     }
-    interceptedRequest.continue();
+    if (!interceptedRequest.isInterceptResolutionHandled()){ 
+      interceptedRequest.continue();
+    }
   });
   await page.setRequestInterception(true);
   await fillCardForm(cardData);
@@ -15,9 +14,9 @@ export const successfullyExecutionOnboarding = async (cardData, isXpay) => {
     await execute_mock_authorization_xpay();
   }
   //there is no navigation after completing onboarding, just waiting for outcome redirection
-  const maxTimeToWait = 20000;
+  const maxTimeToWait = 30000;
   const pollingResultUrlStartTime = Date.now();
-  while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
+  while (url === undefined && Date.now() - pollingResultUrlStartTime < maxTimeToWait) {
     console.log(`Waiting for outcome URL...`);
     await new Promise(r => setTimeout(r, 1000));
   }
@@ -47,19 +46,26 @@ export const fillCardForm = async (cardData) => {
   const ccvInput = '#cvv';
   const holderNameInput = '#name';
   const continueBtnXPath = "button[type=submit]";
-  await page.waitForSelector(cardNumberInput);
-  await page.click(cardNumberInput);
+  const disabledContinueBtnXPath = 'button[type=submit][disabled=""]';
+  let iteration = 0;
+  let completed = false;
+  while (!completed) {
+    iteration++;
+    console.log(`Compiling fields...${iteration}`);
+  await page.waitForSelector(cardNumberInput, { visible: true });
+  await page.click(cardNumberInput, { clickCount: 3 });
   await page.keyboard.type(cardData.number);
-  await page.waitForSelector(expirationDateInput);
-  await page.click(expirationDateInput);
+  await page.waitForSelector(expirationDateInput, { visible: true });
+  await page.click(expirationDateInput, { clickCount: 3 });
   await page.keyboard.type(cardData.expirationDate);
-  await page.waitForSelector(ccvInput);
-  await page.click(ccvInput);
+  await page.waitForSelector(ccvInput, { visible: true });
+  await page.click(ccvInput, { clickCount: 3 });
   await page.keyboard.type(cardData.ccv);
-  await page.waitForSelector(holderNameInput);
-  await page.click(holderNameInput);
+  await page.waitForSelector(holderNameInput, { visible: true });
+  await page.click(holderNameInput, { clickCount: 3 });
   await page.keyboard.type(cardData.holderName);
-
+  completed = !(await page.$(disabledContinueBtnXPath));
+}
   const continueBtn = await page.waitForSelector(continueBtnXPath);
   await continueBtn.click();
 };
