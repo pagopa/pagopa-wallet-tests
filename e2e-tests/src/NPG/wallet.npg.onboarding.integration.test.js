@@ -62,7 +62,7 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
   });
 
   it('should redirect with outcome 15 (already onboarded) using an valid card already used', async () => {
-    const walletIdOnboarded = await getWalletAlreadyOnboarded(WALLET_HOST, ONBOARDED_VALID_CARD_DATA.number.substring(12));
+    const walletIdOnboarded = await getWalletAlreadyOnboarded(WALLET_HOST, ONBOARDED_VALID_CARD_DATA.number.substring(ONBOARDED_VALID_CARD_DATA.number.length - 4));
     if(walletIdOnboarded !== undefined) {
       const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
       let url;
