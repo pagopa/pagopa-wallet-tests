@@ -188,6 +188,16 @@ describe('Paypal Wallet: onboarding with NPG', () => {
     await page.goto(redirectUrl)
     let url;
     await clickPaypalButton()
+    page.on('request', interceptedRequest => {
+      if (interceptedRequest.isInterceptResolutionHandled()) return;
+        if (
+          interceptedRequest.url().indexOf('payment-wallet-outcomes') > 0
+        ) {
+          url = interceptedRequest.url();
+        } 
+        interceptedRequest.continue();
+      });
+    await page.setRequestInterception(true);
     await checkAndClickPaypalFirstPsps()
     await page.waitForNavigation()
     await waitUntilUrlContains("https://stg-ta.nexigroup.com/monetaweb/psp/paypal")
@@ -195,21 +205,10 @@ describe('Paypal Wallet: onboarding with NPG', () => {
     await new Promise(r => setTimeout(r, 2000));
     await page.waitForSelector('#back', {timeout: 5000});
     await page.click('#back');
-    page.on('request', interceptedRequest => {
-      if (interceptedRequest.isInterceptResolutionHandled()) return;
-        if (
-          interceptedRequest.url().indexOf('payment-wallet-outcomes') > 0
-        ) {
-          url = interceptedRequest.url();
-          const outcome = new URLSearchParams(url.split("?")[1]).get("outcome");
-          expect(parseInt(outcome)).toBe(1);
-        } 
-        interceptedRequest.continue();
-      });
-    await page.setRequestInterception(true);
+    await page.waitForNavigation()
     await waitUntilUrlContains("/esito");
+    await new Promise(r => setTimeout(r, 1000));
     expect(page.url()).toContain('/esito');
-
     const maxTimeToWait = 40000;
     const pollingResultUrlStartTime = Date.now();
     while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
@@ -218,6 +217,9 @@ describe('Paypal Wallet: onboarding with NPG', () => {
     }
     console.log(`Captured redirection url: [${url}]`)
     expect(url !== undefined).toBe(true)
+    const outcome = new URLSearchParams(url.split("?")[1]).get("outcome");
+    expect(parseInt(outcome)).toBe(1);
+    
   });
 
 });

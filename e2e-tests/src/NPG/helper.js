@@ -72,7 +72,7 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
   }*/
 };
 
-export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
+export const retrievePaymentRedirectUrl = async (walletHost, walletToken, walletType) => {
   const RPTID_NM3 = "77777777777" + "302001" + randomIntFromInterval(0, 999999999999);
 
     const urlStartSession = `${walletHost}/session-wallet/v1/session`;
@@ -83,8 +83,9 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
         Authorization: `Bearer ${walletToken}`,
       }
     });
+    console.debug('start session');
     if(responseStartSession.status === 201) {
-      console.debug('session 201');
+      console.debug('start session 201');
       const sessionData = await responseStartSession.json();
       const urlRprtIdInfo = `${walletHost}/ecommerce/io/v2/payment-requests/${RPTID_NM3}`;
       const responseRptIdInfo = await fetch(urlRprtIdInfo, {
@@ -94,8 +95,9 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
           Authorization: `Bearer ${sessionData.token}`,
         }
       });
+      console.debug('verify rptId');
       if(responseRptIdInfo.status === 200) {
-        console.debug('rpt 200');
+        console.debug('verify rptId 200');
         const rptidInfoData = await responseRptIdInfo.json();
         const urlUserWallet = `${walletHost}/ecommerce/io/v2/wallets`;
         const responseUserWallet = await fetch(urlUserWallet, {
@@ -105,12 +107,12 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
             Authorization: `Bearer ${sessionData.token}`,
           }
         });
+        console.debug('get wallet');
         if (responseUserWallet.status === 200) {
-          console.debug('wallet 200');
+          console.debug('get wallet 200');
           const walletData = await responseUserWallet.json();
-          const { walletId, paymentMethodId } = walletData.wallets.find(w => w?.details?.type === "CARDS");
+          const { walletId, paymentMethodId } = walletData.wallets.find(w => w?.details?.type === walletType);
           const urlPaymentTransaction = `${walletHost}/ecommerce/io/v2/transactions`;
-          console.log(urlPaymentTransaction)
         const responsePaymentTransaction = await fetch(urlPaymentTransaction, {
           method: 'POST',
           headers: {
@@ -120,12 +122,13 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
           body: JSON.stringify({
             paymentNotices: [{
               rptId: `${RPTID_NM3}`,
-              amount: 12000
+              amount: rptidInfoData.amount
             }]
           }),
         })
+        console.debug('post transaction');
         if(responsePaymentTransaction.status === 200) {
-          console.debug('transaction 200');
+          console.debug('post transaction 200');
           const paymentTransactionData = await responsePaymentTransaction.json();
           const urlFees = `${walletHost}/ecommerce/io/v2/payment-methods/${paymentMethodId}/fees`;
           const transferList = [];
@@ -134,6 +137,7 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
             "digitalStamp": el.digitalStamp,
             "transferCategory": el.transferCategory
           }))
+          console.debug(paymentTransactionData)
 
           const feeBodyRequest = {
             walletId,
@@ -141,9 +145,10 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
             paymentAmount: rptidInfoData.amount,
             primaryCreditorInstitution: "77777777777",
             idPspList: [],
-            isAllCCP: true,
+            isAllCCP: paymentTransactionData.payments[0].isAllCCP,
             transferList: transferList
           }
+          console.debug(feeBodyRequest)
           const responseFees = await fetch(urlFees, {
             method: 'POST',
             headers: {
@@ -152,9 +157,9 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
             },
             body: JSON.stringify(feeBodyRequest),
           })
+          console.debug('post fees');
           if (responseFees.status === 200) {
-
-            console.debug('fees 200');
+            console.debug('post fees 200');
             const feesData = await responseFees.json();
             const urlAuthRequest = `${walletHost}/ecommerce/io/v2/transactions/${paymentTransactionData.transactionId}/auth-requests`;
             const responseAuthRequest = await fetch(urlAuthRequest, {
@@ -172,33 +177,34 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
                 isAllCCP: true,
                 details: {
                   detailType: "wallet",
-                  walletId
+                  walletId: walletId
                 }
               }),
             })
+            console.debug('post auth request');
             if (responseAuthRequest.status === 200) {
-              console.debug('auth request 200');
+              console.debug('post auth request 200');
               const authRequest = await responseAuthRequest.json();
               return authRequest.authorizationUrl;
             } else {
-              throw Error('Error during auth request');
+              throw Error(`Error during auth request: status code ${responseAuthRequest.status}`);
             }
           } else {
-            throw Error('Error getting fees');
+            throw Error(`Error getting fees: status code ${responseFees.status}`);
           }
         } else {
-          throw Error('Error during transaction');
+          throw Error(`Error during transaction: status code ${responsePaymentTransaction.status}`);
         }
         } else {
-          throw Error('Error getting wallet');
+          throw Error(`Error getting wallet: status code ${responseUserWallet.status}`);
         }
 
 
       } else {
-        throw Error('Error getting rptId');
+        throw Error(`Error getting rptId: status code ${responseRptIdInfo.status}`);
       }
     } else {
-      throw Error('Error starting session');
+      throw Error(`Error starting session: status code ${responseStartSession.status}`);
     }
 };
 
