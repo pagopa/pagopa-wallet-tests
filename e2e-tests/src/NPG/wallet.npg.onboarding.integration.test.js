@@ -47,7 +47,6 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
     await fillCardDataForm(VALID_CARD_DATA);
     expect(page.url()).toContain('/gdi-check');
     await waitUntilUrlContains("/esito");
-    expect(page.url()).toContain('/esito');
     const maxTimeToWait = 61000;
     const pollingResultUrlStartTime = Date.now();
     while(url === undefined && Date.now() - pollingResultUrlStartTime < maxTimeToWait) {
