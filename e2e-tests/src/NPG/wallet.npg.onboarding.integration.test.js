@@ -50,7 +50,7 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
     expect(page.url()).toContain('/esito');
     const maxTimeToWait = 61000;
     const pollingResultUrlStartTime = Date.now();
-    while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
+    while(url === undefined && Date.now() - pollingResultUrlStartTime < maxTimeToWait) {
       console.log(`Waiting for outcome URL...`);
       await new Promise(r => setTimeout(r, 1000));
     }
