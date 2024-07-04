@@ -1,32 +1,8 @@
-//import { HTTPResponse } from "puppeteer";
 import { randomIntFromInterval } from "../utils/numbers";
 
-//const { APIM_HOST } = process.env.APIM_HOST
 const WALLET_TOKEN= String(process.env.USER_WALLET_TOKEN);
 
-
 export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
-  /*const urlGetUser = `${APIM_HOST}/pmmockserviceapi/cd/user/get`;
-  const responseGetUser = await fetch(urlGetUser, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (responseGetUser.status === 200) {
-    const user = await responseGetUser.json();
-    const walletTokenCreditCard = user.sessionToken;
-    const urlPutUser = `${APIM_HOST}/pmmockserviceapi/cd/user/save`;
-    const responsePutUser = await fetch(urlPutUser, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(user),
-    });
-    if (responsePutUser.status === 200) {*/
-
     const walletTokenCreditCard = WALLET_TOKEN
       const urlStartSession = `${walletHost}/session-wallet/v1/session`;
       const responseStartSession = await fetch(urlStartSession, {
@@ -62,14 +38,7 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
       }else{
           console.log(responseStartSession.status)
           throw Error("Error while start session");
-      }  
-      /*
-    } else {
-      throw Error('Error while saving user');
-    }
-  } else {
-    throw Error('Error during user recovery');
-  }*/
+      }
 };
 
 export const retrievePaymentRedirectUrl = async (walletHost, walletToken, walletType) => {
@@ -198,8 +167,6 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken, wallet
         } else {
           throw Error(`Error getting wallet: status code ${responseUserWallet.status}`);
         }
-
-
       } else {
         throw Error(`Error getting rptId: status code ${responseRptIdInfo.status}`);
       }
@@ -223,7 +190,6 @@ export const checkAndClickPaypalFirstPsps = async () => {
 export const fillPaypalAuth = async paypalCredentials => {
   const usernameInput = '#email';
   const btnNext = '#btnNext';
-  //const pwInputContainer = '#login_passworddiv';
   const pwInput = '#password';
   const loginButton = '#btnLogin';
   const payButton = '#consentButton';
@@ -236,7 +202,6 @@ export const fillPaypalAuth = async paypalCredentials => {
   await popup.keyboard.type(paypalCredentials.username);
   await popup.waitForSelector(btnNext, {timeout: 10000});
   await popup.click(btnNext);
-  //await popup.waitForSelector(pwInputContainer, {timeout: 10000});
   await popup.waitForSelector(pwInput, {timeout: 10000});
   await new Promise(r => setTimeout(r, 2000));
   await popup.focus(pwInput);
@@ -316,16 +281,64 @@ export const getOutcome = async (url) => {
  * @returns number
  */
 export const getWalletId = async (url) => {
-  console.log(url)
+  console.log(`getWalletId from url ${url}`)
   const walletId = new URLSearchParams(url?.split("?")[1]).get("walletId");
-  console.debug(`walletId ${walletId}`);
+  console.debug(`walletId detected ${walletId}`);
   if(walletId == null) {
     return "";
   }
   return walletId
 }
 
-export const cleantWalletOnboarded = async (walletHost, walletId) => {
+/**
+ * This function wait for obtain the walletId of the wallet for the last four digits in parameters.
+ * It is useful to verify that we are testing an already onboarded outcome with a card number effectively already onboarded
+ * Since the parameters is the last four digits, card with the same last four digits could be returned. For test puprose we 
+ * can assume this sub-ptimum result as a reliable result
+ * @returns string
+ */
+export const getWalletAlreadyOnboarded = async (walletHost, lastFourDigitsOnboarded) => {
+  console.debug(`GET wallet already onboarded with last four digits ${lastFourDigitsOnboarded}`)
+  const walletToken = WALLET_TOKEN
+  const urlStartSession = `${walletHost}/session-wallet/v1/session`;
+  const responseStartSession = await fetch(urlStartSession, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${walletToken}`,
+    }
+  });
+  if(responseStartSession.status === 201) {
+    console.debug('session 201');
+    const sessionData = await responseStartSession.json();
+    const sessionToken = sessionData.token;
+    const urlPostWallet = `${walletHost}/io-payment-wallet/v1/wallets`;
+    const responseGetWallets = await fetch(urlPostWallet, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${sessionToken}`
+      }
+    });
+    if(responseGetWallets.status === 200) {
+      console.debug("GET /wallets 200");
+      const walletsBody = await responseGetWallets.json();
+      const walletId = walletsBody.wallets.filter(w => w.details.type === "CARDS" && w.details.lastFourDigits === lastFourDigitsOnboarded)[0].walletId
+      console.debug(`Wallet id for the same card ${walletId}`);
+      return walletId
+    } else {
+      throw Error('Error getting wallet');
+    }
+  } else {
+    throw Error('Error starting session');
+  }
+}
+
+/**
+ * This function wait for deleting a wallet by its id. 
+ * It is useful when we test an onboarding and we want to reply the test without changing card data or wallet token
+ */
+export const cleanWalletOnboarded = async (walletHost, walletId) => {
   console.debug(`Deleting wallet ${walletId}`)
   const walletToken = WALLET_TOKEN
   const urlStartSession = `${walletHost}/session-wallet/v1/session`;

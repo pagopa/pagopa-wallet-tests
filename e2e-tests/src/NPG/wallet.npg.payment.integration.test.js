@@ -41,12 +41,11 @@ describe('wallet npg payment', () => {
       await new Promise(r => setTimeout(r, 1000));
     }
     console.log(`Captured redirection url: [${url}]`)
-    //const outcome = await getOutcome(url)
-    const outcome = new URLSearchParams(url?.split("?")[1]).get("outcome");
+    const outcome = await getOutcome(url)
     expect(outcome).toBe(0);
   });
 
-  it.skip('Onboarded paypal payment should redirect with outcome 0 on success', async () => {
+  it('Onboarded paypal payment should redirect with outcome 0 on success', async () => {
 
     let url;
     const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, USER_WALLET_TOKEN, "PAYPAL");
@@ -73,8 +72,7 @@ describe('wallet npg payment', () => {
       await new Promise(r => setTimeout(r, 1000));
     }
     console.log(`Captured redirection url: [${url}]`)
-    //const outcome = await getOutcome(url)
-    const outcome = new URLSearchParams(url?.split("?")[1]).get("outcome");
+    const outcome = await getOutcome(url)
     expect(outcome).toBe(0);
   });
 });

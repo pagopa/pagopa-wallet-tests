@@ -1,4 +1,4 @@
-import { fillCardDataForm, retrieveValidRedirectUrl, getOutcome, waitUntilUrlContains, clickPaypalButton, checkAndClickPaypalFirstPsps, fillPaypalAuth, cleantWalletOnboarded, getWalletId } from './helper';
+import { fillCardDataForm, retrieveValidRedirectUrl, getOutcome, waitUntilUrlContains, clickPaypalButton, checkAndClickPaypalFirstPsps, fillPaypalAuth, cleanWalletOnboarded, getWalletId, getWalletAlreadyOnboarded } from './helper';
 
 describe('Credit Card Wallet: onboarding with NPG', () => {
   const WALLET_HOST = String(process.env.WALLET_HOST);
@@ -7,6 +7,12 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
     number: '5127390031101597',
     expirationDate: '1025',
     ccv: '015',
+    holderName: "TEST TEST",
+  };
+  const ONBOARDED_VALID_CARD_DATA = {
+    number: '5255000260000014',
+    expirationDate: '1230',
+    ccv: '123',
     holderName: "TEST TEST",
   };
   /**
@@ -22,8 +28,6 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
   afterEach(async () => {
     await jestPuppeteer.resetPage();
   });
-
-  let walletIdOnboarded;
 
   it('should redirect with outcome 0 (success) success using a valid card', async () => {
     const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
@@ -50,39 +54,44 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
       console.log(`Waiting for outcome URL...`);
       await new Promise(r => setTimeout(r, 1000));
     }
-    walletIdOnboarded = await getWalletId(url)
     const outcome = await getOutcome(url)
+    const walletId = await getWalletId(url)
+    await cleanWalletOnboarded(WALLET_HOST, walletId)
+    await new Promise(r => setTimeout(r, 2000));
     expect(outcome).toBe(0);
   });
 
   it('should redirect with outcome 15 (already onboarded) using an valid card already used', async () => {
-    const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
-    let url;
-    await page.goto(redirectUrl);
-    page.on('request', interceptedRequest => {
-      if (interceptedRequest.isInterceptResolutionHandled()) return;
-        if (
-          interceptedRequest.url().indexOf('payment-wallet-outcomes') > 0
-        ) {
-          url = interceptedRequest.url();
-        } 
-        interceptedRequest.continue();
-      });
-    await page.setRequestInterception(true);
+    const walletIdOnboarded = await getWalletAlreadyOnboarded(WALLET_HOST, ONBOARDED_VALID_CARD_DATA.number.substring(12));
+    if(walletIdOnboarded !== undefined) {
+      const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
+      let url;
+      await page.goto(redirectUrl);
+      page.on('request', interceptedRequest => {
+        if (interceptedRequest.isInterceptResolutionHandled()) return;
+          if (
+            interceptedRequest.url().indexOf('payment-wallet-outcomes') > 0
+          ) {
+            url = interceptedRequest.url();
+          } 
+          interceptedRequest.continue();
+        });
+      await page.setRequestInterception(true);
 
-    await fillCardDataForm(VALID_CARD_DATA);
-    expect(page.url()).toContain('/gdi-check');
-    await waitUntilUrlContains("/esito");
-    expect(page.url()).toContain('/esito');
-    const maxTimeToWait = 40000;
-    const pollingResultUrlStartTime = Date.now();
-    while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
-      console.log(`Waiting for outcome URL...`);
-      await new Promise(r => setTimeout(r, 1000));
+      await fillCardDataForm(ONBOARDED_VALID_CARD_DATA);
+      expect(page.url()).toContain('/gdi-check');
+      await waitUntilUrlContains("/esito");
+      expect(page.url()).toContain('/esito');
+      const maxTimeToWait = 61000;
+      const pollingResultUrlStartTime = Date.now();
+      while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
+        console.log(`Waiting for outcome URL...`);
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      const outcome = await getOutcome(url)
+      expect(outcome).toBe(15);
     }
-    const outcome = await getOutcome(url)
-    await cleantWalletOnboarded(WALLET_HOST, walletIdOnboarded)
-    expect(outcome).toBe(15);
+    expect(walletIdOnboarded).toBeDefined()
   });
 
   it('should redirect with outcome not equal to 0 (2) using a not valid card', async () => {
@@ -109,7 +118,7 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
     expect(page.url()).toContain('/gdi-check');
     await waitUntilUrlContains("/esito");
     expect(page.url()).toContain('/esito');
-    const maxTimeToWait = 40000;
+    const maxTimeToWait = 61000;
     const pollingResultUrlStartTime = Date.now();
     while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
       console.log(`Waiting for outcome URL...`);
@@ -169,7 +178,7 @@ describe('Paypal Wallet: onboarding with NPG', () => {
     await page.setRequestInterception(true);
     await waitUntilUrlContains("/esito");
     expect(page.url()).toContain('/esito');
-    const maxTimeToWait = 40000;
+    const maxTimeToWait = 61000;
     const pollingResultUrlStartTime = Date.now();
     while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
       console.log(`Waiting for outcome URL...`);
@@ -178,7 +187,7 @@ describe('Paypal Wallet: onboarding with NPG', () => {
     const walletIdOnboarded = await getWalletId(url)
     const outcome = await getOutcome(url)
     await new Promise(r => setTimeout(r, 1000));
-    await cleantWalletOnboarded(WALLET_HOST, walletIdOnboarded)
+    await cleanWalletOnboarded(WALLET_HOST, walletIdOnboarded)
     expect(outcome).toBe(0);
   });
 
@@ -209,7 +218,7 @@ describe('Paypal Wallet: onboarding with NPG', () => {
     await waitUntilUrlContains("/esito");
     await new Promise(r => setTimeout(r, 1000));
     expect(page.url()).toContain('/esito');
-    const maxTimeToWait = 40000;
+    const maxTimeToWait = 61000;
     const pollingResultUrlStartTime = Date.now();
     while(url===undefined && Date.now()-pollingResultUrlStartTime < maxTimeToWait){
       console.log(`Waiting for outcome URL...`);
