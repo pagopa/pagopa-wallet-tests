@@ -1,10 +1,16 @@
 {
-	"id": "e31a395d-11ca-47f6-a122-fdd35789309f",
+	"id": "340b7438-02de-4b4a-8736-48ee639c411c",
 	"name": "Wallet DEV - PAYPAL",
 	"values": [
 		{
-			"key": "HOSTNAME",
-			"value": "https://api.dev.platform.pagopa.it/payment-wallet/v1",
+			"key": "ENV",
+			"value": "https://api.dev.platform.pagopa.it",
+			"enabled": true
+		},
+		{
+			"key": "SERVICE",
+			"value": "/io-payment-wallet/v1",
+			"type": "default",
 			"enabled": true
 		},
 		{
@@ -14,7 +20,7 @@
 		},
 		{
 			"key": "PAYMENT_METHOD_ID",
-			"value": "9d735400-9450-4f7e-9431-8c1e7fa2a339",
+			"value": "test",
 			"type": "default",
 			"enabled": true
 		},
@@ -26,7 +32,7 @@
 		},
 		{
 			"key": "x-user-id",
-			"value": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+			"value": "test",
 			"type": "default",
 			"enabled": true
 		},
@@ -53,9 +59,21 @@
 			"value": "Default Token Test",
 			"type": "secret",
 			"enabled": true
+		},
+		{
+			"key": "SHARED_SESSION_TOKEN",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "PAYMENT_METHOD_NAME",
+			"value": "PAYPAL",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2023-11-09T13:51:20.067Z",
-	"_postman_exported_using": "Postman/10.19.17"
+	"_postman_exported_at": "2024-06-28T09:29:30.233Z",
+	"_postman_exported_using": "Postman/11.2.24"
 }

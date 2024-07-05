@@ -1,71 +1,50 @@
 import { randomIntFromInterval } from "../utils/numbers";
 
-const { APIM_HOST } = process.env
+const WALLET_TOKEN= String(process.env.USER_WALLET_TOKEN);
 
 export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
-  const urlGetUser = `${APIM_HOST}/pmmockserviceapi/cd/user/get`;
-  const responseGetUser = await fetch(urlGetUser, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (responseGetUser.status === 200) {
-    const user = await responseGetUser.json();
-    const walletTokenCreditCard = user.sessionToken;
-    const urlPutUser = `${APIM_HOST}/pmmockserviceapi/cd/user/save`;
-    const responsePutUser = await fetch(urlPutUser, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(user),
-    });
-    if (responsePutUser.status === 200) {
-      const urlStartSession = `${walletHost}/payment-wallet/v1/wallets`;
+    const walletTokenCreditCard = WALLET_TOKEN
+      const urlStartSession = `${walletHost}/session-wallet/v1/session`;
       const responseStartSession = await fetch(urlStartSession, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${walletTokenCreditCard}`,
-          'x-user-id': paymentMethodId,
-        },
-        body: JSON.stringify({
-          services: ['PAGOPA'],
-          useDiagnosticTracing: true,
-          paymentMethodId,
-        }),
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${walletTokenCreditCard}`
+        }
       });
-      if (responseStartSession.status === 201) {
-        const session = await responseStartSession.json();
-        return session.redirectUrl;
-      } else {
-        throw Error('Error while start session');
+      if(responseStartSession.status === 201){
+        const sessionResponse = await responseStartSession.json();
+        const sessionToken = sessionResponse.token;
+        const urlPostWallet = `${walletHost}/io-payment-wallet/v1/wallets`;
+        const responsePostWallet = await fetch(urlPostWallet, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${sessionToken}`
+          },
+          body: JSON.stringify({
+            applications: ['PAGOPA'],
+            useDiagnosticTracing: true,
+            paymentMethodId,
+          }),
+        });
+        if(responsePostWallet.status === 201){
+            const session = await responsePostWallet.json();
+            return session.redirectUrl
+        }else{
+            console.log(responsePostWallet.status)
+            throw Error("Error while creating wallet");
+        }
+      }else{
+          console.log(responseStartSession.status)
+          throw Error("Error while start session");
       }
-    } else {
-      throw Error('Error while saving user');
-    }
-  } else {
-    throw Error('Error during user recovery');
-  }
 };
 
-export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
+export const retrievePaymentRedirectUrl = async (walletHost, walletToken, walletType) => {
   const RPTID_NM3 = "77777777777" + "302001" + randomIntFromInterval(0, 999999999999);
-  const urlUserWallet = `${walletHost}/payment-wallet/v1/wallets`;
-  const responseUserWallet = await fetch(urlUserWallet, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${walletToken}`,
-    }
-  });
-  if (responseUserWallet.status === 200) {
-    console.debug('wallet 200');
-    const walletData = await responseUserWallet.json();
-    const { walletId, paymentMethodId } = walletData.wallets.find(w => w?.details?.type === "CARDS");
-    const urlStartSession = `${walletHost}/ecommerce/io/v1/sessions`;
+
+    const urlStartSession = `${walletHost}/session-wallet/v1/session`;
     const responseStartSession = await fetch(urlStartSession, {
       method: 'POST',
       headers: {
@@ -73,38 +52,61 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
         Authorization: `Bearer ${walletToken}`,
       }
     });
-    if(responseStartSession.status === 200) {
-      console.debug('session 200');
+    console.debug('start session');
+    if(responseStartSession.status === 201) {
+      console.debug('start session 201');
       const sessionData = await responseStartSession.json();
-      const urlRprtIdInfo = `${walletHost}/ecommerce/io/v1/payment-requests/${RPTID_NM3}`;
+      const urlRprtIdInfo = `${walletHost}/ecommerce/io/v2/payment-requests/${RPTID_NM3}`;
       const responseRptIdInfo = await fetch(urlRprtIdInfo, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionData.sessionToken}`,
+          Authorization: `Bearer ${sessionData.token}`,
         }
       });
+      console.debug('verify rptId');
       if(responseRptIdInfo.status === 200) {
-        console.debug('rpt 200');
+        console.debug('verify rptId 200');
         const rptidInfoData = await responseRptIdInfo.json();
-        const urlPaymentTransaction = `${walletHost}/ecommerce/io/v1/transactions`;
+        const urlUserWallet = `${walletHost}/ecommerce/io/v2/wallets`;
+        const responseUserWallet = await fetch(urlUserWallet, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionData.token}`,
+          }
+        });
+        console.debug('get wallet');
+        if (responseUserWallet.status === 200) {
+          console.debug('get wallet 200');
+          const walletData = await responseUserWallet.json();
+          const { walletId, paymentMethodId } = walletData.wallets.find(w => w?.details?.type === walletType);
+          const urlPaymentTransaction = `${walletHost}/ecommerce/io/v2/transactions`;
         const responsePaymentTransaction = await fetch(urlPaymentTransaction, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionData.sessionToken}`,
+            Authorization: `Bearer ${sessionData.token}`,
           },
           body: JSON.stringify({
             paymentNotices: [{
               rptId: `${RPTID_NM3}`,
-              amount: 12000
+              amount: rptidInfoData.amount
             }]
           }),
         })
+        console.debug('post transaction');
         if(responsePaymentTransaction.status === 200) {
-          console.debug('transaction 200');
+          console.debug('post transaction 200');
           const paymentTransactionData = await responsePaymentTransaction.json();
-          const urlFees = `${walletHost}/ecommerce/io/v1/payment-methods/${paymentMethodId}/fees`;
+          const urlFees = `${walletHost}/ecommerce/io/v2/payment-methods/${paymentMethodId}/fees`;
+          const transferList = [];
+          paymentTransactionData.payments[0].transferList.forEach(el => transferList.push({
+            "creditorInstitution": el.paFiscalCode,
+            "digitalStamp": el.digitalStamp,
+            "transferCategory": el.transferCategory
+          }))
+          console.debug(paymentTransactionData)
 
           const feeBodyRequest = {
             walletId,
@@ -112,27 +114,28 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
             paymentAmount: rptidInfoData.amount,
             primaryCreditorInstitution: "77777777777",
             idPspList: [],
-            isAllCCP: true,
-            transferList: [{creditorInstitution:"77777777777",digitalStamp:true,transferCategory:"string"}]
+            isAllCCP: paymentTransactionData.payments[0].isAllCCP,
+            transferList: transferList
           }
+          console.debug(feeBodyRequest)
           const responseFees = await fetch(urlFees, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${sessionData.sessionToken}`,
+              Authorization: `Bearer ${sessionData.token}`,
             },
             body: JSON.stringify(feeBodyRequest),
           })
+          console.debug('post fees');
           if (responseFees.status === 200) {
-
-            console.debug('fees 200');
+            console.debug('post fees 200');
             const feesData = await responseFees.json();
-            const urlAuthRequest = `${walletHost}/ecommerce/io/v1/transactions/${paymentTransactionData.transactionId}/auth-requests`;
+            const urlAuthRequest = `${walletHost}/ecommerce/io/v2/transactions/${paymentTransactionData.transactionId}/auth-requests`;
             const responseAuthRequest = await fetch(urlAuthRequest, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${sessionData.sessionToken}`,
+                Authorization: `Bearer ${sessionData.token}`,
               },
               body: JSON.stringify({
                 amount: rptidInfoData.amount,
@@ -141,33 +144,78 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken) => {
                 paymentInstrumentId: paymentMethodId,
                 language: "IT",
                 isAllCCP: true,
-                walletId
+                details: {
+                  detailType: "wallet",
+                  walletId: walletId
+                }
               }),
             })
+            console.debug('post auth request');
             if (responseAuthRequest.status === 200) {
-
-              console.debug('auth request 200');
+              console.debug('post auth request 200');
               const authRequest = await responseAuthRequest.json();
               return authRequest.authorizationUrl;
             } else {
-              throw Error('Error during auth request');
+              throw Error(`Error during auth request: status code ${responseAuthRequest.status}`);
             }
           } else {
-            throw Error('Error getting fees');
+            throw Error(`Error getting fees: status code ${responseFees.status}`);
           }
         } else {
-          throw Error('Error during transaction');
+          throw Error(`Error during transaction: status code ${responsePaymentTransaction.status}`);
+        }
+        } else {
+          throw Error(`Error getting wallet: status code ${responseUserWallet.status}`);
         }
       } else {
-        throw Error('Error getting rptId');
+        throw Error(`Error getting rptId: status code ${responseRptIdInfo.status}`);
       }
     } else {
-      throw Error('Error starting session');
+      throw Error(`Error starting session: status code ${responseStartSession.status}`);
     }
-  } else {
-    throw Error('Error getting wallet');
-  }
 };
+
+export const clickPaypalButton = async () => {
+  const preambleButton = '#preambleButton'
+  await page.click(preambleButton)
+}
+
+export const checkAndClickPaypalFirstPsps = async () => {
+  const radioButtonIntesa = await page.waitForSelector('#BCITITMM')
+  await radioButtonIntesa.click()
+  const submitPsp = await page.waitForSelector('#apmSubmit')
+  await submitPsp.click()
+}
+
+export const fillPaypalAuth = async paypalCredentials => {
+  const usernameInput = '#email';
+  const btnNext = '#btnNext';
+  const pwInput = '#password';
+  const loginButton = '#btnLogin';
+  const payButton = '#consentButton';
+
+  const targets = await browser.targets()
+  const popup = await targets[targets.length -1].page()
+  await popup.waitForNavigation()
+  await popup.waitForSelector(usernameInput, {timeout: 10000});
+  await popup.click(usernameInput, { clickCount: 3 });
+  await popup.keyboard.type(paypalCredentials.username);
+  await popup.waitForSelector(btnNext, {timeout: 10000});
+  await popup.click(btnNext);
+  await popup.waitForSelector(pwInput, {timeout: 10000});
+  await new Promise(r => setTimeout(r, 2000));
+  await popup.focus(pwInput);
+  await new Promise(r => setTimeout(r, 2000));
+  popup.keyboard.type(paypalCredentials.password);
+  await new Promise(r => setTimeout(r, 2000)); 
+  const login = await popup.waitForSelector(loginButton, {timeout: 10000, visible: true});
+  await new Promise(r => setTimeout(r, 2000)); 
+  await login.click();
+  await popup.waitForFunction(`window.location.href.includes("https://www.sandbox.paypal.com/webapps/hermes")`);
+  await popup.waitForSelector(payButton, {timeout: 10000});
+  await new Promise(r => setTimeout(r, 2000)); 
+  await popup.click(payButton);
+}
 
 export const fillCardDataForm = async cardData => {
   const cardNumberInput = '#frame_CARD_NUMBER';
@@ -217,17 +265,108 @@ export const waitUntilUrlContains = async (urlSubstring) =>
  * when the gdi check phase, the 3ds challenge and esito phase ends
  * @returns number
  */
-export const getOutcome = async () => {
-  try {
-    expect(page.url()).toContain('/gdi-check');
-    await waitUntilUrlContains("/esito");
-    expect(page.url()).toContain('/esito');
-    await waitUntilUrlContains("/outcomes");
-    const url = new URL(page.url());
-    const outcome = new URLSearchParams(url.search).get("outcome");
-    if (outcome === null) return -1
+export const getOutcome = async (url) => {
+    console.log(url)
+    const outcome = new URLSearchParams(url?.split("?")[1]).get("outcome");
+    console.log(outcome);
+    if(outcome == null) {
+      return -1;
+    }
     return parseInt(outcome)
-  } catch {
-    return -1
+}
+
+/**
+ * This function wait for obtain the walletOd parameter from the final result url
+ * when the gdi check phase, the 3ds challenge and esito phase ends
+ * @returns number
+ */
+export const getWalletId = async (url) => {
+  console.log(`getWalletId from url ${url}`)
+  const walletId = new URLSearchParams(url?.split("?")[1]).get("walletId");
+  console.debug(`walletId detected ${walletId}`);
+  if(walletId == null) {
+    return "";
+  }
+  return walletId
+}
+
+/**
+ * This function wait for obtain the walletId of the wallet for the last four digits in parameters.
+ * It is useful to verify that we are testing an already onboarded outcome with a card number effectively already onboarded
+ * Since the parameters is the last four digits, card with the same last four digits could be returned. For test puprose we 
+ * can assume this sub-ptimum result as a reliable result
+ * @returns string
+ */
+export const getWalletAlreadyOnboarded = async (walletHost, lastFourDigitsOnboarded) => {
+  console.debug(`GET wallet already onboarded with last four digits ${lastFourDigitsOnboarded}`)
+  const walletToken = WALLET_TOKEN
+  const urlStartSession = `${walletHost}/session-wallet/v1/session`;
+  const responseStartSession = await fetch(urlStartSession, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${walletToken}`,
+    }
+  });
+  if(responseStartSession.status === 201) {
+    console.debug('session 201');
+    const sessionData = await responseStartSession.json();
+    const sessionToken = sessionData.token;
+    const urlPostWallet = `${walletHost}/io-payment-wallet/v1/wallets`;
+    const responseGetWallets = await fetch(urlPostWallet, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${sessionToken}`
+      }
+    });
+    if(responseGetWallets.status === 200) {
+      console.debug("GET /wallets 200");
+      const walletsBody = await responseGetWallets.json();
+      const walletId = walletsBody.wallets.filter(w => w.details.type === "CARDS" && w.details.lastFourDigits === lastFourDigitsOnboarded)[0].walletId
+      console.debug(`Wallet id for the same card ${walletId}`);
+      return walletId
+    } else {
+      throw Error('Error getting wallet');
+    }
+  } else {
+    throw Error('Error starting session');
+  }
+}
+
+/**
+ * This function wait for deleting a wallet by its id. 
+ * It is useful when we test an onboarding and we want to reply the test without changing card data or wallet token
+ */
+export const cleanWalletOnboarded = async (walletHost, walletId) => {
+  console.debug(`Deleting wallet ${walletId}`)
+  const walletToken = WALLET_TOKEN
+  const urlStartSession = `${walletHost}/session-wallet/v1/session`;
+    const responseStartSession = await fetch(urlStartSession, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${walletToken}`,
+      }
+    });
+    if(responseStartSession.status === 201) {
+      console.debug('session 201');
+      const sessionData = await responseStartSession.json();
+      const sessionToken = sessionData.token;
+      const urlPostWallet = `${walletHost}/io-payment-wallet/v1/wallets/${walletId}`;
+      const responsePostWallet = await fetch(urlPostWallet, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${sessionToken}`
+        }
+      });
+      if(responsePostWallet.status === 204) {
+        console.debug("Wallet deleted 204");
+      } else {
+        throw Error('Error deleting wallet');
+      }
+  } else {
+    throw Error('Error starting session');
   }
 }
