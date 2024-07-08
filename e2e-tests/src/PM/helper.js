@@ -1,142 +1,146 @@
 export const successfullyExecutionOnboarding = async (cardData, isXpay) => {
-    await fillCardForm(cardData);
-    await page.waitForNavigation();
-    if(isXpay){
-      await execute_mock_authorization_xpay();
-    } else{
-      //await execute_mock_authorization_vpos();
-      await page.waitForNavigation();
+  let url = undefined;
+  page.on('request', interceptedRequest => {
+    if (interceptedRequest.url().indexOf('payment-wallet-outcomes') > 0) {
+      url = interceptedRequest.url();
     }
-    await page.waitForNavigation();
-    const url = await page.url();
-    return url;
+    if (!interceptedRequest.isInterceptResolutionHandled()){ 
+      interceptedRequest.continue();
+    }
+  });
+  await page.setRequestInterception(true);
+  await fillCardForm(cardData);
+  if (isXpay) {
+    await execute_mock_authorization_xpay();
+  }
+  //there is no navigation after completing onboarding, just waiting for outcome redirection
+  const maxTimeToWait = 30000;
+  const pollingResultUrlStartTime = Date.now();
+  while (url === undefined && Date.now() - pollingResultUrlStartTime < maxTimeToWait) {
+    console.log(`Waiting for outcome URL...`);
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  console.log(`Captured redirection url: [${url}]`)
+  return url;
 };
 
 export const onboardCardMethodWithError4xx = async (cardData) => {
-    await fillCardForm(cardData);
-    await page.waitForNavigation();
-    const url = await page.url();
-    return url;
+  await fillCardForm(cardData);
+  await page.waitForNavigation();
+  const url = await page.url();
+  return url;
 };
 
 export const onboardCardMethodWithNetworkError = async (cardData) => {
-    const errorTitleSelector = '#inputCardPageErrorTitleId';
-    page.setOfflineMode(true); // Set offline mode to simulate the opening of the modal
-    await fillCardForm(cardData);
-    const errorMessageElem = await page.waitForSelector(errorTitleSelector);
-    const errorMessage = await errorMessageElem.evaluate(el => el.textContent)
-    return errorMessage;
+  const errorTitleSelector = '#inputCardPageErrorTitleId';
+  page.setOfflineMode(true); // Set offline mode to simulate the opening of the modal
+  await fillCardForm(cardData);
+  const errorMessageElem = await page.waitForSelector(errorTitleSelector);
+  const errorMessage = await errorMessageElem.evaluate(el => el.textContent)
+  return errorMessage;
 };
 
 export const fillCardForm = async (cardData) => {
-    const cardNumberInput = '#number';
-    const expirationDateInput = '#expirationDate';
-    const ccvInput = '#cvv';
-    const holderNameInput = '#name';
-    const continueBtnXPath = "button[type=submit]";
-    await page.waitForSelector(cardNumberInput);
-    await page.click(cardNumberInput);
-    await page.keyboard.type(cardData.number);
-    await page.waitForSelector(expirationDateInput);
-    await page.click(expirationDateInput);
-    await page.keyboard.type(cardData.expirationDate);
-    await page.waitForSelector(ccvInput);
-    await page.click(ccvInput);
-    await page.keyboard.type(cardData.ccv);
-    await page.waitForSelector(holderNameInput);
-    await page.click(holderNameInput);
-    await page.keyboard.type(cardData.holderName);
-
-    const continueBtn = await page.waitForSelector(continueBtnXPath);
-    await continueBtn.click();
+  const cardNumberInput = '#number';
+  const expirationDateInput = '#expirationDate';
+  const ccvInput = '#cvv';
+  const holderNameInput = '#name';
+  const continueBtnXPath = "button[type=submit]";
+  const disabledContinueBtnXPath = 'button[type=submit][disabled=""]';
+  let iteration = 0;
+  let completed = false;
+  while (!completed) {
+    iteration++;
+    console.log(`Compiling fields...${iteration}`);
+  await page.waitForSelector(cardNumberInput, { visible: true });
+  await page.click(cardNumberInput, { clickCount: 3 });
+  await page.keyboard.type(cardData.number);
+  await page.waitForSelector(expirationDateInput, { visible: true });
+  await page.click(expirationDateInput, { clickCount: 3 });
+  await page.keyboard.type(cardData.expirationDate);
+  await page.waitForSelector(ccvInput, { visible: true });
+  await page.click(ccvInput, { clickCount: 3 });
+  await page.keyboard.type(cardData.ccv);
+  await page.waitForSelector(holderNameInput, { visible: true });
+  await page.click(holderNameInput, { clickCount: 3 });
+  await page.keyboard.type(cardData.holderName);
+  completed = !(await page.$(disabledContinueBtnXPath));
+}
+  const continueBtn = await page.waitForSelector(continueBtnXPath);
+  await continueBtn.click();
 };
 
-const execute_mock_authorization_xpay = async() => {
-    const dataInput = '#otipee';
-    const confirmButton = 'button[name=btnAction]'
-    const mockOTPCode = '123456';
-    await page.waitForSelector(dataInput, {visible: true});
+const execute_mock_authorization_xpay = async () => {
+  const dataInput = '#otipee';
+  const confirmButton = 'button[name=btnAction]'
+  const mockOTPCode = '123456';
+  await page.waitForSelector(dataInput, { visible: true });
+  await page.click(dataInput);
+  await page.keyboard.type(mockOTPCode);
+  await page.waitForSelector(confirmButton);
+  await page.click(confirmButton);
+  await page.waitForNavigation();
+}
+
+const execute_mock_authorization_vpos = async () => {
+  const dataInput = '#challengeDataEntry';
+  const confirmButton = '#confirm'
+  const mockOTPCode = '123456';
+  const verificationStep = 2;
+
+  for (let idx = 0; idx < verificationStep; idx++) {
+    console.log(`executing vpos verification step: ${idx}`);
+    await page.waitForSelector(dataInput, { visible: true });
     await page.click(dataInput);
     await page.keyboard.type(mockOTPCode);
+
     await page.waitForSelector(confirmButton);
     await page.click(confirmButton);
-    await page.waitForNavigation();
   }
+}
 
-  const execute_mock_authorization_vpos = async() => {
-    const dataInput = '#challengeDataEntry';
-    const confirmButton = '#confirm'
-    const mockOTPCode = '123456';
-    const verificationStep = 2;
-  
-    for(let idx =0; idx < verificationStep;  idx++){
-      console.log(`executing vpos verification step: ${idx}`);
-      await page.waitForSelector(dataInput, {visible: true});
-      await page.click(dataInput);
-      await page.keyboard.type(mockOTPCode);
-  
-      await page.waitForSelector(confirmButton);
-      await page.click(confirmButton);
-    }
-  }
-
-export const retrieveValidRedirectUrl = async (pmHost) => {
-    const urlGetUser = `https://portal.test.pagopa.gov.it/pmmockserviceapi/cd/user/get`;
-    const responseGetUser = await fetch(urlGetUser, {
-      method: "GET",
+export const retrieveValidRedirectUrl = async (walletHost, walletToken, paymentMethodId) => {
+  const startSessionUrl = `${walletHost}/session-wallet/v1/session`;
+  console.log(`Performing POST session wallet to URL: ${startSessionUrl}`);
+  const startSessionResponse = await (
+    fetch(startSessionUrl, {
+      method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${walletToken}`
       }
-    });
+    })
+  );
+  if (startSessionResponse.status != 201) {
+    throw Error(`Error performing start session: response status code: [${startSessionResponse.status}]`);
+  }
+  const sessionToken = await startSessionResponse.json().then(
+    (body => body.token),
+    (reason => { throw Error(`Error retrieving start session response body: [${reason}]`); })
+  );
 
-    if(responseGetUser.status === 200){
-        const user = await responseGetUser.json();
-        const walletTokenCreditCard = user.sessionToken;
-        const urlPutUser = `https://portal.test.pagopa.gov.it/pmmockserviceapi/cd/user/save`;
-        const responsePutUser = await fetch(urlPutUser, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(user)
-        });
-        if(responsePutUser.status === 200){
-          const urlStartSession = `${pmHost}/session-wallet/v1/session`;
-          const responseStartSession = await fetch(urlStartSession, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${walletTokenCreditCard}`
-            }
-          });
-          if(responseStartSession.status === 201){
-            const sessionResponse = await responsePostWallet.json();
-            const urlPostWallet = `${pmHost}/io-payment-wallet/v1/wallets`;
-            const responsePostWallet = await fetch(urlPostWallet, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${sessionResponse.token}`
-              }
-            });
-            if(responsePostWallet.status === 201){
-                const session = await responsePostWallet.json();
-                return session.redirectUrl
-            }else{
-                console.log(responsePostWallet.status)
-                throw Error("Error while creating wallet");
-            }
-          }else{
-              console.log(responseStartSession.status)
-              throw Error("Error while start session");
-          }  
-        } else {
-            throw Error("Error while saving user");
-        }
-       
-    }else{
-        throw Error("Error during user recovery");
-    }
+  const urlPostWallet = `${walletHost}/io-payment-wallet/v1/wallets`;
+  console.log(`Performing POST wallets to URL: ${urlPostWallet}`);
+  const responsePostWallet = await fetch(urlPostWallet, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${sessionToken}`
+    },
+    body: JSON.stringify({
+      applications: ['PAGOPA'],
+      useDiagnosticTracing: true,
+      paymentMethodId,
+    }),
+  });
 
-    
+  if (responsePostWallet.status != 201) {
+    throw Error(`Error while creating wallet! Received error code: [${responsePostWallet.status}]`);
+  }
+
+  return await responsePostWallet.json().then(
+    createWalletResponse => createWalletResponse.redirectUrl,
+    error => { throw new Error(`Error retrieving POST wallet body: [${error}]`) }
+  );
+
 }
