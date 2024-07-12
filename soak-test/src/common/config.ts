@@ -29,6 +29,7 @@ export const IConfig = t.intersection([
     URL_BASE_PATH_GENERATE_CONTRACT: NonEmptyString,
     WALLET_USER_ID_START: NumberFromString,
     WALLET_USER_COUNT: NumberFromString,
+    WALLET_AUTH_DATA_API_KEY: NonEmptyString
   }),
   K6Config,
 ]);
