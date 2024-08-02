@@ -482,138 +482,6 @@
 			"response": []
 		},
 		{
-			"name": "Update wallet applications (DISABLED)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[Wallet for onboarding - CARDS] DISABLE application status with PUT /wallets/:walletId/applications\", function () {",
-							"    pm.response.to.have.status(204);",
-							"});",
-							"",
-							"",
-							"const getWalletRequestObject = {",
-							"  url: pm.environment.get(\"ENV\") + pm.environment.get(\"SERVICE\") + \"/wallets/\" + pm.environment.get(\"WALLET_ID\"),",
-							"  method: 'GET',",
-							"  header: {",
-							"    'Content-Type': 'application/json',",
-							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
-							"    'Authorization': `Bearer ${pm.environment.get(\"SHARED_SESSION_TOKEN\")}`",
-							"",
-							"  }",
-							"};",
-							"",
-							"pm.sendRequest(getWalletRequestObject, (error, response) => {",
-							"  if (error) {",
-							"    throw error;",
-							"  } else {",
-							"    const responseJson = response.json();",
-							"    pm.expect(responseJson.walletId).to.be.equals(pm.environment.get(\"WALLET_ID\"));",
-							"    const applications = responseJson.applications;",
-							"    pm.expect(applications.length).to.equals(1);",
-							"    pm.expect(applications[0].name).to.be.a(\"string\");",
-							"    pm.expect(applications[0].name).equals(\"PAGOPA\");",
-							"    pm.expect(applications[0].status).to.be.a(\"string\");",
-							"    pm.expect(applications[0].status).equals(\"DISABLED\");",
-							"  }",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"const paymentMethodId = pm.environment.get(\"PAYMENT_METHOD_ID\");",
-							"const useDiagnosticSettings = pm.environment.get(\"USE_DIAGNOSTIC_TRACING\");",
-							"",
-							"const createWalletRequestBody = {",
-							"  \"applications\": [",
-							"    \"PAGOPA\"",
-							"  ],",
-							"  \"useDiagnosticTracing\": useDiagnosticSettings,",
-							"  \"paymentMethodId\": paymentMethodId",
-							"};",
-							"",
-							"",
-							"const createWalletRequestObject = {",
-							"  url: pm.environment.get(\"ENV\") + pm.environment.get(\"SERVICE\") + \"/wallets\",",
-							"  method: 'POST',",
-							"  header: {",
-							"    'Content-Type': 'application/json',",
-							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
-							"    'x-client-id': 'IO',",
-							"    'Authorization': `Bearer ${pm.environment.get(\"SHARED_SESSION_TOKEN\")}`",
-							"",
-							"  },",
-							"  body: {",
-							"    mode: 'raw',",
-							"    raw: JSON.stringify(createWalletRequestBody)",
-							"  }",
-							"};",
-							"",
-							"pm.sendRequest(createWalletRequestObject, (error, response) => {",
-							"  if (error) {",
-							"    throw error;",
-							"  } else {",
-							"    const redirectUrl = response.json().redirectUrl;",
-							"    pm.expect(redirectUrl).to.be.a(\"string\");",
-							"    pm.expect(redirectUrl).to.be.include(\"apm#\");",
-							"    const fragment = redirectUrl.split(\"#\")[1];",
-							"    const fragmentSplits = fragment.split(\"&\");",
-							"    pm.expect(fragmentSplits.length).to.be.equals(4);",
-							"    const walletId = fragmentSplits[0].split(\"=\")[1];",
-							"    console.log(walletId);",
-							"    pm.environment.set(\"WALLET_ID\", walletId);",
-							"  }",
-							"});",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SHARED_SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"applications\": [\n    {\n      \"name\": \"PAGOPA\",\n      \"status\": \"DISABLED\"\n    }\n  ]\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{ENV}}{{SERVICE}}/wallets/{{WALLET_ID}}/applications",
-					"host": [
-						"{{ENV}}{{SERVICE}}"
-					],
-					"path": [
-						"wallets",
-						"{{WALLET_ID}}",
-						"applications"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Update wallet applications (ENABLED)",
 			"event": [
 				{
@@ -752,6 +620,138 @@
 				"body": {
 					"mode": "raw",
 					"raw": "{\n  \"applications\": [\n    {\n      \"name\": \"PAGOPA\",\n      \"status\": \"ENABLED\"\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ENV}}{{SERVICE}}/wallets/{{WALLET_ID}}/applications",
+					"host": [
+						"{{ENV}}{{SERVICE}}"
+					],
+					"path": [
+						"wallets",
+						"{{WALLET_ID}}",
+						"applications"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update wallet applications (DISABLED)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding - CARDS] DISABLE application status with PUT /wallets/:walletId/applications\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"",
+							"const getWalletRequestObject = {",
+							"  url: pm.environment.get(\"ENV\") + pm.environment.get(\"SERVICE\") + \"/wallets/\" + pm.environment.get(\"WALLET_ID\"),",
+							"  method: 'GET',",
+							"  header: {",
+							"    'Content-Type': 'application/json',",
+							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
+							"    'Authorization': `Bearer ${pm.environment.get(\"SHARED_SESSION_TOKEN\")}`",
+							"",
+							"  }",
+							"};",
+							"",
+							"pm.sendRequest(getWalletRequestObject, (error, response) => {",
+							"  if (error) {",
+							"    throw error;",
+							"  } else {",
+							"    const responseJson = response.json();",
+							"    pm.expect(responseJson.walletId).to.be.equals(pm.environment.get(\"WALLET_ID\"));",
+							"    const applications = responseJson.applications;",
+							"    pm.expect(applications.length).to.equals(1);",
+							"    pm.expect(applications[0].name).to.be.a(\"string\");",
+							"    pm.expect(applications[0].name).equals(\"PAGOPA\");",
+							"    pm.expect(applications[0].status).to.be.a(\"string\");",
+							"    pm.expect(applications[0].status).equals(\"DISABLED\");",
+							"  }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const paymentMethodId = pm.environment.get(\"PAYMENT_METHOD_ID\");",
+							"const useDiagnosticSettings = pm.environment.get(\"USE_DIAGNOSTIC_TRACING\");",
+							"",
+							"const createWalletRequestBody = {",
+							"  \"applications\": [",
+							"    \"PAGOPA\"",
+							"  ],",
+							"  \"useDiagnosticTracing\": useDiagnosticSettings,",
+							"  \"paymentMethodId\": paymentMethodId",
+							"};",
+							"",
+							"",
+							"const createWalletRequestObject = {",
+							"  url: pm.environment.get(\"ENV\") + pm.environment.get(\"SERVICE\") + \"/wallets\",",
+							"  method: 'POST',",
+							"  header: {",
+							"    'Content-Type': 'application/json',",
+							"    'x-user-id': `${pm.environment.get(\"x-user-id\")}`,",
+							"    'x-client-id': 'IO',",
+							"    'Authorization': `Bearer ${pm.environment.get(\"SHARED_SESSION_TOKEN\")}`",
+							"",
+							"  },",
+							"  body: {",
+							"    mode: 'raw',",
+							"    raw: JSON.stringify(createWalletRequestBody)",
+							"  }",
+							"};",
+							"",
+							"pm.sendRequest(createWalletRequestObject, (error, response) => {",
+							"  if (error) {",
+							"    throw error;",
+							"  } else {",
+							"    const redirectUrl = response.json().redirectUrl;",
+							"    pm.expect(redirectUrl).to.be.a(\"string\");",
+							"    pm.expect(redirectUrl).to.be.include(\"apm#\");",
+							"    const fragment = redirectUrl.split(\"#\")[1];",
+							"    const fragmentSplits = fragment.split(\"&\");",
+							"    pm.expect(fragmentSplits.length).to.be.equals(4);",
+							"    const walletId = fragmentSplits[0].split(\"=\")[1];",
+							"    console.log(walletId);",
+							"    pm.environment.set(\"WALLET_ID\", walletId);",
+							"  }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SHARED_SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"applications\": [\n    {\n      \"name\": \"PAGOPA\",\n      \"status\": \"DISABLED\"\n    }\n  ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"

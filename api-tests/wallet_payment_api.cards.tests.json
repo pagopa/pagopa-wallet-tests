@@ -63,14 +63,9 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.dev.platform.pagopa.it/session-wallet/v1/session",
-					"protocol": "https",
+					"raw": "{{ENV}}/session-wallet/v1/session",
 					"host": [
-						"api",
-						"dev",
-						"platform",
-						"pagopa",
-						"it"
+						"{{ENV}}"
 					],
 					"path": [
 						"session-wallet",
