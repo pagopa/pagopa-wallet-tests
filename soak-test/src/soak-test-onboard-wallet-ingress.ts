@@ -61,6 +61,14 @@ export let options = {
     [`http_req_duration{name:${apiTags.createSession}}`]: ["p(95)<1000"],
     [`http_req_duration{name:${apiTags.createValidation}}`]: ["p(95)<1000"],
     [`http_req_duration{name:${apiTags.getSession}}`]: ["p(95)<1000"],
+    [`http_req_duration{name:${apiTags.doNotification}}`]: ["p(95)<1000"],
+    [`http_req_duration{name:${apiTags.changeAppStatusDisable}}`]: [
+      "p(95)<1000",
+    ],
+    [`http_req_duration{name:${apiTags.changeAppStatusEnable}}`]: [
+      "p(95)<1000",
+    ],
+    [`http_req_duration{name:${apiTags.deleteWallet}}`]: ["p(95)<1000"],
   },
 };
 
