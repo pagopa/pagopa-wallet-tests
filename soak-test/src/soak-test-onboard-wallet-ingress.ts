@@ -34,7 +34,7 @@ const apiTags = {
   doNotification: "do-notification",
   changeAppStatusDisable: "change-app-status-disable",
   changeAppStatusEnable: "change-app-status-enable",
-  deleteWallet: "delete-waller",
+  deleteWallet: "delete-wallet",
 };
 
 export let options = {
@@ -104,6 +104,12 @@ export default function () {
   const paymentMethod = randomPaymentMethod(config.ONBOARD_APM_RATIO ?? 0);
   const paymentMethodId = paymentMethodIds[paymentMethod];
 
+  const commonHeaders = {
+    "x-user-id": userId,
+    "x-client-id": "IO",
+    "Content-Type": "application/json",
+  };
+
   // 1. Create wallet
   const request: WalletCreateRequest = {
     applications: ["PAGOPA"],
@@ -111,10 +117,7 @@ export default function () {
     paymentMethodId: paymentMethodId,
   } as WalletCreateRequest;
   let response = http.post(`${urlBasePath}/wallets`, JSON.stringify(request), {
-    headers: {
-      "x-user-id": userId,
-      "x-client-id": "IO",
-    },
+    headers: { ...commonHeaders },
     timeout: "10s",
     tags: { name: apiTags.createWallet },
   });
@@ -128,7 +131,6 @@ export default function () {
   if (response.status != 201 || response.json() == null) {
     fail(`Error during wallet create ${response.status}`);
   }
-
   const walletResponse = response.json() as WalletCreateResponse;
   const walletId = extractFragment(walletResponse.redirectUrl, "walletId");
 
@@ -141,10 +143,7 @@ export default function () {
     `${urlBasePath}/wallets/${walletId}/sessions`,
     JSON.stringify(requestInputData),
     {
-      headers: {
-        "x-user-id": userId,
-        "Content-Type": "application/json",
-      },
+      headers: { ...commonHeaders },
       timeout: "10s",
       tags: { name: apiTags.createSession },
     }
@@ -171,10 +170,7 @@ export default function () {
       `${urlBasePath}/wallets/${walletId}/sessions/${orderId}/validations`,
       JSON.stringify({}),
       {
-        headers: {
-          "x-user-id": userId,
-          "Content-Type": "application/json",
-        },
+        headers: { ...commonHeaders },
         timeout: "10s",
         tags: { name: apiTags.createValidation },
       }
@@ -198,9 +194,7 @@ export default function () {
     response = http.get(
       `${urlBasePath}/wallets/${walletId}/sessions/${orderId}`,
       {
-        headers: {
-          "x-user-id": userId,
-        },
+        headers: { ...commonHeaders },
         timeout: "10s",
         tags: { name: apiTags.getSession },
       }
@@ -234,10 +228,7 @@ export default function () {
         timestampOperation: "2023-11-24T09:16:15.913748361Z",
       }),
       {
-        headers: {
-          "x-user-id": userId,
-          "Content-Type": "application/json",
-        },
+        headers: { ...commonHeaders, authorization: "Bearer securityToken" },
         timeout: "10s",
         tags: { name: apiTags.doNotification },
       }
@@ -267,10 +258,7 @@ export default function () {
         applications: [{ name: "PAGOPA", status: "DISABLED" }],
       }),
       {
-        headers: {
-          "x-user-id": userId,
-          "Content-Type": "application/json",
-        },
+        headers: { ...commonHeaders },
         timeout: "10s",
         tags: { name: apiTags.changeAppStatusDisable },
       }
@@ -298,10 +286,7 @@ export default function () {
         applications: [{ name: "PAGOPA", status: "ENABLED" }],
       }),
       {
-        headers: {
-          "x-user-id": userId,
-          "Content-Type": "application/json",
-        },
+        headers: { ...commonHeaders },
         timeout: "10s",
         tags: { name: apiTags.changeAppStatusEnable },
       }
@@ -338,12 +323,12 @@ export default function () {
       response,
       {
         "Response from DELETE /wallets/{walletId} was 200": (r) =>
-          r.status == 200,
+          r.status == 204,
       },
       { name: apiTags.deleteWallet }
     );
 
-    if (response.status != 200) {
+    if (response.status != 204) {
       fail(`Error during DELETE wallet ${response.url} ${response.status}`);
     }
   }
