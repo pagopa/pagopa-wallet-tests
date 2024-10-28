@@ -256,6 +256,7 @@ export default function () {
         `Error during POST notifications ${response.url} ${response.status}`
       );
     }
+    sleep(2);
   }
 
   // 6 disable application
@@ -286,6 +287,7 @@ export default function () {
     if (response.status != 204) {
       fail(`Error during PUT applications ${response.url} ${response.status}`);
     }
+    sleep(2);
   }
 
   // 7 re-enable application
@@ -316,6 +318,7 @@ export default function () {
     if (response.status != 204) {
       fail(`Error during PUT applications ${response.url} ${response.status}`);
     }
+    sleep(2);
   }
 
   // 7 delete the wallet
