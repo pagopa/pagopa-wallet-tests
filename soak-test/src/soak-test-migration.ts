@@ -87,7 +87,7 @@ export default function () {
   const responseBody = response.json() as WalletPmAssociationResponse;
 
   // 2. update or delete wallet
-  if (Math.random() <= config.MIGRATION_DELETE_RATIO ?? 0) {
+  if (Math.random() <= config.MIGRATION_DELETE_RATIO) {
     // delete wallet
     const request = generateDeleteRequest(responseBody.contractId);
     const response = http.post(

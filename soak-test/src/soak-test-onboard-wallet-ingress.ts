@@ -31,6 +31,10 @@ const apiTags = {
   createSession: "create-session",
   createValidation: "create-validation",
   getSession: "get-session",
+  doNotification: "do-notification",
+  changeAppStatusDisable: "change-app-status-disable",
+  changeAppStatusEnable: "change-app-status-enable",
+  deleteWallet: "delete-waller",
 };
 
 export let options = {
@@ -64,15 +68,8 @@ const POLLING_ATTEMPTS = 5;
 const DEFAULT_APM_PSP = "BCITITMM";
 const DEFAULT_TOKEN_VALIDITY = 24 * 60; // 1 day
 
-const environment = getEnvironment(config.URL_BASE_PATH);
-const urlBasePath = getVersionedBaseUrl(
-  config.URL_BASE_PATH,
-  "io-payment-wallet/v1"
-);
-const urlBasePathWebView = getVersionedBaseUrl(
-  config.URL_BASE_PATH,
-  "webview-payment-wallet/v1"
-);
+const environment = getEnvironment(config.URL_BASE_PATH_INGRESS);
+const urlBasePath = config.URL_BASE_PATH_INGRESS;
 const paymentMethodIds = paymentMethodsIdsFor(urlBasePath);
 
 const userIds = new SharedArray("userIds", () => {
@@ -133,7 +130,7 @@ export default function () {
     DEFAULT_APM_PSP
   );
   response = http.post(
-    `${urlBasePathWebView}/wallets/${walletId}/sessions`,
+    `${urlBasePath}/wallets/${walletId}/sessions`,
     JSON.stringify(requestInputData),
     {
       headers: {
@@ -163,7 +160,7 @@ export default function () {
   // 3. Create validation
   if (paymentMethod == PaymentMethod.CARDS) {
     response = http.post(
-      `${urlBasePathWebView}/wallets/${walletId}/sessions/${orderId}/validations`,
+      `${urlBasePath}/wallets/${walletId}/sessions/${orderId}/validations`,
       JSON.stringify({}),
       {
         headers: {
@@ -191,7 +188,7 @@ export default function () {
   // 4. Polling
   for (let i = 0; i < POLLING_ATTEMPTS; i++) {
     response = http.get(
-      `${urlBasePathWebView}/wallets/${walletId}/sessions/${orderId}`,
+      `${urlBasePath}/wallets/${walletId}/sessions/${orderId}`,
       {
         headers: {
           "x-user-id": userId,
@@ -213,6 +210,131 @@ export default function () {
       fail(`Error during get transaction ${response.status}`);
     }
     sleep(3);
+  }
+
+  // 5 validate session
+  if (paymentMethod == PaymentMethod.CARDS) {
+    response = http.post(
+      `${urlBasePath}/wallets/${walletId}/sessions/${orderId}/notifications`,
+      JSON.stringify({
+        details: {
+          paymentInstrumentGatewayId: "",
+          type: "CARD",
+        },
+        operationId: "operationId",
+        operationResult: "EXECUTED",
+        timestampOperation: "2023-11-24T09:16:15.913748361Z",
+      }),
+      {
+        headers: {
+          "x-user-id": userId,
+          "Content-Type": "application/json",
+        },
+        timeout: "10s",
+        tags: { name: apiTags.doNotification },
+      }
+    );
+    check(
+      response,
+      {
+        "Response from POST /wallets/{walletId}/sessions/{orderId}/notifications was 200":
+          (r) => r.status == 200,
+      },
+      { name: apiTags.doNotification }
+    );
+
+    if (response.status != 200) {
+      fail(
+        `Error during POST notifications ${response.url} ${response.status}`
+      );
+    }
+  }
+
+  // 6 disable application
+  if (paymentMethod == PaymentMethod.CARDS) {
+    response = http.put(
+      `${urlBasePath}/wallets/${walletId}/applications`,
+      JSON.stringify({
+        applications: [{ name: "PAGOPA", status: "DISABLED" }],
+      }),
+      {
+        headers: {
+          "x-user-id": userId,
+          "Content-Type": "application/json",
+        },
+        timeout: "10s",
+        tags: { name: apiTags.changeAppStatusDisable },
+      }
+    );
+    check(
+      response,
+      {
+        "Response from PUT /wallets/{walletId}/applications was 204": (r) =>
+          r.status == 204,
+      },
+      { name: apiTags.changeAppStatusDisable }
+    );
+
+    if (response.status != 204) {
+      fail(`Error during PUT applications ${response.url} ${response.status}`);
+    }
+  }
+
+  // 7 re-enable application
+  if (paymentMethod == PaymentMethod.CARDS) {
+    response = http.put(
+      `${urlBasePath}/wallets/${walletId}/applications`,
+      JSON.stringify({
+        applications: [{ name: "PAGOPA", status: "ENABLED" }],
+      }),
+      {
+        headers: {
+          "x-user-id": userId,
+          "Content-Type": "application/json",
+        },
+        timeout: "10s",
+        tags: { name: apiTags.changeAppStatusEnable },
+      }
+    );
+    check(
+      response,
+      {
+        "Response from PUT /wallets/{walletId}/applications was 204": (r) =>
+          r.status == 204,
+      },
+      { name: apiTags.changeAppStatusEnable }
+    );
+
+    if (response.status != 204) {
+      fail(`Error during PUT applications ${response.url} ${response.status}`);
+    }
+  }
+
+  // 7 delete the wallet
+  if (paymentMethod == PaymentMethod.CARDS) {
+    response = http.del(
+      `${urlBasePath}/wallets/${walletId}`,
+      JSON.stringify({}),
+      {
+        headers: {
+          "x-user-id": userId,
+        },
+        timeout: "10s",
+        tags: { name: apiTags.deleteWallet },
+      }
+    );
+    check(
+      response,
+      {
+        "Response from DELETE /wallets/{walletId} was 200": (r) =>
+          r.status == 200,
+      },
+      { name: apiTags.deleteWallet }
+    );
+
+    if (response.status != 200) {
+      fail(`Error during DELETE wallet ${response.url} ${response.status}`);
+    }
   }
 }
 
