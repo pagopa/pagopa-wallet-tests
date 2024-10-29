@@ -14,7 +14,6 @@ const config = getConfigOrThrow();
 
 const apiTags = {
   createWallet: "create-wallet",
-  getPsps: "get-psps",
   createSession: "create-session",
   createValidation: "create-validation",
   getSession: "get-session",
@@ -44,7 +43,6 @@ export let options = {
     http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
     checks: ["rate>0.9"], // 90% of the request must be completed
     [`http_req_duration{name:${apiTags.createWallet}}`]: ["p(95)<1000"],
-    [`http_req_duration{name:${apiTags.getPsps}}`]: ["p(95)<1000"],
     [`http_req_duration{name:${apiTags.createSession}}`]: ["p(95)<1000"],
     [`http_req_duration{name:${apiTags.createValidation}}`]: ["p(95)<1000"],
     [`http_req_duration{name:${apiTags.getSession}}`]: ["p(95)<1000"],
@@ -216,7 +214,7 @@ export default function () {
       `${urlBasePath}/wallets/${walletId}/sessions/${orderId}/notifications`,
       JSON.stringify(notificationBody),
       {
-        headers: { ...commonHeaders, authorization: "Bearer securityToken" },
+        headers: { ...commonHeaders, authorization: "Bearer SECURITY_TOKEN" },
         timeout: "10s",
         tags: { name: apiTags.doNotification },
       }
