@@ -22,7 +22,6 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
     URL_BASE_PATH: NonEmptyString,
-    URL_BASE_PATH_INGRESS: NonEmptyString,
     API_SUBSCRIPTION_KEY: NonEmptyString,
     USE_BLUE_DEPLOYMENT: NonEmptyString,
   }),

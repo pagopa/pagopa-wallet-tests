@@ -1,27 +1,14 @@
 import http from "k6/http";
-import { getConfigOrThrow, getVersionedBaseUrl } from "./common/config";
+import { getConfigOrThrow } from "./common/config";
 import { check, fail, sleep } from "k6";
-import {
-  extractFragment,
-  generateProgressiveUUID,
-  generateUuidArray,
-  getEnvironment,
-} from "./common/utils";
+import { extractFragment, uuid, } from "./common/utils";
 import { WalletCreateRequest } from "./generated/wallet/WalletCreateRequest";
-import {
-  SessionInputData1,
-  SessionInputData2,
-} from "./generated/wallet-webview/SessionInputData";
+import { SessionInputData1, SessionInputData2, } from "./generated/wallet-webview/SessionInputData";
 import { SessionInputDataTypeCardsEnum } from "./generated/wallet-webview/SessionInputDataTypeCards";
 import { SessionWalletCreateResponse } from "./generated/wallet-webview/SessionWalletCreateResponse";
 import { WalletCreateResponse } from "./generated/wallet/WalletCreateResponse";
 import { SessionInputDataTypePaypalEnum } from "./generated/wallet-webview/SessionInputDataTypePaypal";
-import {
-  PaymentMethod,
-  paymentMethodsIdsFor,
-  randomPaymentMethod,
-} from "./common/payment-methods";
-import { SharedArray } from "k6/data";
+import { PaymentMethod, paymentMethodsIdsFor, randomPaymentMethod, } from "./common/payment-methods";
 
 const config = getConfigOrThrow();
 
@@ -62,45 +49,27 @@ export let options = {
     [`http_req_duration{name:${apiTags.createValidation}}`]: ["p(95)<1000"],
     [`http_req_duration{name:${apiTags.getSession}}`]: ["p(95)<1000"],
     [`http_req_duration{name:${apiTags.doNotification}}`]: ["p(95)<1000"],
-    [`http_req_duration{name:${apiTags.changeAppStatusDisable}}`]: [
-      "p(95)<1000",
-    ],
-    [`http_req_duration{name:${apiTags.changeAppStatusEnable}}`]: [
-      "p(95)<1000",
-    ],
+    [`http_req_duration{name:${apiTags.changeAppStatusDisable}}`]: ["p(95)<1000"],
+    [`http_req_duration{name:${apiTags.changeAppStatusEnable}}`]: ["p(95)<1000"],
     [`http_req_duration{name:${apiTags.deleteWallet}}`]: ["p(95)<1000"],
   },
 };
 
 const POLLING_ATTEMPTS = 5;
 const DEFAULT_APM_PSP = "BCITITMM";
-const DEFAULT_TOKEN_VALIDITY = 24 * 60; // 1 day
 
-const environment = getEnvironment(config.URL_BASE_PATH_INGRESS);
-const urlBasePath = config.URL_BASE_PATH_INGRESS;
+const urlBasePath = config.URL_BASE_PATH;
 const paymentMethodIds = paymentMethodsIdsFor(urlBasePath);
-
-const userIds = new SharedArray("userIds", () => {
-  if (!config.WALLET_USER_ID_START || !config.WALLET_USER_COUNT) {
-    fail("Missing mandatory WALLET_USER_ID_START and WALLET_USER_COUNT");
-  }
-  return generateProgressiveUUID(
-    config.WALLET_USER_ID_START!!,
-    config.WALLET_USER_COUNT!!
-  );
-});
 
 export function setup() {
   if (config.ONBOARD_APM_RATIO == undefined) {
     fail("Missing ONBOARD_APM_RATIO");
   }
 
-  console.log(userIds);
-  console.log(`Using Blue Deployment: ${config.USE_BLUE_DEPLOYMENT}`);
 }
 
 export default function () {
-  const userId = userIds[Math.floor(Math.random() * userIds.length)];
+  const userId = uuid();
   const paymentMethod = randomPaymentMethod(config.ONBOARD_APM_RATIO ?? 0);
   const paymentMethodId = paymentMethodIds[paymentMethod];
 
@@ -214,11 +183,10 @@ export default function () {
     sleep(3);
   }
 
-  // 5 validate session
-  if (paymentMethod == PaymentMethod.CARDS) {
-    response = http.post(
-      `${urlBasePath}/wallets/${walletId}/sessions/${orderId}/notifications`,
-      JSON.stringify({
+  let notificationBody;
+  switch (paymentMethod) {
+    case PaymentMethod.CARDS:
+      notificationBody = {
         details: {
           paymentInstrumentGatewayId: "",
           type: "CARD",
@@ -226,7 +194,27 @@ export default function () {
         operationId: "operationId",
         operationResult: "EXECUTED",
         timestampOperation: "2023-11-24T09:16:15.913748361Z",
-      }),
+      };
+      break;
+    case PaymentMethod.PAYPAL:
+      notificationBody = {
+        details: {
+          maskedEmail: "t***@t****.it",
+          type: "PAYPAL",
+        },
+        operationId: "operationId",
+        operationResult: "EXECUTED",
+        timestampOperation: "2023-11-24T09:16:15.913748361Z",
+      };
+      break;
+    default:
+      fail(`Unmanaged payment method: [${paymentMethod}}]`)
+  }
+  // 5 wallet notification
+  if (paymentMethod == PaymentMethod.CARDS) {
+    response = http.post(
+      `${urlBasePath}/wallets/${walletId}/sessions/${orderId}/notifications`,
+      JSON.stringify(notificationBody),
       {
         headers: { ...commonHeaders, authorization: "Bearer securityToken" },
         timeout: "10s",
@@ -251,86 +239,80 @@ export default function () {
   }
 
   // 6 disable application
-  if (paymentMethod == PaymentMethod.CARDS) {
-    response = http.put(
-      `${urlBasePath}/wallets/${walletId}/applications`,
-      JSON.stringify({
-        applications: [{ name: "PAGOPA", status: "DISABLED" }],
-      }),
-      {
-        headers: { ...commonHeaders },
-        timeout: "10s",
-        tags: { name: apiTags.changeAppStatusDisable },
-      }
-    );
-    check(
-      response,
-      {
-        "Response from PUT /wallets/{walletId}/applications was 204": (r) =>
-          r.status == 204,
-      },
-      { name: apiTags.changeAppStatusDisable }
-    );
-
-    if (response.status != 204) {
-      fail(`Error during PUT applications ${response.url} ${response.status}`);
+  response = http.put(
+    `${urlBasePath}/wallets/${walletId}/applications`,
+    JSON.stringify({
+      applications: [{ name: "PAGOPA", status: "DISABLED" }],
+    }),
+    {
+      headers: { ...commonHeaders },
+      timeout: "10s",
+      tags: { name: apiTags.changeAppStatusDisable },
     }
-    sleep(2);
+  );
+  check(
+    response,
+    {
+      "Response from PUT /wallets/{walletId}/applications was 204": (r) =>
+        r.status == 204,
+    },
+    { name: apiTags.changeAppStatusDisable }
+  );
+
+  if (response.status != 204) {
+    fail(`Error during PUT applications ${response.url} ${response.status}`);
   }
+  sleep(2);
 
   // 7 re-enable application
-  if (paymentMethod == PaymentMethod.CARDS) {
-    response = http.put(
-      `${urlBasePath}/wallets/${walletId}/applications`,
-      JSON.stringify({
-        applications: [{ name: "PAGOPA", status: "ENABLED" }],
-      }),
-      {
-        headers: { ...commonHeaders },
-        timeout: "10s",
-        tags: { name: apiTags.changeAppStatusEnable },
-      }
-    );
-    check(
-      response,
-      {
-        "Response from PUT /wallets/{walletId}/applications was 204": (r) =>
-          r.status == 204,
-      },
-      { name: apiTags.changeAppStatusEnable }
-    );
-
-    if (response.status != 204) {
-      fail(`Error during PUT applications ${response.url} ${response.status}`);
+  response = http.put(
+    `${urlBasePath}/wallets/${walletId}/applications`,
+    JSON.stringify({
+      applications: [{ name: "PAGOPA", status: "ENABLED" }],
+    }),
+    {
+      headers: { ...commonHeaders },
+      timeout: "10s",
+      tags: { name: apiTags.changeAppStatusEnable },
     }
-    sleep(2);
+  );
+  check(
+    response,
+    {
+      "Response from PUT /wallets/{walletId}/applications was 204": (r) =>
+        r.status == 204,
+    },
+    { name: apiTags.changeAppStatusEnable }
+  );
+
+  if (response.status != 204) {
+    fail(`Error during PUT applications ${response.url} ${response.status}`);
   }
+  sleep(2);
 
   // 7 delete the wallet
-  if (paymentMethod == PaymentMethod.CARDS) {
-    response = http.del(
-      `${urlBasePath}/wallets/${walletId}`,
-      JSON.stringify({}),
-      {
-        headers: {
-          "x-user-id": userId,
-        },
-        timeout: "10s",
-        tags: { name: apiTags.deleteWallet },
-      }
-    );
-    check(
-      response,
-      {
-        "Response from DELETE /wallets/{walletId} was 200": (r) =>
-          r.status == 204,
+  response = http.del(
+    `${urlBasePath}/wallets/${walletId}`,
+    JSON.stringify({}),
+    {
+      headers: {
+        "x-user-id": userId,
       },
-      { name: apiTags.deleteWallet }
-    );
-
-    if (response.status != 204) {
-      fail(`Error during DELETE wallet ${response.url} ${response.status}`);
+      timeout: "10s",
+      tags: { name: apiTags.deleteWallet },
     }
+  );
+  check(
+    response,
+    {
+      "Response from DELETE /wallets/{walletId} was 200": (r) =>
+        r.status == 204,
+    },
+    { name: apiTags.deleteWallet }
+  );
+
+  if (response.status != 204) {
+    fail(`Error during DELETE wallet ${response.url} ${response.status}`);
   }
 }
 
