@@ -1,5 +1,9 @@
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { IntegerFromString, NumberFromString, WithinRangeNumber } from "@pagopa/ts-commons/lib/numbers";
+import {
+  IntegerFromString,
+  NumberFromString,
+  WithinRangeNumber,
+} from "@pagopa/ts-commons/lib/numbers";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
@@ -19,7 +23,7 @@ export const IConfig = t.intersection([
   t.interface({
     URL_BASE_PATH: NonEmptyString,
     API_SUBSCRIPTION_KEY: NonEmptyString,
-    USE_BLUE_DEPLOYMENT: NonEmptyString
+    USE_BLUE_DEPLOYMENT: NonEmptyString,
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
@@ -27,9 +31,10 @@ export const IConfig = t.intersection([
     ONBOARD_APM_RATIO: NumberFromString.pipe(WithinRangeNumber(0.0, 1.1)),
     API_SUBSCRIPTION_KEY_GENERATE_CONTRACT: NonEmptyString,
     URL_BASE_PATH_GENERATE_CONTRACT: NonEmptyString,
+    URL_BASE_PATH_INGRESS_GENERATE_CONTRACT: NonEmptyString,
     WALLET_USER_ID_START: NumberFromString,
     WALLET_USER_COUNT: NumberFromString,
-    WALLET_AUTH_DATA_API_KEY: NonEmptyString
+    WALLET_AUTH_DATA_API_KEY: NonEmptyString,
   }),
   K6Config,
 ]);
@@ -67,9 +72,14 @@ export function getConfigOrThrow(): IConfig {
   );
 }
 
-export const getVersionedBaseUrl = (baseUrl: string, version: string): string => {
+export const getVersionedBaseUrl = (
+  baseUrl: string,
+  version: string
+): string => {
   const versionRegex = /\/v\d/gm;
-  return versionRegex.test(baseUrl) ? 
-        baseUrl : 
-        (baseUrl.endsWith("/") ? `${baseUrl}${version}` : `${baseUrl}/${version}`);
-}
+  return versionRegex.test(baseUrl)
+    ? baseUrl
+    : baseUrl.endsWith("/")
+      ? `${baseUrl}${version}`
+      : `${baseUrl}/${version}`;
+};

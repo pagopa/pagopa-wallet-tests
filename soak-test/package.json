@@ -17,10 +17,11 @@
     "generate": "npm-run-all -s generate:ts-from-yaml:*",
     "generate:ts-from-yaml:wallet-migration-nexi-v1": "shx rm -rf src/generated/wallet-migration-nexi-v1 && shx mkdir -p src/generated/wallet-migration-nexi-v1 && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/wallet-app/api/payment-wallet-migrations/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet-migration-nexi-v1",
     "generate:ts-from-yaml:wallet-migration-v1": "shx rm -rf src/generated/wallet-migration-v1 && shx mkdir -p src/generated/wallet-migration-v1 && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/wallet-app/api/payment-wallet-migrations-for-cstar/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet-migration-v1",
-    "generate:ts-from-yaml:wallet": "shx rm -rf src/generated/wallet && shx mkdir -p src/generated/wallet && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/pay-wallet-app/api/payment-wallet/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet",
+    "generate:ts-from-yaml:wallet": "shx rm -rf src/generated/wallet && shx mkdir -p src/generated/wallet && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/pay-wallet-app/api/io-payment-wallet/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet",
     "generate:ts-from-yaml:wallet-webview": "shx rm -rf src/generated/wallet-webview && shx mkdir -p src/generated/wallet-webview && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/pay-wallet-app/api/webview-payment-wallet/v1/_openapi.json.tpl --no-strict --out-dir src/generated/wallet-webview",
     "soak-migration": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-migration.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\"",
     "soak-onboard-wallet": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-onboard-wallet.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\"",
+    "soak-onboard-wallet-ingress": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm --network=\"host\" -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-onboard-wallet-ingress.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\"",
     "soak-get-wallets": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-get-wallets-by-user.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\"",
     "soak-get-wallet-authdata": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist grafana/k6 run /dist/soak-test-get-wallet-auth-data.js --summary-trend-stats \"avg,min,med,max,p(90),p(95),p(99)\""
   },
@@ -58,5 +59,5 @@
   },
   "browser": {
     "fs": false
-}
+  }
 }
