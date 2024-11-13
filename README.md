@@ -1,6 +1,6 @@
 # pagopa-wallet-tests
 
-This repository contains both api test and e2e test 
+This repository contains both api test and e2e test
 used to perform integration tests for Wallet products.
 
 Tests can be found under api-tests and e2e folders.
@@ -15,19 +15,23 @@ against expected front end behaviour.
 
 Tests have been split for DEV and UAT environment since those environment use different inputs (card number, f.e)
 Test can be run using the following script:
+
 ```sh
 cd e2e-tests
 rm -f .env && cp <environment>.env .env
 yarn install && yarn test
 ```
+
 Make sure locally node version matches the `./e2e-tests/.nvmrc` ones.
 
 If you have `nvm` this can be done with the following command:
+
 ```sh
 cd e2e-tests && nvm use
 ```
 
 In order to run tests for dev environment the above command will become:
+
 ```sh
 cd e2e-tests
 rm -f .env && cp dev.env .env
@@ -48,7 +52,7 @@ module.exports = {
         dumpio: true,
         headless: false, //--> change here from true to false
         product: 'chrome',
-        args: ["--no-sandbox"] 
+        args: ["--no-sandbox"]
     },
     browserContext: 'incognito'
 }
@@ -72,7 +76,7 @@ resources:
       type: github
       name: pagopa/pagopa-wallet-tests
       ref: main
-      endpoint: 'endpoint configuration'
+      endpoint: "endpoint configuration"
 ```
 
 The repository used name, then, will be used as `CHECKOUT_RESOURCE_REPO_NAME` parameter value
@@ -80,38 +84,41 @@ The repository used name, then, will be used as `CHECKOUT_RESOURCE_REPO_NAME` pa
 Once add this repository to pipeline repository section, e2e test template can be used as follows:
 
 ```yaml
-  - stage: E2E_Tests_Wallet
-    pool:
-      vmImage: 'ubuntu-latest'
-    dependsOn: Setup_Project
-    jobs:
-      - job: e2e_tests
-        steps:
-          - template: .devops/azure-templates/e2e-tests.yaml@walletTests
-            parameters:
-              ENVIRONMENT: DEV
-              CHECKOUT_RESOURCE_REPO_NAME: walletTests
+- stage: E2E_Tests_Wallet
+  pool:
+    vmImage: "ubuntu-latest"
+  dependsOn: Setup_Project
+  jobs:
+    - job: e2e_tests
+      steps:
+        - template: .devops/azure-templates/e2e-tests.yaml@walletTests
+          parameters:
+            ENVIRONMENT: DEV
+            CHECKOUT_RESOURCE_REPO_NAME: walletTests
 ```
+
 for perform e2e test for DEV environment.
 
 Template parameters:
 
-| Parameter key                | Type   | Description                                             |
-|------------------------------|--------|---------------------------------------------------------|
-| ENVIRONMENT                  | string | Environment for which execute e2e test (DEV or UAT)     |
-| CHECKOUT_RESOURCE_REPO_NAME  | string | The name used during wallet-tests repository checkout |
+| Parameter key               | Type   | Description                                           |
+| --------------------------- | ------ | ----------------------------------------------------- |
+| ENVIRONMENT                 | string | Environment for which execute e2e test (DEV or UAT)   |
+| CHECKOUT_RESOURCE_REPO_NAME | string | The name used during wallet-tests repository checkout |
 
 ## Soak tests
+
 ### Migration tests
+
 Every step of migration test will generate a new contract id by calling PUT /migrations/wallets and then
 will update or delete the wallet using POST /migrations/updateDetails or POST /migrations/delete.
 
 | Parameter key                          | Type   | Description                                              |
-|----------------------------------------|--------|----------------------------------------------------------|
+| -------------------------------------- | ------ | -------------------------------------------------------- |
 | API_SUBSCRIPTION_KEY                   | string | API key used to finalize contract import                 |
 | URL_BASE_PATH                          | string | URL base path to import contract api group               |
+| URL_BASE_PATH_INGRESS                  | string | URL base path related direct ingress tests               |
 | API_SUBSCRIPTION_KEY_GENERATE_CONTRACT | string | API key used by generating contract                      |
 | URL_BASE_PATH_GENERATE_CONTRACT        | string | URL base path to generate contract api group             |
 | MIGRATION_DELETE_RATIO                 | number | Between 0 and 1. The percentage of contract DELETE       |
 | ONBOARD_APM_RATIO                      | number | Between 0 and 1. The percentage of Paypal wallet onboard |
-
