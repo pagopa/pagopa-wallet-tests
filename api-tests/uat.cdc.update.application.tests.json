@@ -1,0 +1,180 @@
+{
+	"info": {
+		"_postman_id": "61df7dfd-a21b-417d-a522-e6cdf1cb155b",
+		"name": "Get active Wallet and update the application (CDC)",
+		"description": "We usa valid wallet in UAT and change the status of the first active application to generate events, so we can test later the DataLake CDC flow.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "36861410"
+	},
+	"item": [
+		{
+			"name": "Start session",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for IO - Wallet Payment] - Start session\", () => {",
+							"  pm.response.to.have.status(201);",
+							"  const responseJson = pm.response.json();",
+							"  pm.environment.set(\"SHARED_SESSION_TOKEN\", responseJson.token);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "{{WALLET_TOKEN_TEST}}"
+					}
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "x-user-id",
+						"value": "{{x-user-id}}",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{ENV}}/session-wallet/v1/session",
+				"description": "Creates a new wallet"
+			},
+			"response": []
+		},
+		{
+			"name": "Get one Active Wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the JSON response",
+							"let response = pm.response.json();",
+							"",
+							"// Initialize a variable to store the walletId",
+							"let validatedWalletId = null;",
+							"",
+							"// Loop through the wallets array to find the first validated wallet",
+							"for (let wallet of response.wallets) {",
+							"    if (wallet.status === \"VALIDATED\") {",
+							"        validatedWalletId = wallet.walletId;",
+							"        break;",
+							"    }",
+							"}",
+							"",
+							"// Check if a validated walletId was found and set it as an environment variable",
+							"if (validatedWalletId) {",
+							"    pm.environment.set(\"validatedWalletId\", validatedWalletId);",
+							"    console.log(\"Validated Wallet ID:\", validatedWalletId);",
+							"    console.log('WALLET_ID=' + validatedWalletId);",
+							"} else {",
+							"    console.log(\"No validated wallet found.\");",
+							"}",
+							"",
+							"// Initialize variables for application status and name",
+							"let applicationStatus = null;",
+							"let applicationName = null;",
+							"",
+							"// Loop through the applications array of the first validated wallet to find the first application",
+							"if (validatedWalletId) {",
+							"    let wallet = response.wallets.find(wallet => wallet.walletId === validatedWalletId);",
+							"    if (wallet && wallet.applications && wallet.applications.length > 0) {",
+							"        applicationStatus = wallet.applications[0].status;",
+							"        applicationName = wallet.applications[0].name;",
+							"",
+							"        // Set environment variables based on the application status",
+							"        if (applicationStatus === \"ENABLED\") {",
+							"            pm.environment.set(\"NEXT_STATE_APPLICATION_VALUE\", \"DISABLED\");",
+							"        } else if (applicationStatus === \"DISABLED\") {",
+							"            pm.environment.set(\"NEXT_STATE_APPLICATION_VALUE\", \"ENABLED\");",
+							"        }",
+							"        pm.environment.set(\"NEXT_STATE_APPLICATION_NAME\", applicationName);",
+							"    }",
+							"}",
+							"",
+							"// Existing test script",
+							"pm.test(\"[Wallet for onboarding - CARDS] Wallet retrieved successfully by its id with GET /wallets/{walletId}\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const wallet = pm.response.json();",
+							"    const userId = wallet.userId;",
+							"    pm.environment.set(\"x-user-id\", userId);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "{{SHARED_SESSION_TOKEN}}"
+					}
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": "{{ENV}}{{SERVICE}}/wallets",
+				"description": "Returns a single wallet"
+			},
+			"response": []
+		},
+		{
+			"name": "Update wallet application",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "{{SHARED_SESSION_TOKEN}}"
+					}
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"applications\": [\r\n    {\r\n      \"name\": \"{{NEXT_STATE_APPLICATION_NAME}}\",\r\n      \"status\": \"{{NEXT_STATE_APPLICATION_VALUE}}\"\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{ENV}}{{SERVICE}}/wallets/{{WALLET_ID}}/applications"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://${{hostname}}"
+		}
+	]
+}

@@ -1,0 +1,127 @@
+{
+	"id": "d8660dd9-227f-4033-b420-4bb35e0cc6a4",
+	"name": "Wallet UAT- CARDS",
+	"values": [
+		{
+			"key": "ENV",
+			"value": "https://api.uat.platform.pagopa.it",
+			"enabled": true
+		},
+		{
+			"key": "SERVICE",
+			"value": "/io-payment-wallet/v1",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "WALLET_ID",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "PAYMENT_METHOD_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "USE_DIAGNOSTIC_TRACING",
+			"value": "true",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "x-user-id",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "SESSION_TOKEN",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "ORDER_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "HOSTNAME_WEBVIEW",
+			"value": "https://api.uat.platform.pagopa.it/webview-payment-wallet/v1",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_SESSION_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_IFRAME_FIELD_URL",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_CORRELATION_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_IFRAME_FIELD_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_EXP_DATE",
+			"value": "12/31",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_CARD_NUMBER",
+			"value": "4109230300003014",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_CARD_CVV",
+			"value": "554",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "NPG_CARD_HOLDER_NAME",
+			"value": "Mario Rossi",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "WALLET_TOKEN_TEST",
+			"value": "",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "SHARED_SESSION_TOKEN",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PAYMENT_METHOD_NAME",
+			"value": "CARDS",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2024-08-02T14:26:40.649Z",
+	"_postman_exported_using": "Postman/11.6.2"
+}
