@@ -1,6 +1,6 @@
 {
 	"id": "d8660dd9-227f-4033-b420-4bb35e0cc6a4",
-	"name": "Wallet UAT- CARDS",
+	"name": "Wallet UAT- update application for CDC tests",
 	"values": [
 		{
 			"key": "ENV",
