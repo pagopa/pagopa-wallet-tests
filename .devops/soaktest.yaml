@@ -43,7 +43,6 @@ parameters:
     values:
       - soak-test-migration
       - soak-test-onboard-wallet
-      - soak-test-onboard-wallet-ingress
       - soak-test-get-wallets-by-user
   - name: "ONBOARD_APM_RATIO"
     displayName: "ONBOARD_APM_RATIO"
@@ -85,27 +84,27 @@ parameters:
       - "Default"
       - "pagopa-dev-loadtest-linux"
       - "pagopa-uat-loadtest-linux"
-
-stages:
-  - stage: "run_with_APIM"
-    displayName: "Run with APIM"
+    
+stages : 
+  - stage : 'run_with_APIM'
+    displayName: 'Run with APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, false)
     jobs:
       - job: performance_test_with_APIM
         pool:
           ${{ if eq(parameters.DEVOPS_POOL_NAME, 'Default') }}:
-            vmImage: "ubuntu-latest"
+            vmImage: 'ubuntu-latest'
           ${{ else }}:
             name: ${{ parameters.DEVOPS_POOL_NAME }}
         steps:
           - template: azure-templates/soak-tests.yaml
             parameters:
-              URL_BASE_PATH: ${{ parameters['URL_BASE_PATH'] }}
+              URL_BASE_PATH: ${{ parameters['URL_BASE_PATH'] }} 
               URL_BASE_PATH_GENERATE_CONTRACT: ${{ parameters['URL_BASE_PATH_GENERATE_CONTRACT'] }}
-              rate: ${{ parameters['rate'] }}
-              duration: ${{ parameters['duration'] }}
+              rate: ${{ parameters['rate'] }} 
+              duration: ${{ parameters['duration'] }} 
               preAllocatedVUs: ${{ parameters['preAllocatedVUs'] }}
-              maxVUs: ${{ parameters['maxVUs'] }}
+              maxVUs: ${{ parameters['maxVUs'] }} 
               projectDir: ${{ parameters['projectDir']}}
               nodeVersion: ${{ parameters['nodeVersion']}}
               SCRIPT: ${{ parameters['SCRIPT']}}
@@ -115,24 +114,24 @@ stages:
               ONBOARD_APM_RATIO: ${{ parameters['ONBOARD_APM_RATIO'] }}
               MIGRATION_DELETE_RATIO: ${{ parameters['MIGRATION_DELETE_RATIO'] }}
               WALLET_USER_ID: ${{ parameters['WALLET_USER_ID'] }}
-
-  - stage: "run_without_APIM"
-    displayName: "Run without APIM"
+              
+  - stage : 'run_without_APIM'
+    displayName: 'Run without APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, true)
     jobs:
       - job: performance_test_without_APIM
         pool:
           ${{ if eq(parameters.DEVOPS_POOL_NAME, 'Default') }}:
-            vmImage: "ubuntu-latest"
+            vmImage: 'ubuntu-latest'
           ${{ else }}:
             name: ${{ parameters.DEVOPS_POOL_NAME }}
-        steps:
+        steps :
           - template: azure-templates/soak-tests.yaml
             parameters:
               URL_BASE_PATH: ${{ parameters['URL_BASE_PATH'] }}
               URL_BASE_PATH_GENERATE_CONTRACT: ${{ parameters['URL_BASE_PATH_GENERATE_CONTRACT'] }}
-              rate: ${{ parameters['rate'] }}
-              duration: ${{ parameters['duration'] }}
+              rate: ${{ parameters['rate'] }} 
+              duration: ${{ parameters['duration'] }} 
               preAllocatedVUs: ${{ parameters['preAllocatedVUs'] }}
               maxVUs: ${{ parameters['maxVUs'] }}
               projectDir: ${{ parameters['projectDir']}}
