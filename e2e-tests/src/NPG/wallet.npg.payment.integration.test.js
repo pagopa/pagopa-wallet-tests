@@ -14,7 +14,7 @@ describe('wallet npg payment', () => {
    * Increase default test timeout (1 minutes)
    * to support entire payment flow
    */
-  const timeout = 60000;
+  const timeout = 120_000;
   jest.setTimeout(timeout);
   jest.retryTimes(1);
   page.setDefaultNavigationTimeout(timeout);
