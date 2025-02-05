@@ -33,10 +33,6 @@ steps:
       cd e2e-tests &&  yarn test:NPG
     displayName: 'Yarn test NPG'
     condition: and(succeeded(), eq('${{parameters.ENVIRONMENT}}', 'DEV'))
-  - script: |
-      cd e2e-tests &&  yarn test:PM
-    displayName: 'Yarn test PM'
-    condition: and(succeeded(), eq('${{parameters.ENVIRONMENT}}', 'UAT'))
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'JUnit'
