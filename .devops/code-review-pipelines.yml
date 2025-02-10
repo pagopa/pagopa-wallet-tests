@@ -35,7 +35,7 @@ stages:
         steps:
           - template: azure-templates/e2e-tests.yaml
             parameters:
-              ENVIRONMENT: ${{parameters.ENVIRONMENT}}
+              ENVIRONMENT: DEV
               CHECKOUT_RESOURCE_REPO_NAME: self
               USER_WALLET_TOKEN_DEV: $(USER_WALLET_TOKEN_DEV)
               USER_WALLET_TOKEN_UAT: $(USER_WALLET_TOKEN_UAT)
@@ -49,7 +49,7 @@ stages:
         steps:
           - template: azure-templates/e2e-tests.yaml
             parameters:
-              ENVIRONMENT: ${{parameters.ENVIRONMENT}}
+              ENVIRONMENT: UAT
               CHECKOUT_RESOURCE_REPO_NAME: self
               USER_WALLET_TOKEN_DEV: $(USER_WALLET_TOKEN_DEV)
               USER_WALLET_TOKEN_UAT: $(USER_WALLET_TOKEN_UAT)
