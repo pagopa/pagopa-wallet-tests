@@ -29,7 +29,7 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     dependsOn: Setup_Project
-    condition: or(eq(${{parameters.ENVIRONMENT}}, DEV), eq(${{parameters.ENVIRONMENT}}, ALL))
+    condition: or(eq('${{parameters.ENVIRONMENT}}', 'DEV'), eq('${{parameters.ENVIRONMENT}}', 'ALL'))
     jobs:
       - job: e2e_tests
         steps:
@@ -43,7 +43,7 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     dependsOn: Setup_Project
-    condition: or(eq(${{parameters.ENVIRONMENT}}, UAT), eq(${{parameters.ENVIRONMENT}}, ALL))
+    condition: or(eq('${{parameters.ENVIRONMENT}}', 'UAT'), eq('${{parameters.ENVIRONMENT}}', 'ALL'))
     jobs:
       - job: e2e_tests
         steps:
