@@ -8,7 +8,8 @@ parameters:
     values:
       - DEV
       - UAT
-    default: DEV
+      - ALL
+    default: ALL
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -24,16 +25,31 @@ stages:
         - checkout: self
           displayName: 'Wallet'
 
-  - stage: E2E_Tests_Wallet
+  - stage: E2E_Tests_Wallet_DEV
     pool:
       vmImage: 'ubuntu-latest'
     dependsOn: Setup_Project
+    condition: or(eq('${{parameters.ENVIRONMENT}}', 'DEV'), eq('${{parameters.ENVIRONMENT}}', 'ALL'))
     jobs:
       - job: e2e_tests
         steps:
           - template: azure-templates/e2e-tests.yaml
             parameters:
-              ENVIRONMENT: ${{parameters.ENVIRONMENT}}
+              ENVIRONMENT: DEV
+              CHECKOUT_RESOURCE_REPO_NAME: self
+              USER_WALLET_TOKEN_DEV: $(USER_WALLET_TOKEN_DEV)
+              USER_WALLET_TOKEN_UAT: $(USER_WALLET_TOKEN_UAT)
+  - stage: E2E_Tests_Wallet_UAT
+    pool:
+      vmImage: 'ubuntu-latest'
+    dependsOn: Setup_Project
+    condition: or(eq('${{parameters.ENVIRONMENT}}', 'UAT'), eq('${{parameters.ENVIRONMENT}}', 'ALL'))
+    jobs:
+      - job: e2e_tests
+        steps:
+          - template: azure-templates/e2e-tests.yaml
+            parameters:
+              ENVIRONMENT: UAT
               CHECKOUT_RESOURCE_REPO_NAME: self
               USER_WALLET_TOKEN_DEV: $(USER_WALLET_TOKEN_DEV)
               USER_WALLET_TOKEN_UAT: $(USER_WALLET_TOKEN_UAT)

@@ -1,87 +1,85 @@
 import { randomIntFromInterval } from "../utils/numbers";
 
-const WALLET_TOKEN= String(process.env.USER_WALLET_TOKEN);
+const WALLET_TOKEN = String(process.env.USER_WALLET_TOKEN);
 
 export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
-    const walletTokenCreditCard = WALLET_TOKEN
-      const urlStartSession = `${walletHost}/session-wallet/v1/session`;
-      const responseStartSession = await fetch(urlStartSession, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${walletTokenCreditCard}`
-        }
-      });
-      if(responseStartSession.status === 201){
-        const sessionResponse = await responseStartSession.json();
-        const sessionToken = sessionResponse.token;
-        const urlPostWallet = `${walletHost}/io-payment-wallet/v1/wallets`;
-        const responsePostWallet = await fetch(urlPostWallet, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${sessionToken}`
-          },
-          body: JSON.stringify({
-            applications: ['PAGOPA'],
-            useDiagnosticTracing: true,
-            paymentMethodId,
-          }),
-        });
-        if(responsePostWallet.status === 201){
-            const session = await responsePostWallet.json();
-            return session.redirectUrl
-        }else{
-            console.log(responsePostWallet.status)
-            throw Error("Error while creating wallet");
-        }
-      }else{
-          console.log(responseStartSession.status)
-          throw Error("Error while start session");
-      }
+  const walletTokenCreditCard = WALLET_TOKEN
+  const urlStartSession = `${walletHost}/session-wallet/v1/session`;
+  const responseStartSession = await fetch(urlStartSession, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${walletTokenCreditCard}`
+    }
+  });
+  if (responseStartSession.status === 201) {
+    const sessionResponse = await responseStartSession.json();
+    const sessionToken = sessionResponse.token;
+    const urlPostWallet = `${walletHost}/io-payment-wallet/v1/wallets`;
+    const responsePostWallet = await fetch(urlPostWallet, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${sessionToken}`
+      },
+      body: JSON.stringify({
+        applications: ['PAGOPA'],
+        useDiagnosticTracing: true,
+        paymentMethodId,
+      }),
+    });
+    if (responsePostWallet.status === 201) {
+      const session = await responsePostWallet.json();
+      return session.redirectUrl
+    } else {
+      throw Error(`Error while creating wallet! status code: ${responsePostWallet.status}, response: ${JSON.stringify(await responsePostWallet.json())}`);
+    }
+  } else {
+    throw Error(`Error while start session! status code: ${responseStartSession.status}, response: ${JSON.stringify(await responseStartSession.json())}`);
+  }
 };
 
-export const retrievePaymentRedirectUrl = async (walletHost, walletToken, walletType) => {
+export const retrievePaymentRedirectUrl = async (walletHost, walletToken, walletType, pspId) => {
   const RPTID_NM3 = "77777777777" + "302001" + randomIntFromInterval(0, 999999999999);
 
-    const urlStartSession = `${walletHost}/session-wallet/v1/session`;
-    const responseStartSession = await fetch(urlStartSession, {
-      method: 'POST',
+  const urlStartSession = `${walletHost}/session-wallet/v1/session`;
+  const responseStartSession = await fetch(urlStartSession, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${walletToken}`,
+    }
+  });
+  console.debug('start session');
+  if (responseStartSession.status === 201) {
+    console.debug('start session 201');
+    const sessionData = await responseStartSession.json();
+    const urlRprtIdInfo = `${walletHost}/ecommerce/io/v2/payment-requests/${RPTID_NM3}`;
+    const responseRptIdInfo = await fetch(urlRprtIdInfo, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${walletToken}`,
+        Authorization: `Bearer ${sessionData.token}`,
       }
     });
-    console.debug('start session');
-    if(responseStartSession.status === 201) {
-      console.debug('start session 201');
-      const sessionData = await responseStartSession.json();
-      const urlRprtIdInfo = `${walletHost}/ecommerce/io/v2/payment-requests/${RPTID_NM3}`;
-      const responseRptIdInfo = await fetch(urlRprtIdInfo, {
+    console.debug('verify rptId');
+    if (responseRptIdInfo.status === 200) {
+      console.debug('verify rptId 200');
+      const rptidInfoData = await responseRptIdInfo.json();
+      const urlUserWallet = `${walletHost}/ecommerce/io/v2/wallets`;
+      const responseUserWallet = await fetch(urlUserWallet, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${sessionData.token}`,
         }
       });
-      console.debug('verify rptId');
-      if(responseRptIdInfo.status === 200) {
-        console.debug('verify rptId 200');
-        const rptidInfoData = await responseRptIdInfo.json();
-        const urlUserWallet = `${walletHost}/ecommerce/io/v2/wallets`;
-        const responseUserWallet = await fetch(urlUserWallet, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionData.token}`,
-          }
-        });
-        console.debug('get wallet');
-        if (responseUserWallet.status === 200) {
-          console.debug('get wallet 200');
-          const walletData = await responseUserWallet.json();
-          const { walletId, paymentMethodId } = walletData.wallets.find(w => w?.details?.type === walletType);
-          const urlPaymentTransaction = `${walletHost}/ecommerce/io/v2/transactions`;
+      console.debug('get wallet');
+      if (responseUserWallet.status === 200) {
+        const walletData = await responseUserWallet.json();
+        console.debug(`get wallet 200, wallet response data: ${JSON.stringify(walletData)}`);
+        const { walletId, paymentMethodId } = walletData.wallets.find(w => w?.details?.type === walletType);
+        const urlPaymentTransaction = `${walletHost}/ecommerce/io/v2/transactions`;
         const responsePaymentTransaction = await fetch(urlPaymentTransaction, {
           method: 'POST',
           headers: {
@@ -96,7 +94,7 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken, wallet
           }),
         })
         console.debug('post transaction');
-        if(responsePaymentTransaction.status === 200) {
+        if (responsePaymentTransaction.status === 200) {
           console.debug('post transaction 200');
           const paymentTransactionData = await responsePaymentTransaction.json();
           const urlFees = `${walletHost}/ecommerce/io/v2/payment-methods/${paymentMethodId}/fees`;
@@ -131,6 +129,14 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken, wallet
             console.debug('post fees 200');
             const feesData = await responseFees.json();
             const urlAuthRequest = `${walletHost}/ecommerce/io/v2/transactions/${paymentTransactionData.transactionId}/auth-requests`;
+            //use wanted psp id
+            console.debug(`Calculate fees response: ${JSON.stringify(await feesData)}`);
+            const filteredBundles = feesData.bundles.filter(bundle => bundle.idPsp === pspId);
+            console.debug(`Filtered bundles for pspId: [${pspId}] -> ${JSON.stringify(filteredBundles)}`);
+            if (filteredBundles.length == 0) {
+              throw Error(`Cannot find bundle for psp with id: [${pspId}]`);
+            }
+            const bundle = filteredBundles[0];
             const responseAuthRequest = await fetch(urlAuthRequest, {
               method: 'POST',
               headers: {
@@ -139,8 +145,8 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken, wallet
               },
               body: JSON.stringify({
                 amount: rptidInfoData.amount,
-                fee: feesData.bundles[0].taxPayerFee,
-                pspId: feesData.bundles[0].idPsp,
+                fee: bundle.taxPayerFee,
+                pspId: bundle.idPsp,
                 paymentInstrumentId: paymentMethodId,
                 language: "IT",
                 isAllCCP: true,
@@ -156,23 +162,23 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken, wallet
               const authRequest = await responseAuthRequest.json();
               return authRequest.authorizationUrl;
             } else {
-              throw Error(`Error during auth request: status code ${responseAuthRequest.status}`);
+              throw Error(`Error during auth request! status code: ${responseAuthRequest.status}, response: ${JSON.stringify(await responseAuthRequest.json())}`);
             }
           } else {
-            throw Error(`Error getting fees: status code ${responseFees.status}`);
+            throw Error(`Error getting fees! status code: ${responseFees.status}, response: ${JSON.stringify(await responseFees.json())}`);
           }
         } else {
-          throw Error(`Error during transaction: status code ${responsePaymentTransaction.status}`);
-        }
-        } else {
-          throw Error(`Error getting wallet: status code ${responseUserWallet.status}`);
+          throw Error(`Error during transaction! status code: ${responsePaymentTransaction.status}, response: ${JSON.stringify(await responsePaymentTransaction.json())}`);
         }
       } else {
-        throw Error(`Error getting rptId: status code ${responseRptIdInfo.status}`);
+        throw Error(`Error getting wallet! status code: ${responseUserWallet.status}, response: ${JSON.stringify(await responseUserWallet.json())}`);
       }
     } else {
-      throw Error(`Error starting session: status code ${responseStartSession.status}`);
+      throw Error(`Error getting rptId! status code: ${responseRptIdInfo.status}, response: ${JSON.stringify(await responseRptIdInfo.json())}`);
     }
+  } else {
+    throw Error(`Error starting session! status code: ${responseStartSession.status}, response: ${JSON.stringify(await responseStartSession.json())}`);
+  }
 };
 
 export const clickPaypalButton = async () => {
@@ -187,34 +193,51 @@ export const checkAndClickPaypalFirstPsps = async () => {
   await submitPsp.click()
 }
 
-export const fillPaypalAuth = async paypalCredentials => {
+export const fillPaypalAuthAndPay = async paypalCredentials => {
+  const payButton = '#consentButton';
+  const popup = await loginToPaypal(paypalCredentials);
+  await popup.waitForSelector(payButton, { timeout: 10000 });
+  await popup.click(payButton);
+}
+
+export const fillPaypalAuthAndCancel = async paypalCredentials => {
+  const cancelLink = '#cancelLink';
+  const popup = await loginToPaypal(paypalCredentials);
+  await popup.waitForSelector(cancelLink, { timeout: 10000 });
+  await popup.click(cancelLink);
+}
+
+export const loginToPaypal = async paypalCredentials => {
   const usernameInput = '#email';
   const btnNext = '#btnNext';
   const pwInput = '#password';
   const loginButton = '#btnLogin';
-  const payButton = '#consentButton';
 
-  const targets = await browser.targets()
-  const popup = await targets[targets.length -1].page()
-  await popup.waitForNavigation()
-  await popup.waitForSelector(usernameInput, {timeout: 10000});
-  await popup.click(usernameInput, { clickCount: 3 });
-  await popup.keyboard.type(paypalCredentials.username);
-  await popup.waitForSelector(btnNext, {timeout: 10000});
-  await popup.click(btnNext);
-  await popup.waitForSelector(pwInput, {timeout: 10000});
-  await new Promise(r => setTimeout(r, 2000));
-  await popup.focus(pwInput);
-  await new Promise(r => setTimeout(r, 2000));
-  popup.keyboard.type(paypalCredentials.password);
-  await new Promise(r => setTimeout(r, 2000)); 
-  const login = await popup.waitForSelector(loginButton, {timeout: 10000, visible: true});
-  await new Promise(r => setTimeout(r, 2000)); 
-  await login.click();
-  await popup.waitForFunction(`window.location.href.includes("https://www.sandbox.paypal.com/webapps/hermes")`);
-  await popup.waitForSelector(payButton, {timeout: 10000});
-  await new Promise(r => setTimeout(r, 2000)); 
-  await popup.click(payButton);
+  const targets = await browser.targets();
+  const popup = await targets[targets.length - 1].page();
+  await popup.waitForNavigation();
+  const popupUrl = popup.url();
+  console.log(`popup url: ${popupUrl}`);
+  if (!popupUrl.includes("billing")) {
+    await popup.waitForSelector(usernameInput, { timeout: 10000 });
+    await popup.click(usernameInput, { clickCount: 3 });
+    await popup.keyboard.type(paypalCredentials.username);
+    await popup.waitForSelector(btnNext, { timeout: 10000 });
+    await popup.click(btnNext);
+    await popup.waitForSelector(pwInput, { timeout: 10000 });
+    await new Promise(r => setTimeout(r, 2000));
+    await popup.focus(pwInput);
+    await new Promise(r => setTimeout(r, 2000));
+    popup.keyboard.type(paypalCredentials.password);
+    await new Promise(r => setTimeout(r, 2000));
+    const login = await popup.waitForSelector(loginButton, { timeout: 10000, visible: true });
+    await new Promise(r => setTimeout(r, 2000));
+    await login.click();
+  } else {
+    console.log("Skipping paypal login phase, user already logged detected");
+  }
+
+  return popup;
 }
 
 export const fillCardDataForm = async cardData => {
@@ -266,13 +289,13 @@ export const waitUntilUrlContains = async (urlSubstring) =>
  * @returns number
  */
 export const getOutcome = async (url) => {
-    console.log(url)
-    const outcome = new URLSearchParams(url?.split("?")[1]).get("outcome");
-    console.log(outcome);
-    if(outcome == null) {
-      return -1;
-    }
-    return parseInt(outcome)
+  console.log(url)
+  const outcome = new URLSearchParams(url?.split("?")[1]).get("outcome");
+  console.log(outcome);
+  if (outcome == null) {
+    return -1;
+  }
+  return parseInt(outcome)
 }
 
 /**
@@ -284,7 +307,7 @@ export const getWalletId = async (url) => {
   console.log(`getWalletId from url ${url}`)
   const walletId = new URLSearchParams(url?.split("?")[1]).get("walletId");
   console.debug(`walletId detected ${walletId}`);
-  if(walletId == null) {
+  if (walletId == null) {
     return "";
   }
   return walletId
@@ -308,7 +331,7 @@ export const getWalletAlreadyOnboarded = async (walletHost, lastFourDigitsOnboar
       Authorization: `Bearer ${walletToken}`,
     }
   });
-  if(responseStartSession.status === 201) {
+  if (responseStartSession.status === 201) {
     console.debug('session 201');
     const sessionData = await responseStartSession.json();
     const sessionToken = sessionData.token;
@@ -320,17 +343,17 @@ export const getWalletAlreadyOnboarded = async (walletHost, lastFourDigitsOnboar
         "Authorization": `Bearer ${sessionToken}`
       }
     });
-    if(responseGetWallets.status === 200) {
+    if (responseGetWallets.status === 200) {
       console.debug("GET /wallets 200");
       const walletsBody = await responseGetWallets.json();
       const walletId = walletsBody.wallets.filter(w => w.details.type === "CARDS" && w.details.lastFourDigits === lastFourDigitsOnboarded)[0].walletId
       console.debug(`Wallet id for the same card ${walletId}`);
       return walletId
     } else {
-      throw Error('Error getting wallet');
+      throw Error(`Error getting wallet! status code: ${responseGetWallets.status}, response: ${JSON.stringify(await responseGetWallets.json())}`);
     }
   } else {
-    throw Error('Error starting session');
+    throw Error(`Error starting session! status code: ${responseStartSession.status}, response: ${JSON.stringify(await responseStartSession.json())}`);
   }
 }
 
@@ -342,31 +365,31 @@ export const cleanWalletOnboarded = async (walletHost, walletId) => {
   console.debug(`Deleting wallet ${walletId}`)
   const walletToken = WALLET_TOKEN
   const urlStartSession = `${walletHost}/session-wallet/v1/session`;
-    const responseStartSession = await fetch(urlStartSession, {
-      method: 'POST',
+  const responseStartSession = await fetch(urlStartSession, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${walletToken}`,
+    }
+  });
+  if (responseStartSession.status === 201) {
+    console.debug('session 201');
+    const sessionData = await responseStartSession.json();
+    const sessionToken = sessionData.token;
+    const urlDeleteWallet = `${walletHost}/io-payment-wallet/v1/wallets/${walletId}`;
+    const responseDeleteWallet = await fetch(urlDeleteWallet, {
+      method: "DELETE",
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${walletToken}`,
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${sessionToken}`
       }
     });
-    if(responseStartSession.status === 201) {
-      console.debug('session 201');
-      const sessionData = await responseStartSession.json();
-      const sessionToken = sessionData.token;
-      const urlPostWallet = `${walletHost}/io-payment-wallet/v1/wallets/${walletId}`;
-      const responsePostWallet = await fetch(urlPostWallet, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${sessionToken}`
-        }
-      });
-      if(responsePostWallet.status === 204) {
-        console.debug("Wallet deleted 204");
-      } else {
-        throw Error('Error deleting wallet');
-      }
+    if (responseDeleteWallet.status === 204) {
+      console.debug("Wallet deleted 204");
+    } else {
+      throw Error(`Error deleting wallet! status code: ${responseDeleteWallet.status}, response: ${JSON.stringify(await responseDeleteWallet.json())}`);
+    }
   } else {
-    throw Error('Error starting session');
+    throw Error(`Error starting session! status code: ${responseStartSession.status}, response: ${JSON.stringify(await responseStartSession.json())}`);
   }
 }
