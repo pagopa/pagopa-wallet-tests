@@ -32,10 +32,10 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
       const session = await responsePostWallet.json();
       return session.redirectUrl
     } else {
-      throw Error(`Error while creating wallet! status code: ${responsePostWallet.status}, response: ${JSON.stringify(responsePostWallet.json())}`);
+      throw Error(`Error while creating wallet! status code: ${responsePostWallet.status}, response: ${JSON.stringify(await responsePostWallet.json())}`);
     }
   } else {
-    throw Error(`Error while start session! status code: ${responseStartSession.status}, response: ${JSON.stringify(responseStartSession.json())}`);
+    throw Error(`Error while start session! status code: ${responseStartSession.status}, response: ${JSON.stringify(await responseStartSession.json())}`);
   }
 };
 
@@ -130,7 +130,7 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken, wallet
             const feesData = await responseFees.json();
             const urlAuthRequest = `${walletHost}/ecommerce/io/v2/transactions/${paymentTransactionData.transactionId}/auth-requests`;
             //use wanted psp id
-            console.debug(`Calculate fees response: ${JSON.stringify(feesData)}`);
+            console.debug(`Calculate fees response: ${JSON.stringify(await feesData)}`);
             const filteredBundles = feesData.bundles.filter(bundle => bundle.idPsp === pspId);
             console.debug(`Filtered bundles for pspId: [${pspId}] -> ${JSON.stringify(filteredBundles)}`);
             if (filteredBundles.length == 0) {
@@ -162,22 +162,22 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletToken, wallet
               const authRequest = await responseAuthRequest.json();
               return authRequest.authorizationUrl;
             } else {
-              throw Error(`Error during auth request! status code: ${responseAuthRequest.status}, response: ${JSON.stringify(responseAuthRequest.json())}`);
+              throw Error(`Error during auth request! status code: ${responseAuthRequest.status}, response: ${JSON.stringify(await responseAuthRequest.json())}`);
             }
           } else {
-            throw Error(`Error getting fees! status code: ${responseFees.status}, response: ${JSON.stringify(responseFees.json())}`);
+            throw Error(`Error getting fees! status code: ${responseFees.status}, response: ${JSON.stringify(await responseFees.json())}`);
           }
         } else {
-          throw Error(`Error during transaction! status code: ${responsePaymentTransaction.status}, response: ${JSON.stringify(responsePaymentTransaction.json())}`);
+          throw Error(`Error during transaction! status code: ${responsePaymentTransaction.status}, response: ${JSON.stringify(await responsePaymentTransaction.json())}`);
         }
       } else {
-        throw Error(`Error getting wallet! status code: ${responseUserWallet.status}, response: ${JSON.stringify(responseUserWallet.json())}`);
+        throw Error(`Error getting wallet! status code: ${responseUserWallet.status}, response: ${JSON.stringify(await responseUserWallet.json())}`);
       }
     } else {
-      throw Error(`Error getting rptId! status code: ${responseRptIdInfo.status}, response: ${JSON.stringify(responseRptIdInfo.json())}`);
+      throw Error(`Error getting rptId! status code: ${responseRptIdInfo.status}, response: ${JSON.stringify(await responseRptIdInfo.json())}`);
     }
   } else {
-    throw Error(`Error starting session! status code: ${responseStartSession.status}, response: ${JSON.stringify(responseStartSession.json())}`);
+    throw Error(`Error starting session! status code: ${responseStartSession.status}, response: ${JSON.stringify(await responseStartSession.json())}`);
   }
 };
 
@@ -350,10 +350,10 @@ export const getWalletAlreadyOnboarded = async (walletHost, lastFourDigitsOnboar
       console.debug(`Wallet id for the same card ${walletId}`);
       return walletId
     } else {
-      throw Error(`Error getting wallet! status code: ${responseGetWallets.status}, response: ${JSON.stringify(responseGetWallets.json())}`);
+      throw Error(`Error getting wallet! status code: ${responseGetWallets.status}, response: ${JSON.stringify(await responseGetWallets.json())}`);
     }
   } else {
-    throw Error(`Error starting session! status code: ${responseStartSession.status}, response: ${JSON.stringify(responseStartSession.json())}`);
+    throw Error(`Error starting session! status code: ${responseStartSession.status}, response: ${JSON.stringify(await responseStartSession.json())}`);
   }
 }
 
@@ -387,9 +387,9 @@ export const cleanWalletOnboarded = async (walletHost, walletId) => {
     if (responseDeleteWallet.status === 204) {
       console.debug("Wallet deleted 204");
     } else {
-      throw Error(`Error deleting wallet! status code: ${responseDeleteWallet.status}, response: ${JSON.stringify(responseDeleteWallet.json())}`);
+      throw Error(`Error deleting wallet! status code: ${responseDeleteWallet.status}, response: ${JSON.stringify(await responseDeleteWallet.json())}`);
     }
   } else {
-    throw Error(`Error starting session! status code: ${responseStartSession.status}, response: ${JSON.stringify(responseStartSession.json())}`);
+    throw Error(`Error starting session! status code: ${responseStartSession.status}, response: ${JSON.stringify(await responseStartSession.json())}`);
   }
 }
