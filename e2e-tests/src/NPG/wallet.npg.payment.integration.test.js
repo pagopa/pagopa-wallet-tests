@@ -23,6 +23,7 @@ describe('wallet npg payment', () => {
   it('Onboarded card payment should redirect with outcome 0 on success', async () => {
 
     const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, USER_WALLET_TOKEN, "CARDS", CARDS_WALLET_PAYMENT_PSP_ID);
+    console.log(`Card payment authorizationUrl: ${authorizationUrl}`);
     await registerOutcomeInterceptor(page);
     const testId = await registerPageOutcomeTracker(page);
     await page.goto(authorizationUrl);
@@ -46,9 +47,9 @@ describe('wallet npg payment', () => {
   it('Onboarded paypal payment should redirect with outcome 0 on success', async () => {
 
     const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, USER_WALLET_TOKEN, "PAYPAL", PAYPAL_WALLET_PAYMENT_PSP_ID);
+    console.log(`Paypal payment authorizationUrl: ${authorizationUrl}`);
     await registerOutcomeInterceptor(page);
     const testId = await registerPageOutcomeTracker(page);
-    await page.goto(authorizationUrl);
     await page.goto(authorizationUrl);
     await page.waitForNavigation();
     await waitUntilUrlContains("/esito");
