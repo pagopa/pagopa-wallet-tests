@@ -40,7 +40,7 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
   }
 };
 
-export const retrievePaymentRedirectUrl = async (walletHost, walletType, pspId) => {
+export const retrievePaymentRedirectUrl = async (walletHost, userId, walletType, pspId) => {
   const RPTID_NM3 = "77777777777" + "302001" + randomIntFromInterval(0, 999999999999);
 
   const urlStartSession = `${walletHost}/session-wallet/mock/v1/session`;
@@ -50,7 +50,7 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletType, pspId) 
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      userId: '05b47118-ac54-4324-90f0-59a784972184',
+      userId: userId,
       expiryInMinutes: 60
     }),
   });
