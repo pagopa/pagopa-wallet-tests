@@ -1,16 +1,17 @@
 import { randomIntFromInterval } from "../utils/numbers";
 
-const WALLET_TOKEN = String(process.env.USER_WALLET_TOKEN);
 
 export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
-  const walletTokenCreditCard = WALLET_TOKEN
-  const urlStartSession = `${walletHost}/session-wallet/v1/session`;
+  const urlStartSession = `${walletHost}/session-wallet/mock/v1/session`;
   const responseStartSession = await fetch(urlStartSession, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${walletTokenCreditCard}`
-    }
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId: "00000000-0000-0000-0000-000000000000",
+      expiryInMinutes: 60
+    }),
   });
   if (responseStartSession.status === 201) {
     const sessionResponse = await responseStartSession.json();
@@ -39,16 +40,19 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
   }
 };
 
-export const retrievePaymentRedirectUrl = async (walletHost, walletToken, walletType, pspId) => {
+export const retrievePaymentRedirectUrl = async (walletHost, walletType, pspId) => {
   const RPTID_NM3 = "77777777777" + "302001" + randomIntFromInterval(0, 999999999999);
 
-  const urlStartSession = `${walletHost}/session-wallet/v1/session`;
+  const urlStartSession = `${walletHost}/session-wallet/mock/v1/session`;
   const responseStartSession = await fetch(urlStartSession, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${walletToken}`,
-    }
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      userId: '00000000-0000-0000-0000-000000000000',
+      expiryInMinutes: 60
+    }),
   });
   console.debug('start session');
   if (responseStartSession.status === 201) {
@@ -322,14 +326,16 @@ export const getWalletId = async (url) => {
  */
 export const getWalletAlreadyOnboarded = async (walletHost, lastFourDigitsOnboarded) => {
   console.debug(`GET wallet already onboarded with last four digits ${lastFourDigitsOnboarded}`)
-  const walletToken = WALLET_TOKEN
-  const urlStartSession = `${walletHost}/session-wallet/v1/session`;
+  const urlStartSession = `${walletHost}/session-wallet/mock/v1/session`;
   const responseStartSession = await fetch(urlStartSession, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${walletToken}`,
-    }
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId: "00000000-0000-0000-0000-000000000000",
+      expiryInMinutes: 60
+    }),
   });
   if (responseStartSession.status === 201) {
     console.debug('session 201');
@@ -363,14 +369,16 @@ export const getWalletAlreadyOnboarded = async (walletHost, lastFourDigitsOnboar
  */
 export const cleanWalletOnboarded = async (walletHost, walletId) => {
   console.debug(`Deleting wallet ${walletId}`)
-  const walletToken = WALLET_TOKEN
-  const urlStartSession = `${walletHost}/session-wallet/v1/session`;
+  const urlStartSession = `${walletHost}/session-wallet/mock/v1/session`;
   const responseStartSession = await fetch(urlStartSession, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${walletToken}`,
-    }
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId: "00000000-0000-0000-0000-000000000000",
+      expiryInMinutes: 60
+    }),
   });
   if (responseStartSession.status === 201) {
     console.debug('session 201');

@@ -3,7 +3,6 @@ import {getOutcome, retrievePaymentRedirectUrl,waitUntilUrlContains} from "./hel
 
 
 const WALLET_HOST = String(process.env.WALLET_HOST);
-const USER_WALLET_TOKEN = String(process.env.USER_WALLET_TOKEN);
 const CARDS_WALLET_PAYMENT_PSP_ID = String(process.env.CARDS_WALLET_PAYMENT_PSP_ID);
 const PAYPAL_WALLET_PAYMENT_PSP_ID = String(process.env.PAYPAL_WALLET_PAYMENT_PSP_ID);
 
@@ -22,7 +21,7 @@ describe('wallet npg payment', () => {
 
   it('Onboarded card payment should redirect with outcome 0 on success', async () => {
 
-    const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, USER_WALLET_TOKEN, "CARDS", CARDS_WALLET_PAYMENT_PSP_ID);
+    const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, "CARDS", CARDS_WALLET_PAYMENT_PSP_ID);
     console.log(`Card payment authorizationUrl: ${authorizationUrl}`);
     await registerOutcomeInterceptor(page);
     const testId = await registerPageOutcomeTracker(page);
@@ -46,7 +45,7 @@ describe('wallet npg payment', () => {
 
   it('Onboarded paypal payment should redirect with outcome 0 on success', async () => {
 
-    const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, USER_WALLET_TOKEN, "PAYPAL", PAYPAL_WALLET_PAYMENT_PSP_ID);
+    const authorizationUrl = await retrievePaymentRedirectUrl(WALLET_HOST, "PAYPAL", PAYPAL_WALLET_PAYMENT_PSP_ID);
     console.log(`Paypal payment authorizationUrl: ${authorizationUrl}`);
     await registerOutcomeInterceptor(page);
     const testId = await registerPageOutcomeTracker(page);
