@@ -328,7 +328,7 @@ export const getWalletAlreadyOnboarded = async (walletHost, lastFourDigitsOnboar
   console.debug(`GET wallet already onboarded with last four digits ${lastFourDigitsOnboarded}`)
   const urlStartSession = `${walletHost}/session-wallet/mock/v1/session`;
   const responseStartSession = await fetch(urlStartSession, {
-    method: "POST",
+    method: 'POST',
     headers: {
       "Content-Type": "application/json"
     },
@@ -371,7 +371,7 @@ export const cleanWalletOnboarded = async (walletHost, walletId) => {
   console.debug(`Deleting wallet ${walletId}`)
   const urlStartSession = `${walletHost}/session-wallet/mock/v1/session`;
   const responseStartSession = await fetch(urlStartSession, {
-    method: "POST",
+    method: 'POST',
     headers: {
       "Content-Type": "application/json"
     },
