@@ -50,7 +50,7 @@ export const retrievePaymentRedirectUrl = async (walletHost, walletType, pspId) 
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      userId: '00000000-0000-0000-0000-000000000000',
+      userId: '05b47118-ac54-4324-90f0-59a784972184',
       expiryInMinutes: 60
     }),
   });
