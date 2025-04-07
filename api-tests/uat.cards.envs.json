@@ -1,5 +1,5 @@
 {
-	"id": "d8660dd9-227f-4033-b420-4bb35e0cc6a4",
+	"id": "558359b3-4550-4397-934a-6c6130b3536f",
 	"name": "Wallet UAT- CARDS",
 	"values": [
 		{
@@ -119,9 +119,15 @@
 			"value": "CARDS",
 			"type": "default",
 			"enabled": true
+		},
+		{
+			"key": "PAYMENT_USER_ID",
+			"value": "bc05c4ab-4657-46a3-b379-4f06890032ea",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2024-08-02T14:26:40.649Z",
-	"_postman_exported_using": "Postman/11.6.2"
+	"_postman_exported_at": "2025-04-07T08:39:54.178Z",
+	"_postman_exported_using": "Postman/11.39.5"
 }

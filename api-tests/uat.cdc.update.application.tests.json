@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "61df7dfd-a21b-417d-a522-e6cdf1cb155b",
+		"_postman_id": "695cb3e0-8ab0-4e2a-9111-8eda74aa6bc1",
 		"name": "Get active Wallet and update the application (CDC)",
 		"description": "We usa valid wallet in UAT and change the status of the first active application to generate events, so we can test later the DataLake CDC flow.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
-		"_exporter_id": "36861410"
+		"_exporter_id": "36945369"
 	},
 	"item": [
 		{
@@ -27,10 +27,7 @@
 			],
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": {
-						"token": "{{WALLET_TOKEN_TEST}}"
-					}
+					"type": "noauth"
 				},
 				"method": "POST",
 				"header": [
@@ -50,7 +47,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "",
+					"raw": "{\r\n    \"userId\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"expiryInMinutes\": 60\r\n}",
 					"options": {
 						"raw": {
 							"headerFamily": "json",
@@ -58,7 +55,7 @@
 						}
 					}
 				},
-				"url": "{{ENV}}/session-wallet/v1/session",
+				"url": "{{ENV}}/session-wallet/mock/v1/session",
 				"description": "Creates a new wallet"
 			},
 			"response": []
