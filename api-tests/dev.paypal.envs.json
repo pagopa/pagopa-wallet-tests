@@ -1,5 +1,5 @@
 {
-	"id": "340b7438-02de-4b4a-8736-48ee639c411c",
+	"id": "3ece9960-5893-49b2-8268-c921cc2d87c3",
 	"name": "Wallet DEV - PAYPAL",
 	"values": [
 		{
@@ -71,9 +71,15 @@
 			"value": "PAYPAL",
 			"type": "default",
 			"enabled": true
+		},
+		{
+			"key": "PAYMENT_USER_ID",
+			"value": "05b47118-ac54-4324-90f0-59a784972184",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2024-08-02T14:25:02.769Z",
-	"_postman_exported_using": "Postman/11.6.2"
+	"_postman_exported_at": "2025-04-07T08:31:06.879Z",
+	"_postman_exported_using": "Postman/11.39.5"
 }

@@ -1,11 +1,10 @@
 {
 	"info": {
-		"_postman_id": "cf7cfbc3-8376-4143-b1af-451c8b6291d0",
+		"_postman_id": "0e9c1ec2-333d-4ee1-b8bb-8004a2422f44",
 		"name": "pagoPA Payment Wallet API - CARDS - NPG",
 		"description": "API to handle payment wallets PagoPA for App IO, where a wallet is triple between user identifier, payment instrument and services (i.e pagoPA, bpd).\n\nThe wallet onboarding outcome and walletId are returned as query params to the app IO, for example \n/wallets/{walletId}/outcomes?outcome=0&walletId=123. The possible outcome are:\n- SUCCESS(0)\n- GENERIC_ERROR(1)\n- AUTH_ERROR(2)\n- TIMEOUT(4)\n- CANCELED_BY_USER(8)\n- INVALID_SESSION(14)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23305473",
-		"_collection_link": "https://solar-shuttle-72092.postman.co/workspace/Wallet~1247c858-5774-4bb2-b6e4-a5d7c22704e0/collection/23305473-cf7cfbc3-8376-4143-b1af-451c8b6291d0?action=share&source=collection_link&creator=23305473"
+		"_exporter_id": "36945369"
 	},
 	"item": [
 		{
@@ -28,14 +27,7 @@
 			],
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{WALLET_TOKEN_TEST}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "POST",
 				"header": [
@@ -54,7 +46,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "",
+					"raw": "{\r\n    \"userId\": \"{{PAYMENT_USER_ID}}\",\r\n    \"expiryInMinutes\": 60\r\n}",
 					"options": {
 						"raw": {
 							"headerFamily": "json",
@@ -63,12 +55,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{ENV}}/session-wallet/v1/session",
+					"raw": "{{ENV}}/session-wallet/mock/v1/session",
 					"host": [
 						"{{ENV}}"
 					],
 					"path": [
 						"session-wallet",
+						"mock",
 						"v1",
 						"session"
 					]

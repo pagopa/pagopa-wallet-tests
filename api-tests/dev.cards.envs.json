@@ -1,5 +1,5 @@
 {
-	"id": "b452085e-1def-4973-84ee-a4270393b4d7",
+	"id": "28eb4809-f394-4cf0-979e-3d7b5d4813e9",
 	"name": "Wallet DEV - CARDS",
 	"values": [
 		{
@@ -119,9 +119,15 @@
 			"value": "CARDS",
 			"type": "default",
 			"enabled": true
+		},
+		{
+			"key": "PAYMENT_USER_ID",
+			"value": "05b47118-ac54-4324-90f0-59a784972184",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2024-08-02T14:26:03.699Z",
-	"_postman_exported_using": "Postman/11.6.2"
+	"_postman_exported_at": "2025-04-07T08:30:42.954Z",
+	"_postman_exported_using": "Postman/11.39.5"
 }

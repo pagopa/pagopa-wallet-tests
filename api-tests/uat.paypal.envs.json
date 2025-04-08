@@ -1,5 +1,5 @@
 {
-	"id": "2bb03859-7523-441d-b0be-e40d74b17eca",
+	"id": "d4e8e3be-ddc7-49eb-970a-cded5d6e8f90",
 	"name": "Wallet UAT - PAYPAL",
 	"values": [
 		{
@@ -71,9 +71,15 @@
 			"value": "",
 			"type": "default",
 			"enabled": true
+		},
+		{
+			"key": "PAYMENT_USER_ID",
+			"value": "bc05c4ab-4657-46a3-b379-4f06890032ea",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2024-08-02T14:26:54.863Z",
-	"_postman_exported_using": "Postman/11.6.2"
+	"_postman_exported_at": "2025-04-07T08:39:41.769Z",
+	"_postman_exported_using": "Postman/11.39.5"
 }

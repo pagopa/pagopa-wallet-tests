@@ -1,4 +1,5 @@
 
 export const randomIntFromInterval = (min, max) => {
-  return Math.floor(Math.random() * (max - min + 1) + min)
+  let num = Math.floor(Math.random() * (max - min + 1) + min)
+  return num.toString().padStart(12, '0'); // Ensure it's always 12 digits
 }
