@@ -1,5 +1,5 @@
-import { getOutcomeUrlForTest, registerOutcomeInterceptor, registerPageOutcomeTracker } from "../utils/outcomeUrlInterceptor";
-import {getOutcome, retrievePaymentRedirectUrl,waitUntilUrlContains} from "./helper";
+import { getOutcomeUrlForTest, registerOutcomeInterceptor, registerPageOutcomeTracker } from "../../utils/outcomeUrlInterceptor";
+import {getOutcome, retrievePaymentRedirectUrl,waitUntilUrlContains} from "../helper";
 
 
 const WALLET_HOST = String(process.env.WALLET_HOST);
