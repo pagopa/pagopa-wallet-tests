@@ -1,5 +1,5 @@
-import { getOutcomeUrlForTest, registerOutcomeInterceptor, registerPageOutcomeTracker } from '../utils/outcomeUrlInterceptor';
-import { fillCardDataForm, retrieveValidRedirectUrl, getOutcome, waitUntilUrlContains, clickPaypalButton, checkAndClickPaypalFirstPsps, fillPaypalAuthAndPay, cleanWalletOnboarded, getWalletId, getWalletAlreadyOnboarded, fillPaypalAuthAndCancel } from './helper';
+import { getOutcomeUrlForTest, registerOutcomeInterceptor, registerPageOutcomeTracker } from '../../utils/outcomeUrlInterceptor';
+import { fillCardDataForm, retrieveValidRedirectUrl, getOutcome, waitUntilUrlContains, clickPaypalButton, checkAndClickPaypalFirstPsps, fillPaypalAuthAndPay, cleanWalletOnboarded, getWalletId, getWalletAlreadyOnboarded, fillPaypalAuthAndCancel } from '../helper';
 
 describe('Credit Card Wallet: onboarding with NPG', () => {
   const WALLET_HOST = String(process.env.WALLET_HOST);
