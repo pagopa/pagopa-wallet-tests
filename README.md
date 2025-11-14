@@ -54,6 +54,10 @@ module.exports = {
 }
 ```
 
+### Playwright Setup
+
+Playwright infrastructure has been added for new E2E tests. Run `yarn pw:install` in `e2e-tests/` to install browsers.
+
 ## Execute end-to-end tests in azure pipelines
 
 This project contains a template that can be used to execute end-to-end tests during azure pipeline execution.
