@@ -11,7 +11,7 @@
     "test": "dotenv -e .env jest --detectOpenHandles --reporters=jest-junit",
     "lint": "eslint . -c .eslintrc.json",
     "pw:install": "playwright install chromium",
-    "pw:test": "dotenv -e .env playwright test",
+    "pw:test": "dotenv -e .env playwright test"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.15.4",
