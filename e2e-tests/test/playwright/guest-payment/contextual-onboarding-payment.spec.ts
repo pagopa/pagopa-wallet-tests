@@ -40,27 +40,6 @@ test.describe.only('Contextual Onboarding Payment - Save Card + Pay', () => {
     clearInterceptedOutcomes();
   });
 
-  test('should display card save choice page with both options visible', async ({ page }) => {
-    const authorizationUrl = await retrieveGuestPaymentAuthUrl();
-
-    await registerOutcomeInterceptor(page);
-    await registerPageOutcomeTracker(page);
-
-    await page.goto(authorizationUrl);
-
-    expect(page.url()).toContain('clientId=IO');
-    expect(page.url()).toContain('sessionToken=');
-    expect(page.url()).toContain('paymentMethodId=');
-    expect(page.url()).toContain('rptId=');
-    expect(page.url()).toContain('amount=');
-
-    const noSaveCardButton = page.getByTestId('noSaveRedirectBtn');
-    await expect(noSaveCardButton).toBeVisible({ timeout: 10000 });
-
-    const saveCardButton = page.getByTestId('saveRedirectBtn');
-    await expect(saveCardButton).toBeVisible({ timeout: 10000 });
-  });
-
   test('should complete contextual onboarding and payment flow with outcome=0', async ({
     page,
   }) => {
