@@ -2,8 +2,9 @@
  * Helper functions for guest card payment flow
  */
 
+import { getAllPaymentMethods } from './paymentMethodHelpers';
+
 const WALLET_HOST = String(process.env.WALLET_HOST);
-const GUEST_CARD_PAYMENT_METHOD_ID = 'f25399bf-c56f-4bd2-adc9-7aef87410609'; // TODO retrieve from getAllPaymentMethods
 
 /**
  * Generates a random RPTID for test payments
@@ -42,6 +43,10 @@ export const startGuestSession = async (userId: string = ''): Promise<string> =>
 
 /**
  * Guest Payment Flow - Step 2: Get payment info by rptId
+ *
+ * @param sessionToken - Session token from startGuestSession
+ * @param rptId - Random RPT ID generated for the test
+ * @returns Payment token and amount
  */
 export const getPaymentInfo = async (
   sessionToken: string,
@@ -72,13 +77,20 @@ export const getPaymentInfo = async (
 
 /**
  * Guest Payment Flow - Step 3: Get redirect URL for card save choice page
+ *
+ * @param sessionToken - Session token from startGuestSession
+ * @param paymentMethodId - Payment method ID from getAllPaymentMethods
+ * @param rptId - Random RPT ID generated for the test
+ * @param amount - Payment amount in cents
+ * @returns Redirect URL to the card save choice page
  */
 export const getGuestCardRedirectUrl = async (
   sessionToken: string,
+  paymentMethodId: string,
   rptId: string,
   amount: number
 ): Promise<string> => {
-  const url = `${WALLET_HOST}/ecommerce/io/v2/payment-methods/${GUEST_CARD_PAYMENT_METHOD_ID}/redirectUrl?rpt_id=${rptId}&amount=${amount}`;
+  const url = `${WALLET_HOST}/ecommerce/io/v2/payment-methods/${paymentMethodId}/redirectUrl?rpt_id=${rptId}&amount=${amount}`;
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -100,6 +112,11 @@ export const getGuestCardRedirectUrl = async (
 
 /**
  * Guest Payment Flow - Step 4: Start new eCommerce transaction
+ *
+ * @param sessionToken - Session token from startGuestSession
+ * @param rptId - Random RPT ID generated for the test
+ * @param amount - Payment amount in cents
+ * @returns Transaction ID
  */
 export const startGuestTransaction = async (
   sessionToken: string,
@@ -203,7 +220,16 @@ export const calculateGuestFees = async (
 };
 
 /**
- * Guest Payment Flow - Step 7: Create authorization request for guest payment
+ * Guest Payment Flow - Step 6: Create authorization request for guest payment
+ *
+ * @param sessionToken - Session token from startGuestSession
+ * @param transactionId - Transaction ID from startGuestTransaction
+ * @param orderId - Order ID extracted from card entry outcome URL
+ * @param paymentMethodId - Payment method ID from getAllPaymentMethods
+ * @param amount - Payment amount in cents
+ * @param fee - Fee from calculateGuestFees
+ * @param pspId - PSP ID from calculateGuestFees
+ * @returns Authorization URL to navigate to for GDI check
  */
 export const createGuestAuthorizationRequest = async (
   sessionToken: string,
@@ -249,7 +275,7 @@ export const createGuestAuthorizationRequest = async (
 };
 
 /**
- * Complete guest payment flow - returns the card save choice page URL
+ * Guest payment flow - returns the card save choice page URL
  */
 export const retrieveGuestPaymentAuthUrl = async (
   targetPspId?: string
@@ -264,8 +290,9 @@ export const retrieveGuestPaymentAuthUrl = async (
   // Step 2: Get payment info
   const { amount } = await getPaymentInfo(sessionToken, rptId);
 
-  // Step 3: Get redirect URL → this returns the card save choice page
-  const redirectUrl = await getGuestCardRedirectUrl(sessionToken, rptId, amount);
+  // Step 3: Get redirect URL
+  const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS');
+  const redirectUrl = await getGuestCardRedirectUrl(sessionToken, paymentMethodId, rptId, amount);
 
   console.log('✓ Guest payment flow completed - ready to navigate to choice page');
   return redirectUrl;

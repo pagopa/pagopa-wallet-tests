@@ -8,6 +8,7 @@ import {
   createGuestAuthorizationRequest,
   generateRandomRptId,
 } from '../utils/guestPaymentHelpers';
+import { getAllPaymentMethods } from '../utils/paymentMethodHelpers';
 import {
   registerOutcomeInterceptor,
   registerPageOutcomeTracker,
@@ -24,7 +25,6 @@ import {
 
 const CARDS_WALLET_PAYMENT_PSP_ID = String(process.env.CARDS_WALLET_PAYMENT_PSP_ID);
 const PAYMENT_USER_ID = String(process.env.PAYMENT_USER_ID);
-const GUEST_CARD_PAYMENT_METHOD_ID = String(process.env.PAYMENT_METHOD_ID);
 
 // test card to get outcome 0
 const GUEST_CARD_DATA = {
@@ -53,11 +53,11 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
     expect(page.url()).toContain('rptId=');
     expect(page.url()).toContain('amount=');
 
-    const noSaveCardText = page.getByText('No, non salvare la carta');
-    await expect(noSaveCardText).toBeVisible({ timeout: 10000 });
+    const noSaveCardButton = page.getByTestId('noSaveRedirectBtn');
+    await expect(noSaveCardButton).toBeVisible({ timeout: 10000 });
 
-    const saveCardText = page.getByText(/s[ìi],?\s+salva/i);
-    await expect(saveCardText).toBeVisible({ timeout: 10000 });
+    const saveCardButton = page.getByTestId('saveRedirectBtn');
+    await expect(saveCardButton).toBeVisible({ timeout: 10000 });
   });
 
   test('should complete guest card payment flow and reach outcome=0', async ({ page }) => {
@@ -110,9 +110,12 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
     console.log('=== Phase 5: Creating transaction and authorization ===');
     const { transactionId } = await startGuestTransaction(sessionToken, rptId, amount);
 
+    // Get cards payment method id dynamically
+    const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS');
+
     const { pspId, fee } = await calculateGuestFees(
       sessionToken,
-      GUEST_CARD_PAYMENT_METHOD_ID,
+      paymentMethodId,
       orderId,
       amount,
       CARDS_WALLET_PAYMENT_PSP_ID
@@ -122,7 +125,7 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
       sessionToken,
       transactionId,
       orderId,
-      GUEST_CARD_PAYMENT_METHOD_ID,
+      paymentMethodId,
       amount,
       fee,
       pspId
