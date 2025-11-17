@@ -41,8 +41,11 @@ export const registerOutcomeInterceptor = async (page: Page): Promise<void> => {
 
         if (testIdCookie) {
           const testId = testIdCookie.value;
-          console.log(`Intercepted outcome url: ${requestUrl} with testId: [${testId}]`);
-          interceptedOutcomeUrls[testId] = requestUrl;
+          // Only log if this is the first time we're intercepting this URL for this testId
+          if (!interceptedOutcomeUrls[testId] || interceptedOutcomeUrls[testId] !== requestUrl) {
+            console.log(`✓ Outcome URL intercepted`);
+            interceptedOutcomeUrls[testId] = requestUrl;
+          }
         } else {
           console.warn(`No test ID cookie found for outcome URL: ${requestUrl}`);
         }
@@ -84,7 +87,7 @@ export const registerPageOutcomeTracker = async (page: Page): Promise<string> =>
     path: '/',
   };
 
-  console.log(`Setting test cookie: ${JSON.stringify(testCookie)}`);
+  console.log(`Setting test cookie...`);
   await page.context().addCookies([testCookie]);
 
   return testId;

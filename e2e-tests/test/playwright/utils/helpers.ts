@@ -12,7 +12,7 @@ export const getOutcome = (url: string | undefined): number => {
     return -1;
   }
 
-  console.log(`Parsing outcome from URL: ${url}`);
+  console.log(`Parsing outcome from URL...`);
 
   try {
     const urlParts = url.split('?');
@@ -53,7 +53,7 @@ export const getTransactionId = (url: string | undefined): string => {
     return '';
   }
 
-  console.log(`Parsing transactionId from URL: ${url}`);
+  console.log(`Parsing transactionId from URL...`);
 
   try {
     // First, try to extract from query parameters
@@ -95,7 +95,7 @@ export const getOrderId = (url: string | undefined): string => {
     return '';
   }
 
-  console.log(`Parsing orderId from URL: ${url}`);
+  console.log(`Parsing orderId from URL...`);
 
   try {
     const urlParts = url.split('?');

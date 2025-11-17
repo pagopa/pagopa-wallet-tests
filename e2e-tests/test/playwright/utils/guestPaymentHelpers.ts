@@ -68,7 +68,7 @@ export const getPaymentInfo = async (
   }
 
   const data = await response.json();
-  console.log(`✓ Payment info retrieved: amount=${data.amount}`);
+  console.log(`✓ Payment info retrieved`);
   return {
     paymentToken: data.paymentContextCode,
     amount: data.amount,
@@ -294,6 +294,6 @@ export const retrieveGuestPaymentAuthUrl = async (
   const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS');
   const redirectUrl = await getGuestCardRedirectUrl(sessionToken, paymentMethodId, rptId, amount);
 
-  console.log('✓ Guest payment flow completed - ready to navigate to choice page');
+  console.log('✓ Redirect URL generated - ready to navigate to choice page');
   return redirectUrl;
 };
