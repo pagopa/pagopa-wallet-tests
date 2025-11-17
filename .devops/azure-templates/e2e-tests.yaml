@@ -48,6 +48,15 @@ steps:
       cd e2e-tests &&  yarn test:NPG:onboarding
     displayName: 'Yarn test NPG - onboarding flow'
     condition: eq('${{parameters.RUN_TEST_FOR}}', 'ONBOARDING')
+
+  - script: |
+      cd e2e-tests && yarn pw:install --with-deps
+    displayName: 'Install Playwright browsers'
+
+  - script: |
+      cd e2e-tests && yarn pw:test
+    displayName: 'Run Playwright E2E tests - Guest payment by card flows'
+    
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'JUnit'
