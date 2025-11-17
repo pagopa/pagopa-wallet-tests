@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 import {
-  retrieveGuestPaymentAuthUrl,
   startGuestSession,
   getPaymentInfo,
   startGuestTransaction,
   calculateGuestFees,
   createGuestAuthorizationRequest,
   generateRandomRptId,
+  getGuestCardRedirectUrl,
 } from '../utils/guestPaymentHelpers';
 import { getAllPaymentMethods } from '../utils/paymentMethodHelpers';
 import {
@@ -44,7 +44,10 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
     const rptId = generateRandomRptId();
     const sessionToken = await startGuestSession(PAYMENT_USER_ID);
     const { amount } = await getPaymentInfo(sessionToken, rptId);
-    const authorizationUrl = await retrieveGuestPaymentAuthUrl(CARDS_WALLET_PAYMENT_PSP_ID);
+
+    // Get payment method ID and redirect URL
+    const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS');
+    const authorizationUrl = await getGuestCardRedirectUrl(sessionToken, paymentMethodId, rptId, amount);
 
     await registerOutcomeInterceptor(page);
     const testId = await registerPageOutcomeTracker(page);
@@ -55,6 +58,7 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
     const noSaveCardOption = page.getByTestId('noSaveRedirectBtn');
     await expect(noSaveCardOption).toBeVisible({ timeout: 10000 });
     await noSaveCardOption.click();
+    console.log('Guest payment chosen');
 
     await page.waitForURL('**/inserimento-carta**', { timeout: 10000 });
 
@@ -76,10 +80,7 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
     }
 
     const outcomeUrl = getOutcomeUrlForTest(testId);
-    console.log('');
-    console.log('🔗 MAGIC URL #1 (after card data submission):');
-    console.log(`   ${outcomeUrl}`);
-    console.log('');
+    console.log('✓ MAGIC URL #1 (after card data submission) intercepted');
 
     const orderId = getOrderId(outcomeUrl);
     if (!orderId) {
@@ -88,9 +89,6 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
 
     console.log('=== Phase 5: Creating transaction and authorization ===');
     const { transactionId } = await startGuestTransaction(sessionToken, rptId, amount);
-
-    // Get cards payment method id dynamically
-    const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS');
 
     const { pspId, fee } = await calculateGuestFees(
       sessionToken,
@@ -134,10 +132,7 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
     }
 
     const finalOutcomeUrl = getOutcomeUrlForTest(testId);
-    console.log('');
-    console.log('🔗 MAGIC URL #2 (after clicking "Continua sull\'app IO"):');
-    console.log(`   ${finalOutcomeUrl}`);
-    console.log('');
+    console.log('✓ MAGIC URL #2 (after clicking "Continua sull\'app IO") intercepted');
 
     const finalOutcome = getOutcome(finalOutcomeUrl);
     expect(finalOutcome).toBe(0);

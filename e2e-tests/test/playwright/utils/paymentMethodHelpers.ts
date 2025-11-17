@@ -54,6 +54,6 @@ export const getAllPaymentMethods = async (
     );
   }
 
-  console.log(`✓ Payment method ID retrieved: ${targetPaymentMethod.id} (${paymentMethodName})`);
+  console.log(`✓ Payment method ID retrieved (${paymentMethodName})`);
   return targetPaymentMethod.id;
 };
