@@ -36,18 +36,6 @@ steps:
   - script: |
       cd e2e-tests && yarn install
     displayName: 'Yarn install'
-#  - script: |
-#      cd e2e-tests &&  yarn test:NPG
-#    displayName: 'Yarn test NPG - payment and onboarding flows'
-#    condition: eq('${{parameters.RUN_TEST_FOR}}', 'ALL')
-#  - script: |
-#      cd e2e-tests &&  yarn test:NPG:payment
-#    displayName: 'Yarn test NPG - payment flow'
-#    condition: eq('${{parameters.RUN_TEST_FOR}}', 'PAYMENT')
-#  - script: |
-#      cd e2e-tests &&  yarn test:NPG:onboarding
-#    displayName: 'Yarn test NPG - onboarding flow'
-#    condition: eq('${{parameters.RUN_TEST_FOR}}', 'ONBOARDING')
 
   - script: |
       cd e2e-tests && yarn pw:install --with-deps
@@ -56,6 +44,19 @@ steps:
   - script: |
       cd e2e-tests && yarn pw:test
     displayName: 'Run Playwright E2E tests - Guest payment by card flows'
+
+  - script: |
+      cd e2e-tests &&  yarn test:NPG
+    displayName: 'Yarn test NPG - payment and onboarding flows'
+    condition: eq('${{parameters.RUN_TEST_FOR}}', 'ALL')
+  - script: |
+      cd e2e-tests &&  yarn test:NPG:payment
+    displayName: 'Yarn test NPG - payment flow'
+    condition: eq('${{parameters.RUN_TEST_FOR}}', 'PAYMENT')
+  - script: |
+      cd e2e-tests &&  yarn test:NPG:onboarding
+    displayName: 'Yarn test NPG - onboarding flow'
+    condition: eq('${{parameters.RUN_TEST_FOR}}', 'ONBOARDING')
 
   - task: PublishTestResults@2
     inputs:
