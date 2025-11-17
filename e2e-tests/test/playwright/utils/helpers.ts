@@ -133,7 +133,7 @@ export const getWalletId = (url: string | undefined): string => {
     return '';
   }
 
-  console.log(`Parsing walletId from URL: ${url}`);
+  console.log(`Parsing walletId from URL...`);
 
   try {
     const urlParts = url.split('?');
