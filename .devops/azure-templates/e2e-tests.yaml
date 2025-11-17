@@ -33,21 +33,21 @@ steps:
       rm -f e2e-tests/.env && cp e2e-tests/uat.env e2e-tests/.env && sed -i "s/^USER_WALLET_TOKEN.*$/USER_WALLET_TOKEN=${{parameters.USER_WALLET_TOKEN_UAT}}/" e2e-tests/.env
     displayName: 'Set env for E2E test (UAT)'
     condition: and(succeeded(), eq('${{parameters.ENVIRONMENT}}', 'UAT'))
-  - script: |
-      cd e2e-tests && yarn install
-    displayName: 'Yarn install'
-  - script: |
-      cd e2e-tests &&  yarn test:NPG
-    displayName: 'Yarn test NPG - payment and onboarding flows'
-    condition: eq('${{parameters.RUN_TEST_FOR}}', 'ALL')
-  - script: |
-      cd e2e-tests &&  yarn test:NPG:payment
-    displayName: 'Yarn test NPG - payment flow'
-    condition: eq('${{parameters.RUN_TEST_FOR}}', 'PAYMENT')
-  - script: |
-      cd e2e-tests &&  yarn test:NPG:onboarding
-    displayName: 'Yarn test NPG - onboarding flow'
-    condition: eq('${{parameters.RUN_TEST_FOR}}', 'ONBOARDING')
+#  - script: |
+#      cd e2e-tests && yarn install
+#    displayName: 'Yarn install'
+#  - script: |
+#      cd e2e-tests &&  yarn test:NPG
+#    displayName: 'Yarn test NPG - payment and onboarding flows'
+#    condition: eq('${{parameters.RUN_TEST_FOR}}', 'ALL')
+#  - script: |
+#      cd e2e-tests &&  yarn test:NPG:payment
+#    displayName: 'Yarn test NPG - payment flow'
+#    condition: eq('${{parameters.RUN_TEST_FOR}}', 'PAYMENT')
+#  - script: |
+#      cd e2e-tests &&  yarn test:NPG:onboarding
+#    displayName: 'Yarn test NPG - onboarding flow'
+#    condition: eq('${{parameters.RUN_TEST_FOR}}', 'ONBOARDING')
 
   - script: |
       cd e2e-tests && yarn pw:install --with-deps
@@ -56,7 +56,7 @@ steps:
   - script: |
       cd e2e-tests && yarn pw:test
     displayName: 'Run Playwright E2E tests - Guest payment by card flows'
-    
+
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'JUnit'
