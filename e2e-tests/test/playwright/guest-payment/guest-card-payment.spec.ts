@@ -53,11 +53,11 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
     expect(page.url()).toContain('rptId=');
     expect(page.url()).toContain('amount=');
 
-    const noSaveCardText = page.getByText('No, non salvare la carta');
-    await expect(noSaveCardText).toBeVisible({ timeout: 10000 });
+    const noSaveCardButton = page.getByTestId('noSaveRedirectBtn');
+    await expect(noSaveCardButton).toBeVisible({ timeout: 10000 });
 
-    const saveCardText = page.getByText(/s[ìi],?\s+salva/i);
-    await expect(saveCardText).toBeVisible({ timeout: 10000 });
+    const saveCardButton = page.getByTestId('saveRedirectBtn');
+    await expect(saveCardButton).toBeVisible({ timeout: 10000 });
   });
 
   test('should complete guest card payment flow and reach outcome=0', async ({ page }) => {
