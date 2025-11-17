@@ -121,6 +121,44 @@ export const getOrderId = (url: string | undefined): string => {
 };
 
 /**
+ * Extracts the walletId parameter from a URL.
+ * Used for contextual onboarding outcomes.
+ *
+ * @param url - The URL string to parse
+ * @returns The walletId as a string, or empty string if not found
+ */
+export const getWalletId = (url: string | undefined): string => {
+  if (!url) {
+    console.warn('getWalletId called with undefined URL');
+    return '';
+  }
+
+  console.log(`Parsing walletId from URL: ${url}`);
+
+  try {
+    const urlParts = url.split('?');
+    if (urlParts.length < 2) {
+      console.warn('No query string found in URL');
+      return '';
+    }
+
+    const params = new URLSearchParams(urlParts[1]);
+    const walletId = params.get('walletId');
+
+    if (walletId === null) {
+      console.warn('No walletId parameter found in URL');
+      return '';
+    }
+
+    console.log(`Extracted walletId: ${walletId}`);
+    return walletId;
+  } catch (error) {
+    console.error(`Error parsing walletId from URL: ${error}`);
+    return '';
+  }
+};
+
+/**
  * Polls for a condition with exponential backoff.
  *
  * @param condition - Function that returns true when the condition is met
