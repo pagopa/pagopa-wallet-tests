@@ -7,40 +7,40 @@
 const WALLET_HOST = String(process.env.WALLET_HOST);
 
 /**
- * Extracts the walletId parameter from a contextual onboarding outcome URL.
+ * Get wallet details by walletId to verify onboarding status
  *
- * @param url - The outcome URL string to parse
- * @returns The walletId as a string, or empty string if not found
+ * @param sessionToken - Session token from startGuestSession
+ * @param walletId - Wallet ID to check
+ * @returns Wallet object with status, paymentMethodId, and details
  */
-export const getWalletIdFromUrl = (url: string | undefined): string => {
-  if (!url) {
-    console.warn('getWalletIdFromUrl called with undefined URL');
-    return '';
+export const getWalletById = async (
+  sessionToken: string,
+  walletId: string
+): Promise<{
+  walletId: string;
+  status: string;
+  paymentMethodId: string;
+  userId: string;
+  details: any;
+}> => {
+  const url = `${WALLET_HOST}/io-payment-wallet/v1/wallets/${walletId}`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
+    },
+  });
+
+  if (response.status !== 200) {
+    throw new Error(
+      `Failed to get wallet by ID: ${response.status} - ${JSON.stringify(await response.json())}`
+    );
   }
 
-  console.log(`Parsing walletId from URL: ${url}`);
-
-  try {
-    const urlParts = url.split('?');
-    if (urlParts.length < 2) {
-      console.warn('No query string found in URL');
-      return '';
-    }
-
-    const params = new URLSearchParams(urlParts[1]);
-    const walletId = params.get('walletId');
-
-    if (walletId === null) {
-      console.warn('No walletId parameter found in URL');
-      return '';
-    }
-
-    console.log(`Extracted walletId: ${walletId}`);
-    return walletId;
-  } catch (error) {
-    console.error(`Error parsing walletId from URL: ${error}`);
-    return '';
-  }
+  const wallet = await response.json();
+  console.log(`✓ Wallet retrieved: ${walletId}, status=${wallet.status}`);
+  return wallet;
 };
 
 /**
