@@ -105,5 +105,10 @@ dist
 
 soak-test/src/generated
 
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
 .env.uat
 .env.dev
