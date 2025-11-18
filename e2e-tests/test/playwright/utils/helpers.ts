@@ -240,6 +240,9 @@ export const fillCardDataForm = async (
 
     // Check if continue button is enabled
     completed = (await page.$(disabledContinueBtnSelector)) === null;
+    if (completed === null) {
+        console.log('Continue button not enabled yet');
+    }
 
     await page.waitForTimeout(1_000);
   }

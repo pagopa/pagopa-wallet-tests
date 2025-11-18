@@ -204,5 +204,5 @@ export const deleteWallet = async (sessionToken: string, walletId: string): Prom
     );
   }
 
-  console.log(`✓ Wallet deleted: ${walletId}`);
+  console.log(`✓ Test wallet deleted: ${walletId}`);
 };

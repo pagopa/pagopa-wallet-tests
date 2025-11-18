@@ -29,25 +29,19 @@ export const registerOutcomeInterceptor = async (page: Page): Promise<void> => {
   await page.route('**/*', async (route, request) => {
     const requestUrl = request.url();
 
-    // check if this is an outcome URL we want to intercept
     if (
       requestUrl.includes(`${APIM_HOST}/payment-wallet-outcomes/`) ||
       requestUrl.includes(`${APIM_HOST}/ecommerce/io-outcomes`)
     ) {
       try {
-        // get cookies from the browser context
         const cookies = await page.context().cookies();
         const testIdCookie = cookies.find((cookie) => cookie.name === TEST_ID_COOKIE_NAME);
 
         if (testIdCookie) {
           const testId = testIdCookie.value;
-          // Only log if this is the first time we're intercepting this URL for this testId
           if (!interceptedOutcomeUrls[testId] || interceptedOutcomeUrls[testId] !== requestUrl) {
-            console.log(`✓ Outcome URL intercepted`);
             interceptedOutcomeUrls[testId] = requestUrl;
           }
-        } else {
-          console.warn(`No test ID cookie found for outcome URL: ${requestUrl}`);
         }
       } catch (error) {
         console.error(`Error intercepting outcome URL: ${error}`);
@@ -87,7 +81,6 @@ export const registerPageOutcomeTracker = async (page: Page): Promise<string> =>
     path: '/',
   };
 
-  console.log(`Setting test cookie...`);
   await page.context().addCookies([testCookie]);
 
   return testId;

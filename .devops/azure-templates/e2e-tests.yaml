@@ -42,12 +42,12 @@ steps:
     displayName: 'Install Playwright browsers'
 
   - script: |
-      cd e2e-tests && yarn pw:test:guest
-    displayName: 'Playwright E2E tests - Guest payment by card flow'
-
-  - script: |
       cd e2e-tests && yarn pw:test:onboarding
     displayName: 'Playwright E2E tests - Contextual onboarding flow'
+
+  - script: |
+      cd e2e-tests && yarn pw:test:guest
+    displayName: 'Playwright E2E tests - Guest payment by card flow'
 
   - script: |
       cd e2e-tests &&  yarn test:NPG
