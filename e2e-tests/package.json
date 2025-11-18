@@ -10,7 +10,7 @@
     "test:NPG:onboarding": "dotenv -e .env jest src/NPG/onboarding --detectOpenHandles --reporters=jest-junit",
     "test": "dotenv -e .env jest --detectOpenHandles --reporters=jest-junit",
     "lint": "eslint . -c .eslintrc.json",
-    "pw:install": "playwright install chromium",
+    "pw:install": "playwright install chrome",
     "pw:test": "dotenv -e .env playwright test",
     "pw:test:guest": "dotenv -e .env playwright test test/playwright/guest-payment",
     "pw:test:onboarding": "dotenv -e .env playwright test test/playwright/contextual-onboarding",
