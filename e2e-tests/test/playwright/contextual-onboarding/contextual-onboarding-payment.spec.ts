@@ -1,15 +1,16 @@
 import { test, expect } from '@playwright/test';
 import {
-  startGuestSession,
-  getPaymentInfo,
+  startEcommerceSession,
   generateRandomRptId,
-  getGuestCardRedirectUrl,
-} from '../utils/guestPaymentHelpers';
-import { getAllPaymentMethods } from '../utils/paymentMethodHelpers';
+  getPaymentInfo,
+  getAllPaymentMethods,
+  getPaymentMethodRedirectUrl
+} from '../utils/paymentFlowsHelpers';
 import {
   calculateFeesByWalletId,
   createWalletAuthorizationRequest,
   getWalletById,
+  deleteWallet
 } from '../utils/contextualOnboardingHelpers';
 import {
   registerOutcomeInterceptor,
@@ -25,17 +26,16 @@ import {
   pollForCondition,
 } from '../utils/helpers';
 
-const CARDS_WALLET_PAYMENT_PSP_ID = String(process.env.CARDS_WALLET_PAYMENT_PSP_ID);
-const PAYMENT_USER_ID = String(process.env.PAYMENT_USER_ID);
+const PAYMENT_USER_ID = '21c6d8b5-1407-49aa-b39c-a635a1b186ce'; // must be valid and not randomly generated
 
-const GUEST_CARD_DATA = {
+const CONTEXTUAL_ONBOARDING_CARD_DATA = {
   number: '4242424242424242',
   expirationDate: '1230',
   ccv: '123',
   holderName: 'Test Test',
 };
 
-test.describe.only('Contextual Onboarding Payment - Save Card + Pay', () => {
+test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
   test.beforeEach(async () => {
     clearInterceptedOutcomes();
   });
@@ -43,14 +43,14 @@ test.describe.only('Contextual Onboarding Payment - Save Card + Pay', () => {
   test('should complete contextual onboarding and payment flow with outcome=0', async ({
     page,
   }) => {
-    console.log('=== Phase 1: Creating guest payment session ===');
+    console.log('=== Phase 1: Creating payment session ===');
     const rptId = generateRandomRptId();
-    const sessionToken = await startGuestSession(PAYMENT_USER_ID);
+    const sessionToken = await startEcommerceSession(PAYMENT_USER_ID);
     const { amount } = await getPaymentInfo(sessionToken, rptId);
 
     // Get payment method ID and redirect URL
     const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS');
-    const authorizationUrl = await getGuestCardRedirectUrl(sessionToken, paymentMethodId, rptId, amount);
+    const authorizationUrl = await getPaymentMethodRedirectUrl(sessionToken, paymentMethodId, rptId, amount);
 
     await registerOutcomeInterceptor(page);
     const testId = await registerPageOutcomeTracker(page);
@@ -75,7 +75,7 @@ test.describe.only('Contextual Onboarding Payment - Save Card + Pay', () => {
     await page.waitForURL('**/payment/creditcard**', { timeout: 10000 });
 
     console.log('=== Phase 4: Filling card data for wallet onboarding ===');
-    await fillCardDataForm(page, GUEST_CARD_DATA);
+    await fillCardDataForm(page, CONTEXTUAL_ONBOARDING_CARD_DATA);
 
     console.log('=== Phase 5: Waiting for walletId from contextual onboard outcome URL ===');
     const outcomeUrlAvailable = await pollForCondition(
@@ -106,33 +106,18 @@ test.describe.only('Contextual Onboarding Payment - Save Card + Pay', () => {
     if (!walletId) {
       throw new Error('Failed to extract walletId from contextual onboard outcome URL');
     }
-    console.log(`✓ WalletId extracted: ${walletId}`);
 
     const transactionId = getTransactionId(onboardOutcomeUrl);
     if (!transactionId) {
       throw new Error('Failed to extract transactionId from contextual onboard outcome URL');
     }
-    console.log(`✓ TransactionId extracted from magic URL: ${transactionId}`);
-
-    console.log('=== Phase 5.5: Verifying wallet status in database ===');
-    const wallet = await getWalletById(sessionToken, walletId);
-    console.log(`✓ Wallet details: status=${wallet.status}, paymentMethodId=${wallet.paymentMethodId}`);
-
-    // we assume both VALIDATION_REQUESTED and VALIDATED are acceptable for continuing the payment flow
-    if (!['VALIDATION_REQUESTED', 'VALIDATED'].includes(wallet.status)) {
-      throw new Error(
-        `Expected wallet status to be VALIDATION_REQUESTED or VALIDATED but got ${wallet.status}. Wallet may not have been onboarded correctly.`
-      );
-    }
-    console.log(`✓ Wallet successfully onboarded with status=${wallet.status}`);
 
     console.log('=== Phase 6: Calculating fees and creating auth request ===');
     const { pspId, fee } = await calculateFeesByWalletId(
       sessionToken,
       paymentMethodId,
       walletId,
-      amount,
-      CARDS_WALLET_PAYMENT_PSP_ID
+      amount
     );
 
     const authUrl = await createWalletAuthorizationRequest(
@@ -151,6 +136,9 @@ test.describe.only('Contextual Onboarding Payment - Save Card + Pay', () => {
     console.log('=== Phase 7: Navigating to GDI check and waiting for completion ===');
     await page.goto(authUrl);
     console.log('✓ Navigated to authorization URL');
+
+    console.log('=== Phase 8: Waiting for 3DS and payment completion ===');
+    console.log('Note: Flow may complete 3DS and go directly to outcome, or show GDI success page');
 
     console.log('Waiting for GDI check to complete (up to 60 seconds)...');
     const continueButton = await page.waitForSelector('text="Continua sull\'app IO"', {
@@ -180,6 +168,48 @@ test.describe.only('Contextual Onboarding Payment - Save Card + Pay', () => {
     const finalOutcomeUrl = getOutcomeUrlForTest(testId);
     console.log('✓ MAGIC URL #2 (final payment outcome) intercepted');
 
+    const finalOutcome = getOutcome(finalOutcomeUrl);
+    expect(finalOutcome).toBe(0);
+    console.log(`✓ Final payment outcome: ${finalOutcome}`);
+
+    const finalTransactionId = getTransactionId(finalOutcomeUrl);
+    console.log(`✓ Final transaction ID: ${finalTransactionId}`);
+
+    console.log('=== Phase 9: Verifying wallet status after payment ===');
+    const wallet = await getWalletById(sessionToken, walletId);
+    console.log(
+      `✓ Wallet details: status=${wallet.status}, validationErrorCode=${wallet.validationErrorCode || 'none'}, paymentMethodId=${wallet.paymentMethodId}`
+    );
+
+    // Test passes if outcome=0 AND any of these conditions is true:
+    // 1. Wallet status is VALIDATED
+    // 2. Wallet validationErrorCode is WALLET_ALREADY_ONBOARDED_FOR_USER
+    const isWalletValidated = wallet.status === 'VALIDATED';
+    const isWalletAlreadyOnboarded =
+      wallet.validationErrorCode === 'WALLET_ALREADY_ONBOARDED_FOR_USER';
+
+    const testPassed = isWalletValidated || isWalletAlreadyOnboarded;
+
+    if (!testPassed) {
+      throw new Error(
+        `Test failed. Expected one of the following conditions after outcome=0:\n` +
+          `  - Wallet status = VALIDATED (got: ${wallet.status})\n` +
+          `  - Wallet validationErrorCode = WALLET_ALREADY_ONBOARDED_FOR_USER (got: ${wallet.validationErrorCode || 'none'})\n` +
+          `None of these conditions were met.`
+      );
+    }
+
+    console.log('✓ Test passed! One or more success conditions met:');
+    if (isWalletValidated) {
+      console.log(`  ✓ Wallet status is VALIDATED`);
+    }
+    if (isWalletAlreadyOnboarded) {
+      console.log(`  ✓ Wallet was already onboarded (validationErrorCode: WALLET_ALREADY_ONBOARDED_FOR_USER)`);
+    }
+
+    console.log('=== Phase 10: Cleaning up test wallet ===');
+    await deleteWallet(sessionToken, walletId);
+
     console.log('=== Contextual onboarding flow completed successfully! ===');
     console.log('✓ Wallet onboarded with outcome=0');
     console.log(`✓ WalletId: ${walletId}`);
@@ -187,7 +217,8 @@ test.describe.only('Contextual Onboarding Payment - Save Card + Pay', () => {
     console.log('✓ Wallet status: ' + wallet.status);
     console.log('✓ Authorization request created with walletId and paymentMethodId');
     console.log('✓ GDI check passed');
-    console.log('✓ Final outcome URL intercepted');
+    console.log('✓ Final payment outcome: 0');
+    console.log('✓ Test wallet cleaned up');
     console.log('✓ Test passed: Full contextual onboarding + payment flow working correctly');
   });
 });

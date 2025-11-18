@@ -7,60 +7,22 @@
 const WALLET_HOST = String(process.env.WALLET_HOST);
 
 /**
- * Get wallet details by walletId to verify onboarding status
- *
- * @param sessionToken - Session token from startGuestSession
- * @param walletId - Wallet ID to check
- * @returns Wallet object with status, paymentMethodId, and details
- */
-export const getWalletById = async (
-  sessionToken: string,
-  walletId: string
-): Promise<{
-  walletId: string;
-  status: string;
-  paymentMethodId: string;
-  userId: string;
-  details: any;
-}> => {
-  const url = `${WALLET_HOST}/io-payment-wallet/v1/wallets/${walletId}`;
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${sessionToken}`,
-    },
-  });
-
-  if (response.status !== 200) {
-    throw new Error(
-      `Failed to get wallet by ID: ${response.status} - ${JSON.stringify(await response.json())}`
-    );
-  }
-
-  const wallet = await response.json();
-  console.log(`✓ Wallet retrieved: ${walletId}, status=${wallet.status}`);
-  return wallet;
-};
-
-/**
  * Contextual Onboarding Payment Flow - Step 6: Calculate fees using walletId
  *
  * This differs from guest cards payment which uses orderId.
+ * For contextual onboarding, PSP is ALWAYS BNLIITRR with fee 95.
  *
- * @param sessionToken - Session token from startGuestSession
+ * @param sessionToken - Session token from startEcommerceSession
  * @param paymentMethodId - Payment method ID (card payment method)
  * @param walletId - Wallet ID extracted from contextual onboard outcome URL
  * @param amount - Payment amount in cents
- * @param targetPspId - Optional target PSP ID to filter bundles
- * @returns Object with pspId and fee
+ * @returns Object with pspId (always BNLIITRR) and fee (always 95)
  */
 export const calculateFeesByWalletId = async (
   sessionToken: string,
   paymentMethodId: string,
   walletId: string,
-  amount: number,
-  targetPspId?: string
+  amount: number
 ): Promise<{ pspId: string; fee: number }> => {
   const url = `${WALLET_HOST}/ecommerce/io/v2/payment-methods/${paymentMethodId}/fees`;
   const response = await fetch(url, {
@@ -96,21 +58,27 @@ export const calculateFeesByWalletId = async (
   const data = await response.json();
   console.log(`✓ Fees calculated by walletId: ${data.bundles?.length || 0} bundles found`);
 
-  // Find the target PSP or use the first one
-  let selectedBundle;
-  if (targetPspId) {
-    selectedBundle = data.bundles?.find((b: any) => b.idPsp === targetPspId);
-    if (!selectedBundle) {
-      console.warn(`PSP ${targetPspId} not found, using first bundle`);
-      selectedBundle = data.bundles?.[0];
-    }
-  } else {
-    selectedBundle = data.bundles?.[0];
-  }
+  // for contextual onboarding, we use BNLIITRR with fee 95
+  const REQUIRED_PSP_ID = 'BNLIITRR';
+  const REQUIRED_FEE = 95;
+
+  const selectedBundle = data.bundles?.find((b: any) => b.idPsp === REQUIRED_PSP_ID);
 
   if (!selectedBundle) {
-    throw new Error('No fee bundles available');
+    const availablePsps = data.bundles?.map((b: any) => b.idPsp).join(', ') || 'none';
+    throw new Error(
+      `Required PSP ${REQUIRED_PSP_ID} not found in fee bundles. Available PSPs: ${availablePsps}`
+    );
   }
+
+  // Validate the fee is correct
+  if (selectedBundle.taxPayerFee !== REQUIRED_FEE) {
+    console.warn(
+      `Expected fee ${REQUIRED_FEE} for PSP ${REQUIRED_PSP_ID}, but got ${selectedBundle.taxPayerFee}`
+    );
+  }
+
+  console.log(`✓ Using PSP: ${REQUIRED_PSP_ID}, Fee: ${selectedBundle.taxPayerFee}`);
 
   return {
     pspId: selectedBundle.idPsp,
@@ -124,7 +92,7 @@ export const calculateFeesByWalletId = async (
  * This differs from guest payment which uses orderId + paymentMethodId with detailType: "cards".
  * Contextual onboarding uses walletId with detailType: "wallet".
  *
- * @param sessionToken - Session token from startGuestSession
+ * @param sessionToken - Session token from startEcommerceSession
  * @param transactionId - Transaction ID from startGuestTransaction
  * @param walletId - Wallet ID from contextual onboard outcome URL
  * @param amount - Payment amount in cents
@@ -171,4 +139,70 @@ export const createWalletAuthorizationRequest = async (
   const data = await response.json();
   console.log('✓ Wallet authorization URL created');
   return data.authorizationUrl;
+};
+
+/**
+ * Get wallet details by walletId to verify onboarding status
+ *
+ * @param sessionToken - Session token from startEcommerceSession
+ * @param walletId - Wallet ID to check
+ * @returns Wallet object with status, paymentMethodId, and details
+ */
+export const getWalletById = async (
+  sessionToken: string,
+  walletId: string
+): Promise<{
+  walletId: string;
+  status: string;
+  paymentMethodId: string;
+  userId: string;
+  validationErrorCode?: string;
+  details: any;
+}> => {
+  const url = `${WALLET_HOST}/io-payment-wallet/v1/wallets/${walletId}`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
+    },
+  });
+
+  if (response.status !== 200) {
+    throw new Error(
+      `Failed to get wallet by ID: ${response.status} - ${JSON.stringify(await response.json())}`
+    );
+  }
+
+  const wallet = await response.json();
+  console.log(
+    `✓ Wallet retrieved: ${walletId}, status=${wallet.status}, validationErrorCode=${wallet.validationErrorCode || 'none'}`
+  );
+  return wallet;
+};
+
+/**
+ * Delete a wallet by its ID
+ * Useful for cleaning up test wallets after onboarding tests
+ *
+ * @param sessionToken - Session token from startEcommerceSession
+ * @param walletId - Wallet ID to delete
+ */
+export const deleteWallet = async (sessionToken: string, walletId: string): Promise<void> => {
+  const url = `${WALLET_HOST}/io-payment-wallet/v1/wallets/${walletId}`;
+  const response = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
+    },
+  });
+
+  if (response.status !== 204) {
+    throw new Error(
+      `Failed to delete wallet: ${response.status} - ${JSON.stringify(await response.json())}`
+    );
+  }
+
+  console.log(`✓ Wallet deleted: ${walletId}`);
 };

@@ -1,14 +1,16 @@
 import { test, expect } from '@playwright/test';
 import {
-  startGuestSession,
-  getPaymentInfo,
   startGuestTransaction,
   calculateGuestFees,
   createGuestAuthorizationRequest,
-  generateRandomRptId,
-  getGuestCardRedirectUrl,
 } from '../utils/guestPaymentHelpers';
-import { getAllPaymentMethods } from '../utils/paymentMethodHelpers';
+import {
+  startEcommerceSession,
+  generateRandomRptId,
+  getPaymentInfo,
+  getAllPaymentMethods,
+  getPaymentMethodRedirectUrl
+} from '../utils/paymentFlowsHelpers';
 import {
   registerOutcomeInterceptor,
   registerPageOutcomeTracker,
@@ -42,12 +44,12 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
   test('should complete guest card payment flow and reach outcome=0', async ({ page }) => {
     console.log('=== Phase 1: Creating guest payment session ===');
     const rptId = generateRandomRptId();
-    const sessionToken = await startGuestSession(PAYMENT_USER_ID);
+    const sessionToken = await startEcommerceSession(PAYMENT_USER_ID);
     const { amount } = await getPaymentInfo(sessionToken, rptId);
 
     // Get payment method ID and redirect URL
     const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS');
-    const authorizationUrl = await getGuestCardRedirectUrl(sessionToken, paymentMethodId, rptId, amount);
+    const authorizationUrl = await getPaymentMethodRedirectUrl(sessionToken, paymentMethodId, rptId, amount);
 
     await registerOutcomeInterceptor(page);
     const testId = await registerPageOutcomeTracker(page);
