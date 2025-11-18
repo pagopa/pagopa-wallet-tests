@@ -23,12 +23,11 @@ import {
   pollForCondition,
 } from '../utils/helpers';
 
-const CARDS_WALLET_PAYMENT_PSP_ID = String(process.env.CARDS_WALLET_PAYMENT_PSP_ID);
-const PAYMENT_USER_ID = String(process.env.PAYMENT_USER_ID);
+const PAYMENT_USER_ID = '21c6d8b5-1407-49aa-b39c-a635a1b186ce'; // must be valid and not randomly generated
 
 // test card to get outcome 0
 const GUEST_CARD_DATA = {
-  number: '4000000000000101',
+  number: '4242424242424242',
   expirationDate: '1230',
   ccv: '123',
   holderName: 'Test Test',
@@ -94,8 +93,7 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
       sessionToken,
       paymentMethodId,
       orderId,
-      amount,
-      CARDS_WALLET_PAYMENT_PSP_ID
+      amount
     );
 
     const authUrl = await createGuestAuthorizationRequest(
@@ -111,35 +109,59 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
     console.log('=== Phase 6: GDI check and final outcome ===');
     await page.goto(authUrl);
 
-    console.log('Waiting for GDI check to complete...');
+    console.log('Waiting for GDI check to complete and redirect to /esito...');
+    await page.waitForURL('**/esito**', { timeout: 60000 });
+    console.log('✓ Redirected to /esito page');
+
     const continueButton = await page.waitForSelector('text="Continua sull\'app IO"', {
       timeout: 60000,
     });
 
     await continueButton.click();
 
-    const finalOutcomeAvailable = await pollForCondition(
-      () => {
-        const url = getOutcomeUrlForTest(testId);
-        return url !== undefined && url.includes('/transactions/') && url.includes('/outcomes');
+    // After clicking button, poll the webview endpoint for final outcome
+    console.log('Polling for final outcome from webview endpoint...');
+    const APIM_HOST = String(process.env.APIM_HOST);
+
+    let finalOutcome: number | undefined;
+    const webviewOutcomeAvailable = await pollForCondition(
+      async () => {
+        try {
+          const response = await fetch(
+            `${APIM_HOST}/ecommerce/webview/v1/transactions/${transactionId}/outcomes`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${sessionToken}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`Webview outcome: ${data.outcome}, isFinalStatus: ${data.isFinalStatus}`);
+
+            if (data.isFinalStatus === true) {
+              finalOutcome = data.outcome;
+              return true;
+            }
+          }
+          return false;
+        } catch (error) {
+          return false;
+        }
       },
-      20000,
-      1000
+      30000,
+      2000
     );
 
-    if (!finalOutcomeAvailable) {
-      throw new Error('Timeout waiting for final outcome URL');
+    if (!webviewOutcomeAvailable || finalOutcome === undefined) {
+      throw new Error('Timeout waiting for final outcome from webview endpoint');
     }
 
-    const finalOutcomeUrl = getOutcomeUrlForTest(testId);
-    console.log('✓ MAGIC URL #2 (after clicking "Continua sull\'app IO") intercepted');
-
-    const finalOutcome = getOutcome(finalOutcomeUrl);
+    console.log('✓ Final outcome received from webview endpoint');
     expect(finalOutcome).toBe(0);
     console.log('✓ Payment successful: outcome=0');
-
-    const finalTransactionId = getTransactionId(finalOutcomeUrl);
-    console.log(`✓ Transaction ID: ${finalTransactionId}`);
 
     console.log('=== Test completed successfully! ===');
   });

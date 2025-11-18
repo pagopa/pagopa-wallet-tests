@@ -17,7 +17,7 @@ export const generateRandomRptId = (): string => {
 };
 
 /**
- * Guest Payment Flow - Step 1: Start new session
+ * Guest Payment Flow - Start new session
  */
 export const startGuestSession = async (userId: string = ''): Promise<string> => {
   const url = `${WALLET_HOST}/session-wallet/mock/v1/session`;
@@ -42,7 +42,7 @@ export const startGuestSession = async (userId: string = ''): Promise<string> =>
 };
 
 /**
- * Guest Payment Flow - Step 2: Get payment info by rptId
+ * Guest Payment Flow - Get payment info by rptId
  *
  * @param sessionToken - Session token from startGuestSession
  * @param rptId - Random RPT ID generated for the test
@@ -76,7 +76,7 @@ export const getPaymentInfo = async (
 };
 
 /**
- * Guest Payment Flow - Step 3: Get redirect URL for card save choice page
+ * Guest Payment Flow - Get redirect URL for card save choice page
  *
  * @param sessionToken - Session token from startGuestSession
  * @param paymentMethodId - Payment method ID from getAllPaymentMethods
@@ -111,7 +111,7 @@ export const getGuestCardRedirectUrl = async (
 };
 
 /**
- * Guest Payment Flow - Step 4: Start new eCommerce transaction
+ * Guest Payment Flow - Start new eCommerce transaction
  *
  * @param sessionToken - Session token from startGuestSession
  * @param rptId - Random RPT ID generated for the test
@@ -156,14 +156,22 @@ export const startGuestTransaction = async (
 };
 
 /**
- * Guest Payment Flow - Step 5: Calculate fees for guest payment
+ * Guest Payment Flow - Calculate fees for guest payment
+ *
+ * This uses orderId (unlike contextual onboarding which uses walletId).
+ * For testing purposes, PSP is ALWAYS BNLIITRR with fee 95.
+ *
+ * @param sessionToken - Session token from startGuestSession
+ * @param paymentMethodId - Payment method ID (card payment method)
+ * @param orderId - Order ID extracted from card entry outcome URL
+ * @param amount - Payment amount in cents
+ * @returns Object with pspId (always BNLIITRR) and fee (always 95)
  */
 export const calculateGuestFees = async (
   sessionToken: string,
   paymentMethodId: string,
   orderId: string,
-  amount: number,
-  targetPspId?: string
+  amount: number
 ): Promise<{ pspId: string; fee: number }> => {
   const url = `${WALLET_HOST}/ecommerce/io/v2/payment-methods/${paymentMethodId}/fees`;
   const response = await fetch(url, {
@@ -173,7 +181,7 @@ export const calculateGuestFees = async (
       Authorization: `Bearer ${sessionToken}`,
     },
     body: JSON.stringify({
-      orderId: orderId,
+      orderId: orderId, // guest payment uses orderId instead of walletId
       language: 'it',
       paymentAmount: amount,
       primaryCreditorInstitution: '77777777777',
@@ -197,21 +205,27 @@ export const calculateGuestFees = async (
   const data = await response.json();
   console.log(`✓ Fees calculated: ${data.bundles?.length || 0} bundles found`);
 
-  // Find the target PSP or use the first one
-  let selectedBundle;
-  if (targetPspId) {
-    selectedBundle = data.bundles?.find((b: any) => b.idPsp === targetPspId);
-    if (!selectedBundle) {
-      console.warn(`PSP ${targetPspId} not found, using first bundle`);
-      selectedBundle = data.bundles?.[0];
-    }
-  } else {
-    selectedBundle = data.bundles?.[0];
-  }
+  // for testing purposes we use BNLIITRR with fee 95
+  const REQUIRED_PSP_ID = 'BNLIITRR';
+  const REQUIRED_FEE = 95;
+
+  const selectedBundle = data.bundles?.find((b: any) => b.idPsp === REQUIRED_PSP_ID);
 
   if (!selectedBundle) {
-    throw new Error('No fee bundles available');
+    const availablePsps = data.bundles?.map((b: any) => b.idPsp).join(', ') || 'none';
+    throw new Error(
+      `Required PSP ${REQUIRED_PSP_ID} not found in fee bundles. Available PSPs: ${availablePsps}`
+    );
   }
+
+  // Validate the fee is correct
+  if (selectedBundle.taxPayerFee !== REQUIRED_FEE) {
+    console.warn(
+      `Expected fee ${REQUIRED_FEE} for PSP ${REQUIRED_PSP_ID}, but got ${selectedBundle.taxPayerFee}`
+    );
+  }
+
+  console.log(`✓ Using PSP: ${REQUIRED_PSP_ID}, Fee: ${selectedBundle.taxPayerFee}`);
 
   return {
     pspId: selectedBundle.idPsp,
@@ -220,7 +234,7 @@ export const calculateGuestFees = async (
 };
 
 /**
- * Guest Payment Flow - Step 6: Create authorization request for guest payment
+ * Guest Payment Flow - Create authorization request for guest payment
  *
  * @param sessionToken - Session token from startGuestSession
  * @param transactionId - Transaction ID from startGuestTransaction
