@@ -53,13 +53,21 @@ export const startGuestTransaction = async (
 
 /**
  * Guest Payment Flow - Calculate fees for guest payment
+ *
+ * This uses orderId (unlike contextual onboarding which uses walletId).
+ * For testing purposes, PSP is ALWAYS BNLIITRR with fee 95.
+ *
+ * @param sessionToken - Session token from startGuestSession
+ * @param paymentMethodId - Payment method ID (card payment method)
+ * @param orderId - Order ID extracted from card entry outcome URL
+ * @param amount - Payment amount in cents
+ * @returns Object with pspId (always BNLIITRR) and fee (always 95)
  */
 export const calculateGuestFees = async (
   sessionToken: string,
   paymentMethodId: string,
   orderId: string,
-  amount: number,
-  targetPspId?: string
+  amount: number
 ): Promise<{ pspId: string; fee: number }> => {
   const url = `${WALLET_HOST}/ecommerce/io/v2/payment-methods/${paymentMethodId}/fees`;
   const response = await fetch(url, {
@@ -69,7 +77,7 @@ export const calculateGuestFees = async (
       Authorization: `Bearer ${sessionToken}`,
     },
     body: JSON.stringify({
-      orderId: orderId,
+      orderId: orderId, // guest payment uses orderId instead of walletId
       language: 'it',
       paymentAmount: amount,
       primaryCreditorInstitution: '77777777777',
