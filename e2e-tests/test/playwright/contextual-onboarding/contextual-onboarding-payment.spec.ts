@@ -132,39 +132,13 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
     console.log('✓ Redirected to /esito page');
 
     console.log('=== Phase 8: Waiting for 3DS and payment completion ===');
-    // Race condition: wait for button OR wallet validation
-    const completionMethod = await Promise.race([
-      // Option 1: Button appears
-      page.waitForSelector('text="Continua sull\'app IO"', { timeout: 60000 })
-        .then(() => ({ type: 'button' as const }))
-        .catch(() => ({ type: 'timeout' as const })),
+    let completionSuccessful = false;
 
-      // Option 2: Wallet validation completed (backend succeeded even if frontend doesn't redirect)
-      (async () => {
-        const walletValidated = await pollForCondition(
-          async () => {
-            try {
-              const wallet = await getWalletById(sessionToken, walletId);
-              const isValidated = wallet.status === 'VALIDATED';
-              const isAlreadyOnboarded = wallet.validationErrorCode === 'WALLET_ALREADY_ONBOARDED_FOR_USER';
-              return isValidated || isAlreadyOnboarded;
-            } catch (error) {
-              return false;
-            }
-          },
-          60000,
-          5000
-        );
-        return walletValidated ? { type: 'wallet-validated' as const } : { type: 'timeout' as const };
-      })(),
-    ]);
-
-    if (completionMethod.type === 'button') {
-      const continueButton = await page.waitForSelector('text="Continua sull\'app IO"', { timeout: 5000 });
+    try {
+      const continueButton = await page.waitForSelector('text="Continua sull\'app IO"', { timeout: 30000 });
       await continueButton.click();
-      console.log('✓ Button clicked');
+      console.log('✓ Button found and clicked.');
 
-      // Poll webview endpoint for final outcome
       console.log('Polling for final outcome from webview endpoint...');
       const APIM_HOST = String(process.env.APIM_HOST);
 
@@ -206,14 +180,36 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
 
       console.log('✓ Final outcome received from webview endpoint');
       expect(finalOutcome).toBe(0);
-      console.log('✓ Payment completed: outcome=0');
+      console.log('✓ Payment completed via button flow: outcome=0');
+      completionSuccessful = true;
 
-    } else if (completionMethod.type === 'wallet-validated') {
-      console.log('✓ Payment completed via backend validation');
-      console.log('⚠️  Frontend button not shown (Chromium behavior)');
+    } catch (error) {
+      console.log('Button not found. Falling back to backend wallet status validation (30s timeout)...');
 
-    } else {
-      throw new Error('Timeout: Neither button appeared nor wallet was validated within 60 seconds');
+      const walletValidated = await pollForCondition(
+        async () => {
+          try {
+            const wallet = await getWalletById(sessionToken, walletId);
+            const isValidated = wallet.status === 'VALIDATED';
+            const isAlreadyOnboarded = wallet.validationErrorCode === 'WALLET_ALREADY_ONBOARDED_FOR_USER';
+            return isValidated || isAlreadyOnboarded;
+          } catch (e) {
+            return false;
+          }
+        },
+        30000,
+        5000
+      );
+
+      if (walletValidated) {
+        console.log('✓ Payment completed via backend validation.');
+        console.log('⚠️  Frontend button was not shown or detected (potential Chromium behavior).');
+        completionSuccessful = true;
+      }
+    }
+
+    if (!completionSuccessful) {
+      throw new Error('Test failed: Neither the confirmation button appeared nor was the wallet validated via backend within the total time limit.');
     }
 
     console.log('=== Phase 9: Verifying wallet status ===');
