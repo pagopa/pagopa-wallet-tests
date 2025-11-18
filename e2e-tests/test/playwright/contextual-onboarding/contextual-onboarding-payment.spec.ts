@@ -141,7 +141,7 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
     console.log('Note: Flow may complete 3DS and go directly to outcome, or show GDI success page');
 
     console.log('Waiting for GDI check to complete (up to 60 seconds)...');
-    const continueButton = await page.waitForSelector('text="Continua sull\'app IO"', {
+    const continueButton = await page.waitForSelector('text="Continua"', {
       timeout: 60000,
     });
 
