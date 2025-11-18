@@ -93,21 +93,27 @@ export const calculateGuestFees = async (
   const data = await response.json();
   console.log(`✓ Fees calculated: ${data.bundles?.length || 0} bundles found`);
 
-  // Find the target PSP or use the first one
-  let selectedBundle;
-  if (targetPspId) {
-    selectedBundle = data.bundles?.find((b: any) => b.idPsp === targetPspId);
-    if (!selectedBundle) {
-      console.warn(`PSP ${targetPspId} not found, using first bundle`);
-      selectedBundle = data.bundles?.[0];
-    }
-  } else {
-    selectedBundle = data.bundles?.[0];
-  }
+  // for testing purposes we use BNLIITRR with fee 95
+  const REQUIRED_PSP_ID = 'BNLIITRR';
+  const REQUIRED_FEE = 95;
+
+  const selectedBundle = data.bundles?.find((b: any) => b.idPsp === REQUIRED_PSP_ID);
 
   if (!selectedBundle) {
-    throw new Error('No fee bundles available');
+    const availablePsps = data.bundles?.map((b: any) => b.idPsp).join(', ') || 'none';
+    throw new Error(
+      `Required PSP ${REQUIRED_PSP_ID} not found in fee bundles. Available PSPs: ${availablePsps}`
+    );
   }
+
+  // Validate the fee is correct
+  if (selectedBundle.taxPayerFee !== REQUIRED_FEE) {
+    console.warn(
+      `Expected fee ${REQUIRED_FEE} for PSP ${REQUIRED_PSP_ID}, but got ${selectedBundle.taxPayerFee}`
+    );
+  }
+
+  console.log(`✓ Using PSP: ${REQUIRED_PSP_ID}, Fee: ${selectedBundle.taxPayerFee}`);
 
   return {
     pspId: selectedBundle.idPsp,

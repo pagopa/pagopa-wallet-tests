@@ -58,7 +58,7 @@ export const calculateFeesByWalletId = async (
   const data = await response.json();
   console.log(`✓ Fees calculated by walletId: ${data.bundles?.length || 0} bundles found`);
 
-  // for contextual onboarding, we use BNLIITRR with fee 95
+  // for testing purposes we use BNLIITRR with fee 95
   const REQUIRED_PSP_ID = 'BNLIITRR';
   const REQUIRED_FEE = 95;
 
