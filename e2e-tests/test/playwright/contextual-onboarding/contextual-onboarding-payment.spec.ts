@@ -127,28 +127,19 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
     console.log('=== Phase 7: Navigating to GDI check ===');
     await page.goto(authUrl);
 
+    console.log('Waiting for GDI check to complete and redirect to /esito...');
+    await page.waitForURL('**/esito**', { timeout: 60000 });
+    console.log('✓ Redirected to /esito page');
+
     console.log('=== Phase 8: Waiting for 3DS and payment completion ===');
-    // Race condition: wait for button, outcome URL, OR wallet validation
+    // Race condition: wait for button OR wallet validation
     const completionMethod = await Promise.race([
       // Option 1: Button appears
       page.waitForSelector('text="Continua sull\'app IO"', { timeout: 60000 })
         .then(() => ({ type: 'button' as const }))
         .catch(() => ({ type: 'timeout' as const })),
 
-      // Option 2: Outcome URL gets intercepted directly (auto-completion)
-      (async () => {
-        const outcomeAvailable = await pollForCondition(
-          () => {
-            const url = getOutcomeUrlForTest(testId);
-            return url !== undefined && url.includes('/transactions/') && url.includes('/outcomes');
-          },
-          60000,
-          3000
-        );
-        return outcomeAvailable ? { type: 'outcome' as const } : { type: 'timeout' as const };
-      })(),
-
-      // Option 3: Wallet validation completed (backend succeeded even if frontend doesn't redirect)
+      // Option 2: Wallet validation completed (backend succeeded even if frontend doesn't redirect)
       (async () => {
         const walletValidated = await pollForCondition(
           async () => {
@@ -173,36 +164,56 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
       await continueButton.click();
       console.log('✓ Button clicked');
 
-      const finalOutcomeAvailable = await pollForCondition(
-        () => {
-          const url = getOutcomeUrlForTest(testId);
-          return url !== undefined && url.includes('/transactions/') && url.includes('/outcomes');
+      // Poll webview endpoint for final outcome
+      console.log('Polling for final outcome from webview endpoint...');
+      const APIM_HOST = String(process.env.APIM_HOST);
+
+      let finalOutcome: number | undefined;
+      const webviewOutcomeAvailable = await pollForCondition(
+        async () => {
+          try {
+            const response = await fetch(
+              `${APIM_HOST}/ecommerce/webview/v1/transactions/${transactionId}/outcomes`,
+              {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${sessionToken}`,
+                },
+              }
+            );
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log(`Webview outcome: ${data.outcome}, isFinalStatus: ${data.isFinalStatus}`);
+
+              if (data.isFinalStatus === true) {
+                finalOutcome = data.outcome;
+                return true;
+              }
+            }
+            return false;
+          } catch (error) {
+            return false;
+          }
         },
-        20000,
+        30000,
         2000
       );
 
-      if (!finalOutcomeAvailable) {
-        throw new Error('Timeout waiting for final payment outcome URL after clicking button');
+      if (!webviewOutcomeAvailable || finalOutcome === undefined) {
+        throw new Error('Timeout waiting for final outcome from webview endpoint');
       }
 
-      const finalOutcomeUrl = getOutcomeUrlForTest(testId);
-      const finalOutcome = getOutcome(finalOutcomeUrl);
+      console.log('✓ Final outcome received from webview endpoint');
       expect(finalOutcome).toBe(0);
       console.log('✓ Payment completed: outcome=0');
 
-    } else if (completionMethod.type === 'outcome') {
-      const finalOutcomeUrl = getOutcomeUrlForTest(testId);
-      const finalOutcome = getOutcome(finalOutcomeUrl);
-      expect(finalOutcome).toBe(0);
-      console.log('✓ Payment completed (auto): outcome=0');
-
     } else if (completionMethod.type === 'wallet-validated') {
       console.log('✓ Payment completed via backend validation');
-      console.log('⚠️  Frontend button/outcome URL not intercepted (Chromium behavior)');
+      console.log('⚠️  Frontend button not shown (Chromium behavior)');
 
     } else {
-      throw new Error('Timeout: Neither button appeared, outcome URL was intercepted, nor wallet was validated within 60 seconds');
+      throw new Error('Timeout: Neither button appeared nor wallet was validated within 60 seconds');
     }
 
     console.log('=== Phase 9: Verifying wallet status ===');
