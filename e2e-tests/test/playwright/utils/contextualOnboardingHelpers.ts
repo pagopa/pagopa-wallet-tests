@@ -10,13 +10,13 @@ const WALLET_HOST = String(process.env.WALLET_HOST);
  * Contextual Onboarding Payment Flow - Step 6: Calculate fees using walletId
  *
  * This differs from guest cards payment which uses orderId.
- * For contextual onboarding, PSP is ALWAYS BNLIITRR with fee 95.
+ * For contextual onboarding, PSP is ALWAYS BNLIITRR with dynamic fee from API.
  *
  * @param sessionToken - Session token from startEcommerceSession
  * @param paymentMethodId - Payment method ID (card payment method)
  * @param walletId - Wallet ID extracted from contextual onboard outcome URL
  * @param amount - Payment amount in cents
- * @returns Object with pspId (always BNLIITRR) and fee (always 95)
+ * @returns Object with pspId (always BNLIITRR) and fee (dynamic from API response)
  */
 export const calculateFeesByWalletId = async (
   sessionToken: string,
@@ -58,9 +58,8 @@ export const calculateFeesByWalletId = async (
   const data = await response.json();
   console.log(`✓ Fees calculated by walletId: ${data.bundles?.length || 0} bundles found`);
 
-  // for testing purposes we use BNLIITRR with fee 95
+  // for testing purposes we use BNLIITRR (fee is dynamic from API)
   const REQUIRED_PSP_ID = 'BNLIITRR';
-  const REQUIRED_FEE = 95;
 
   const selectedBundle = data.bundles?.find((b: any) => b.idPsp === REQUIRED_PSP_ID);
 
@@ -68,13 +67,6 @@ export const calculateFeesByWalletId = async (
     const availablePsps = data.bundles?.map((b: any) => b.idPsp).join(', ') || 'none';
     throw new Error(
       `Required PSP ${REQUIRED_PSP_ID} not found in fee bundles. Available PSPs: ${availablePsps}`
-    );
-  }
-
-  // Validate the fee is correct
-  if (selectedBundle.taxPayerFee !== REQUIRED_FEE) {
-    console.warn(
-      `Expected fee ${REQUIRED_FEE} for PSP ${REQUIRED_PSP_ID}, but got ${selectedBundle.taxPayerFee}`
     );
   }
 

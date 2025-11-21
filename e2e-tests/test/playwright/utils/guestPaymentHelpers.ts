@@ -55,13 +55,13 @@ export const startGuestTransaction = async (
  * Guest Payment Flow - Calculate fees for guest payment
  *
  * This uses orderId (unlike contextual onboarding which uses walletId).
- * For testing purposes, PSP is ALWAYS BNLIITRR with fee 95.
+ * For testing purposes, PSP is ALWAYS BNLIITRR with dynamic fee from API.
  *
  * @param sessionToken - Session token from startGuestSession
  * @param paymentMethodId - Payment method ID (card payment method)
  * @param orderId - Order ID extracted from card entry outcome URL
  * @param amount - Payment amount in cents
- * @returns Object with pspId (always BNLIITRR) and fee (always 95)
+ * @returns Object with pspId (always BNLIITRR) and fee (dynamic from API response)
  */
 export const calculateGuestFees = async (
   sessionToken: string,
@@ -101,9 +101,8 @@ export const calculateGuestFees = async (
   const data = await response.json();
   console.log(`✓ Fees calculated: ${data.bundles?.length || 0} bundles found`);
 
-  // for testing purposes we use BNLIITRR with fee 95
+  // for testing purposes we use BNLIITRR (fee is dynamic from API)
   const REQUIRED_PSP_ID = 'BNLIITRR';
-  const REQUIRED_FEE = 95;
 
   const selectedBundle = data.bundles?.find((b: any) => b.idPsp === REQUIRED_PSP_ID);
 
@@ -111,13 +110,6 @@ export const calculateGuestFees = async (
     const availablePsps = data.bundles?.map((b: any) => b.idPsp).join(', ') || 'none';
     throw new Error(
       `Required PSP ${REQUIRED_PSP_ID} not found in fee bundles. Available PSPs: ${availablePsps}`
-    );
-  }
-
-  // Validate the fee is correct
-  if (selectedBundle.taxPayerFee !== REQUIRED_FEE) {
-    console.warn(
-      `Expected fee ${REQUIRED_FEE} for PSP ${REQUIRED_PSP_ID}, but got ${selectedBundle.taxPayerFee}`
     );
   }
 
