@@ -185,13 +185,17 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
     expect(finalOutcome).toBe(0);
     console.log('✓ Payment outcome verified: outcome=0');
 
-    console.log('=== Phase 9: Verifying wallet status ===');
+console.log('=== Phase 9: Verifying wallet status ===');
+    let walletStatus: string | undefined;
+    let walletValidationErrorCode: string | undefined;
     const walletValidated = await pollForCondition(
       async () => {
         try {
           const wallet = await getWalletById(sessionToken, walletId);
-          const isValidated = wallet.status === 'VALIDATED';
-          const isAlreadyOnboarded = wallet.validationErrorCode === 'WALLET_ALREADY_ONBOARDED_FOR_USER';
+          walletStatus = wallet.status;
+          walletValidationErrorCode = wallet.validationErrorCode; 
+          const isValidated = walletStatus === 'VALIDATED';
+          const isAlreadyOnboarded = walletValidationErrorCode === 'WALLET_ALREADY_ONBOARDED_FOR_USER';
           return isValidated || isAlreadyOnboarded;
         } catch (e) {
           return false;
@@ -202,16 +206,9 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
     );
 
     if (!walletValidated) {
-      throw new Error('Test failed: Wallet was not validated within the expected time');
+      throw new Error(`Test failed: Wallet was not validated within the expected time. Wallet status: [${walletStatus}, validation error code: ${walletValidationErrorCode}]`);
     }
-
-    const wallet = await getWalletById(sessionToken, walletId);
-    const isWalletValidated = wallet.status === 'VALIDATED';
-    const isWalletAlreadyOnboarded =
-      wallet.validationErrorCode === 'WALLET_ALREADY_ONBOARDED_FOR_USER';
-
-    console.log(`✓ Wallet status verified: ${isWalletValidated ? 'VALIDATED' : 'WALLET_ALREADY_ONBOARDED_FOR_USER'}`);
-
+    console.log(`✓ Wallet status verified. Wallet status: [${walletStatus}, validation error code: ${walletValidationErrorCode}]`);
     console.log('=== Phase 10: Cleaning up ===');
     await deleteWallet(sessionToken, walletId);
     console.log('✓ Test passed');
