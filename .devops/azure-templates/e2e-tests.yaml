@@ -33,6 +33,7 @@ steps:
       rm -f e2e-tests/.env && cp e2e-tests/uat.env e2e-tests/.env && sed -i "s/^USER_WALLET_TOKEN.*$/USER_WALLET_TOKEN=${{parameters.USER_WALLET_TOKEN_UAT}}/" e2e-tests/.env
     displayName: 'Set env for E2E test (UAT)'
     condition: and(succeeded(), eq('${{parameters.ENVIRONMENT}}', 'UAT'))
+
   - script: |
       cd e2e-tests && yarn install
     displayName: 'Yarn install'
@@ -42,8 +43,12 @@ steps:
     displayName: 'Install Playwright browsers'
 
   - script: |
-      cd e2e-tests && yarn pw:test
-    displayName: 'Run Playwright E2E tests - Guest payment by card flows'
+      cd e2e-tests && yarn pw:test:onboarding
+    displayName: 'Playwright E2E tests - Contextual onboarding flow'
+
+  - script: |
+      cd e2e-tests && yarn pw:test:guest
+    displayName: 'Playwright E2E tests - Guest payment by card flow'
 
   - script: |
       cd e2e-tests &&  yarn test:NPG
