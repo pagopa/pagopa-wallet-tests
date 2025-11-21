@@ -167,9 +167,6 @@ export const getWalletById = async (
   }
 
   const wallet = await response.json();
-  console.log(
-    `✓ Wallet retrieved: ${walletId}, status=${wallet.status}, validationErrorCode=${wallet.validationErrorCode || 'none'}`
-  );
   return wallet;
 };
 

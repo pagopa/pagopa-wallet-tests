@@ -132,101 +132,85 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
     console.log('✓ Redirected to /esito page');
 
     console.log('=== Phase 8: Waiting for 3DS and payment completion ===');
-    let completionSuccessful = false;
 
+    // try to find and click the button (non-blocking)
     try {
-      const continueButton = await page.waitForSelector('text="Continua sull\'app IO"', { timeout: 30000 });
+      const continueButton = await page.waitForSelector('text="Continua sull\'app IO"', { timeout: 10000 });
       await continueButton.click();
       console.log('✓ Button found and clicked.');
-
-      console.log('Polling for final outcome from webview endpoint...');
-      const APIM_HOST = String(process.env.APIM_HOST);
-
-      let finalOutcome: number | undefined;
-      const webviewOutcomeAvailable = await pollForCondition(
-        async () => {
-          try {
-            const response = await fetch(
-              `${APIM_HOST}/ecommerce/webview/v1/transactions/${transactionId}/outcomes`,
-              {
-                method: 'GET',
-                headers: {
-                  'Authorization': `Bearer ${sessionToken}`,
-                },
-              }
-            );
-
-            if (response.ok) {
-              const data = await response.json();
-              console.log(`Webview outcome: ${data.outcome}, isFinalStatus: ${data.isFinalStatus}`);
-
-              if (data.isFinalStatus === true) {
-                finalOutcome = data.outcome;
-                return true;
-              }
-            }
-            return false;
-          } catch (error) {
-            return false;
-          }
-        },
-        30000,
-        2000
-      );
-
-      if (!webviewOutcomeAvailable || finalOutcome === undefined) {
-        throw new Error('Timeout waiting for final outcome from webview endpoint');
-      }
-
-      console.log('✓ Final outcome received from webview endpoint');
-      expect(finalOutcome).toBe(0);
-      console.log('✓ Payment completed via button flow: outcome=0');
-      completionSuccessful = true;
-
     } catch (error) {
-      console.log('Button not found. Falling back to backend wallet status validation (30s timeout)...');
+      console.log('Button not found or not shown in time (non-blocking, proceeding to verify outcome)');
+    }
 
-      const walletValidated = await pollForCondition(
-        async () => {
-          try {
-            const wallet = await getWalletById(sessionToken, walletId);
-            const isValidated = wallet.status === 'VALIDATED';
-            const isAlreadyOnboarded = wallet.validationErrorCode === 'WALLET_ALREADY_ONBOARDED_FOR_USER';
-            return isValidated || isAlreadyOnboarded;
-          } catch (e) {
-            return false;
+    console.log('Polling for final outcome from webview endpoint...');
+    const APIM_HOST = String(process.env.APIM_HOST);
+
+    let finalOutcome: number | undefined;
+    const webviewOutcomeAvailable = await pollForCondition(
+      async () => {
+        try {
+          const response = await fetch(
+            `${APIM_HOST}/ecommerce/webview/v1/transactions/${transactionId}/outcomes`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${sessionToken}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`Webview outcome: ${data.outcome}, isFinalStatus: ${data.isFinalStatus}`);
+
+            if (data.isFinalStatus === true) {
+              finalOutcome = data.outcome;
+              return true;
+            }
           }
-        },
-        30000,
-        5000
-      );
+          return false;
+        } catch (error) {
+          return false;
+        }
+      },
+      30000,
+      2000
+    );
 
-      if (walletValidated) {
-        console.log('✓ Payment completed via backend validation.');
-        console.log('⚠️  Frontend button was not shown or detected (potential Chromium behavior).');
-        completionSuccessful = true;
-      }
+    if (!webviewOutcomeAvailable || finalOutcome === undefined) {
+      throw new Error('Timeout waiting for final outcome from webview endpoint');
     }
 
-    if (!completionSuccessful) {
-      throw new Error('Test failed: Neither the confirmation button appeared nor was the wallet validated via backend within the total time limit.');
-    }
+    console.log('✓ Final outcome received from webview endpoint');
+    expect(finalOutcome).toBe(0);
+    console.log('✓ Payment outcome verified: outcome=0');
 
     console.log('=== Phase 9: Verifying wallet status ===');
-    const wallet = await getWalletById(sessionToken, walletId);
+    const walletValidated = await pollForCondition(
+      async () => {
+        try {
+          const wallet = await getWalletById(sessionToken, walletId);
+          const isValidated = wallet.status === 'VALIDATED';
+          const isAlreadyOnboarded = wallet.validationErrorCode === 'WALLET_ALREADY_ONBOARDED_FOR_USER';
+          return isValidated || isAlreadyOnboarded;
+        } catch (e) {
+          return false;
+        }
+      },
+      30000,
+      5000
+    );
 
+    if (!walletValidated) {
+      throw new Error('Test failed: Wallet was not validated within the expected time');
+    }
+
+    const wallet = await getWalletById(sessionToken, walletId);
     const isWalletValidated = wallet.status === 'VALIDATED';
     const isWalletAlreadyOnboarded =
       wallet.validationErrorCode === 'WALLET_ALREADY_ONBOARDED_FOR_USER';
 
-    if (!isWalletValidated && !isWalletAlreadyOnboarded) {
-      throw new Error(
-        `Test failed. Expected wallet status VALIDATED or error code WALLET_ALREADY_ONBOARDED_FOR_USER.\n` +
-          `Got: status=${wallet.status}, errorCode=${wallet.validationErrorCode || 'none'}`
-      );
-    }
-
-    console.log(`✓ Wallet ${isWalletValidated ? 'VALIDATED' : 'already onboarded'}`);
+    console.log(`✓ Wallet status verified: ${isWalletValidated ? 'VALIDATED' : 'WALLET_ALREADY_ONBOARDED_FOR_USER'}`);
 
     console.log('=== Phase 10: Cleaning up ===');
     await deleteWallet(sessionToken, walletId);
