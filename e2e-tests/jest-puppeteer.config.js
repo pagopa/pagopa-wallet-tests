@@ -5,5 +5,6 @@ module.exports = {
     product: 'chrome',
     args: ["--no-sandbox"]
   },
-  browserContext: 'incognito'
+  browserContext: 'incognito',
+  exitOnPageError: false,
 }

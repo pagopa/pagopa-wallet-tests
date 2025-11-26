@@ -93,8 +93,11 @@ describe('Paypal Wallet: onboarding with NPG', () => {
   page.setDefaultTimeout(timeout);
 
   afterEach(async () => {
-    await jestPuppeteer.resetPage();
-  });
+    //await jestPuppeteer.resetPage();
+    await jestPuppeteer.resetBrowser();
+    page.setDefaultNavigationTimeout(timeout);
+    page.setDefaultTimeout(timeout);
+  });  
 
   it('should redirect with outcome 0 (success) success using paypal account', async () => {
     const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
@@ -145,7 +148,7 @@ describe('Paypal Wallet: onboarding with NPG', () => {
     await page.waitForSelector(loginButtonPaypal, {timeout: 5000});
     await page.click(loginButtonPaypal);
   
-    await fillPaypalAuthAndCancel(PAYPAL_ACCOUNT_DATA);
+    await fillPaypalAuthAndCancel();
     await waitUntilUrlContains("/esito");
     await new Promise(r => setTimeout(r, 1000));
     expect(page.url()).toContain('/esito');
@@ -160,7 +163,6 @@ describe('Paypal Wallet: onboarding with NPG', () => {
     expect(url !== undefined).toBe(true);
     const outcome = new URLSearchParams(url.split("?")[1]).get("outcome");
     expect(parseInt(outcome)).toBe(8);
-    
   });
 
 });

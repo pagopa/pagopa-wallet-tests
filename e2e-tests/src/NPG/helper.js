@@ -204,11 +204,17 @@ export const fillPaypalAuthAndPay = async paypalCredentials => {
   await popup.click(payButton);
 }
 
-export const fillPaypalAuthAndCancel = async paypalCredentials => {
-  const cancelLink = '#cancelLink';
-  const popup = await loginToPaypal(paypalCredentials);
-  await popup.waitForSelector(cancelLink, { timeout: 10000 });
-  await popup.click(cancelLink);
+export const fillPaypalAuthAndCancel = async () => {
+  const targets = await browser.targets();
+  const popup = await targets[targets.length - 1].page();
+  await popup.waitForNavigation();
+  const popupUrl = popup.url();
+  console.log(`popup url: ${popupUrl}`);
+  if (!popupUrl.includes("billing")) {
+    const cancelLink = '[data-testid="merchantCancelDiv"] a';
+    await popup.waitForSelector(cancelLink, { timeout: 10000 });
+    await popup.click(cancelLink);
+  }
 }
 
 export const loginToPaypal = async paypalCredentials => {
