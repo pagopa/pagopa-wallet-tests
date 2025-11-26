@@ -213,9 +213,9 @@ export const fillPaypalAuthAndCancel = async paypalCredentials => {
 
 export const loginToPaypal = async paypalCredentials => {
   const usernameInput = '#email';
-  const btnNext = '#btnNext';
+  const btnNext = 'button[data-atomic-wait-task="login_enter_email"]';
   const pwInput = '#password';
-  const loginButton = '#btnLogin';
+  const loginButton = 'button[value="submitPassword"]';
 
   const targets = await browser.targets();
   const popup = await targets[targets.length - 1].page();
