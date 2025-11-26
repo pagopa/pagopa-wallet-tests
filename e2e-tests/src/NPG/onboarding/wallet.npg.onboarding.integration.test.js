@@ -126,6 +126,7 @@ describe('Paypal Wallet: onboarding with NPG', () => {
     const outcome = await getOutcome(url);
     await new Promise(r => setTimeout(r, 1000));
     await cleanWalletOnboarded(WALLET_HOST, walletIdOnboarded);
+    console.log(outcome)
     expect(outcome).toBe(0);
   });
 
