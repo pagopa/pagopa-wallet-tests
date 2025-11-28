@@ -204,11 +204,15 @@ export const fillPaypalAuthAndPay = async paypalCredentials => {
   await popup.click(payButton);
 }
 
-export const fillPaypalAuthAndCancel = async paypalCredentials => {
-  const cancelLink = '#cancelLink';
-  const popup = await loginToPaypal(paypalCredentials);
-  await popup.waitForSelector(cancelLink, { timeout: 10000 });
-  await popup.click(cancelLink);
+export const fillPaypalAuthAndCancel = async () => {
+  const targets = browser.targets();
+  const popup = await targets[targets.length - 1].page();
+  await popup.waitForNavigation();
+  const popupUrl = popup.url();
+  console.log(`popup url: ${popupUrl}`);
+  if (!popupUrl.includes("billing")) {
+    await popup.close()
+  }
 }
 
 export const loginToPaypal = async paypalCredentials => {
@@ -217,7 +221,7 @@ export const loginToPaypal = async paypalCredentials => {
   const pwInput = '#password';
   const loginButton = '#btnLogin';
 
-  const targets = await browser.targets();
+  const targets = browser.targets();
   const popup = await targets[targets.length - 1].page();
   await popup.waitForNavigation();
   const popupUrl = popup.url();
@@ -226,6 +230,7 @@ export const loginToPaypal = async paypalCredentials => {
     await popup.waitForSelector(usernameInput, { timeout: 10000 });
     await popup.click(usernameInput, { clickCount: 3 });
     await popup.keyboard.type(paypalCredentials.username);
+    await new Promise(r => setTimeout(r, 2000));
     await popup.waitForSelector(btnNext, { timeout: 10000 });
     await popup.click(btnNext);
     await popup.waitForSelector(pwInput, { timeout: 10000 });
@@ -376,7 +381,7 @@ export const cleanWalletOnboarded = async (walletHost, walletId) => {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      userId: "00000000-0000-0000-0000-000000000000",
+      userId: "415f36b1-c321-4e6f-a91d-1c8dcc22461f",
       expiryInMinutes: 60
     }),
   });
