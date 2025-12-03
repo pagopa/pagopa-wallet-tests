@@ -72,6 +72,150 @@
 			"response": []
 		},
 		{
+			"name": "Checkout Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Checkout Auth] Get login URL should return 200 with valid url redirect\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const responseJson = pm.response.json();",
+							"    const urlRedirect = responseJson.urlRedirect;",
+							"    const queryParams = urlRedirect.split(\"?\")[1].split(\"&\");",
+							"    const state = queryParams.find(q => q.includes(\"state\")).split(\"=\")[1];",
+							"    const nonce = queryParams.find(q => q.includes(\"nonce\")).split(\"=\")[1];",
+							"    pm.expect(state).to.be.a(\"string\");",
+							"    pm.expect(nonce).to.be.a(\"string\");",
+							"    pm.environment.set(\"CHECKOUT_STATE\", state);",
+							"    pm.environment.set(\"CHECKOUT_NONCE\", nonce);",
+							"    pm.environment.set(\"CHECKOUT_REDIRECT_URL\", urlRedirect);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ENV}}/checkout/auth-service/v1/auth/login?recaptcha={{FAKE_RECAPTCHA_NOT_VALIDATED}}",
+					"host": [
+						"{{ENV}}"
+					],
+					"path": [
+						"checkout",
+						"auth-service",
+						"v1",
+						"auth",
+						"login"
+					],
+					"query": [
+						{
+							"key": "recaptcha",
+							"value": "{{FAKE_RECAPTCHA_NOT_VALIDATED}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Checkout OneIdentity Redirect",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var htmlResponse = pm.response.text();",
+							"var codeMatch = htmlResponse.match(/code=([^&]+)/);",
+							"if (codeMatch) {",
+							"    var code = codeMatch[1];",
+							"    pm.environment.set(\"CHECKOUT_AUTH_CODE\", code);",
+							"    console.log(\"Auth code extracted: \" + code);",
+							"} else {",
+							"    pm.test(\"Code should be present in the HTML response\", function() {",
+							"        pm.expect(codeMatch).to.not.be.null;",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": "{{CHECKOUT_REDIRECT_URL}}"
+			},
+			"response": []
+		},
+		{
+			"name": "Checkout Auth Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Checkout Auth] POST auth token 200 with auth code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const responseJson = pm.response.json();",
+							"    const authToken = responseJson.authToken;",
+							"    pm.expect(authToken).to.be.a(\"string\");",
+							"    pm.environment.set(\"AUTH_TOKEN\", authToken);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"state\": \"{{CHECKOUT_STATE}}\",\n    \"authCode\": \"{{CHECKOUT_AUTH_CODE}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ENV}}/checkout/auth-service/v1/auth/token",
+					"host": [
+						"{{ENV}}"
+					],
+					"path": [
+						"checkout",
+						"auth-service",
+						"v1",
+						"auth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get payment methods",
 			"event": [
 				{
@@ -445,7 +589,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{SHARED_SESSION_TOKEN}}",
+							"value": "{{AUTH_TOKEN}}",
 							"type": "string"
 						}
 					]
