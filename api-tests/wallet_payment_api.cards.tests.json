@@ -703,13 +703,13 @@
 			"response": []
 		},
 		{
-			"name": "Search wallets by fiscal code",
+			"name": "Get wallets by user fiscal code",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Wallet for onboarding - CARDS] Wallets retrieved successfully by fiscal code with POST /wallets/searchBy\", function () {",
+							"pm.test(\"[Wallet for onboarding - CARDS] Wallets retrieved successfully by fiscal code with GET /users/wallets\", function () {",
 							"    pm.response.to.have.status(200);",
 							"    var wallets = pm.response.json().wallets;",
 							"    pm.expect(wallets.length).to.be.greaterThan(0);",
@@ -737,43 +737,29 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{SHARED_SESSION_TOKEN}}",
+							"value": "{{AUTH_TOKEN}}",
 							"type": "string"
 						}
 					]
 				},
-				"method": "POST",
+				"method": "GET",
 				"header": [
 					{
 						"key": "Accept",
 						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"type\": \"USER_FISCAL_CODE\",\n  \"userFiscalCode\": \"{{USER_FISCAL_CODE}}\"\n}",
-					"options": {
-						"raw": {
-							"headerFamily": "json",
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{ENV}}{{SERVICE}}/wallets/searchBy",
+					"raw": "{{ENV}}{{CHECKOUT_PAYMENT_WALLET_SERVICE}}/users/wallets",
 					"host": [
-						"{{ENV}}{{SERVICE}}"
+						"{{ENV}}{{CHECKOUT_PAYMENT_WALLET_SERVICE}}"
 					],
 					"path": [
-						"wallets",
-						"searchBy"
+						"users",
+						"wallets"
 					]
 				},
-				"description": "Searches wallets by fiscal code"
+				"description": "Gets wallets for user identified by fiscal code in auth token"
 			},
 			"response": []
 		},
