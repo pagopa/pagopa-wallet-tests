@@ -79,6 +79,18 @@
 			"enabled": true
 		},
 		{
+			"key": "CHECKOUT_PAYMENT_WALLET_SERVICE",
+			"value": "/checkout/payment-wallet/v1",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "AUTH_TOKEN",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
 			"key": "USER_FISCAL_CODE",
 			"value": "JHNDOE00A01F205N",
 			"type": "default",
