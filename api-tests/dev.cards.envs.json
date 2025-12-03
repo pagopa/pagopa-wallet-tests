@@ -125,6 +125,12 @@
 			"value": "05b47118-ac54-4324-90f0-59a784972184",
 			"type": "default",
 			"enabled": true
+		},
+		{
+			"key": "USER_FISCAL_CODE",
+			"value": "JHNDOE00A01F205N",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",

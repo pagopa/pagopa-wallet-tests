@@ -703,6 +703,81 @@
 			"response": []
 		},
 		{
+			"name": "Search wallets by fiscal code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding - CARDS] Wallets retrieved successfully by fiscal code with POST /wallets/searchBy\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var wallets = pm.response.json().wallets;",
+							"    pm.expect(wallets.length).to.be.greaterThan(0);",
+							"    pm.expect(wallets.filter(w => w.status == \"VALIDATED\").length).to.be.equals(wallets.length);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SHARED_SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"type\": \"USER_FISCAL_CODE\",\n  \"userFiscalCode\": \"{{USER_FISCAL_CODE}}\"\n}",
+					"options": {
+						"raw": {
+							"headerFamily": "json",
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ENV}}{{SERVICE}}/wallets/searchBy",
+					"host": [
+						"{{ENV}}{{SERVICE}}"
+					],
+					"path": [
+						"wallets",
+						"searchBy"
+					]
+				},
+				"description": "Searches wallets by fiscal code"
+			},
+			"response": []
+		},
+		{
 			"name": "Update wallet applications (DISABLED)",
 			"event": [
 				{
