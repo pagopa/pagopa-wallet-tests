@@ -737,7 +737,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{AUTH_TOKEN}}",
+							"value": "{{SHARED_SESSION_TOKEN}}",
 							"type": "string"
 						}
 					]
