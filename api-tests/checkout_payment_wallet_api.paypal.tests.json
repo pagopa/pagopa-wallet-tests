@@ -1,0 +1,216 @@
+{
+	"info": {
+		"_postman_id": "b2d4f8a1-3e5c-4f9b-8d2g-9c6b7e4f8a1b",
+		"name": "pagoPA Checkout Payment Wallet API - PAYPAL",
+		"description": "API to test checkout payment wallet endpoints for retrieving user wallets by fiscal code (PAYPAL)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Checkout Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Checkout Auth] Get login URL should return 200 with valid url redirect\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const responseJson = pm.response.json();",
+							"    const urlRedirect = responseJson.urlRedirect;",
+							"    const queryParams = urlRedirect.split(\"?\")[1].split(\"&\");",
+							"    const state = queryParams.find(q => q.includes(\"state\")).split(\"=\")[1];",
+							"    const nonce = queryParams.find(q => q.includes(\"nonce\")).split(\"=\")[1];",
+							"    pm.expect(state).to.be.a(\"string\");",
+							"    pm.expect(nonce).to.be.a(\"string\");",
+							"    pm.environment.set(\"CHECKOUT_STATE\", state);",
+							"    pm.environment.set(\"CHECKOUT_NONCE\", nonce);",
+							"    pm.environment.set(\"CHECKOUT_REDIRECT_URL\", urlRedirect);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ENV}}/checkout/auth-service/v1/auth/login?recaptcha={{FAKE_RECAPTCHA_NOT_VALIDATED}}",
+					"host": [
+						"{{ENV}}"
+					],
+					"path": [
+						"checkout",
+						"auth-service",
+						"v1",
+						"auth",
+						"login"
+					],
+					"query": [
+						{
+							"key": "recaptcha",
+							"value": "{{FAKE_RECAPTCHA_NOT_VALIDATED}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Checkout OneIdentity Redirect",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var htmlResponse = pm.response.text();",
+							"var codeMatch = htmlResponse.match(/code=([^&]+)/);",
+							"if (codeMatch) {",
+							"    var code = codeMatch[1];",
+							"    pm.environment.set(\"CHECKOUT_AUTH_CODE\", code);",
+							"    console.log(\"Auth code extracted: \" + code);",
+							"} else {",
+							"    pm.test(\"Code should be present in the HTML response\", function() {",
+							"        pm.expect(codeMatch).to.not.be.null;",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": "{{CHECKOUT_REDIRECT_URL}}"
+			},
+			"response": []
+		},
+		{
+			"name": "Checkout Auth Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Checkout Auth] POST auth token 200 with auth code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const responseJson = pm.response.json();",
+							"    const authToken = responseJson.authToken;",
+							"    pm.expect(authToken).to.be.a(\"string\");",
+							"    pm.environment.set(\"AUTH_TOKEN\", authToken);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"state\": \"{{CHECKOUT_STATE}}\",\n    \"authCode\": \"{{CHECKOUT_AUTH_CODE}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ENV}}/checkout/auth-service/v1/auth/token",
+					"host": [
+						"{{ENV}}"
+					],
+					"path": [
+						"checkout",
+						"auth-service",
+						"v1",
+						"auth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get wallets by user fiscal code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Wallet for onboarding - PAYPAL] Wallets retrieved successfully by fiscal code with GET /users/wallets\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var wallets = pm.response.json().wallets;",
+							"    pm.expect(wallets.length).to.be.greaterThan(0);",
+							"    pm.expect(wallets.filter(w => w.status == \"VALIDATED\").length).to.be.equals(wallets.length);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{AUTH_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{ENV}}{{CHECKOUT_PAYMENT_WALLET_SERVICE}}/users/wallets",
+					"host": [
+						"{{ENV}}{{CHECKOUT_PAYMENT_WALLET_SERVICE}}"
+					],
+					"path": [
+						"users",
+						"wallets"
+					]
+				},
+				"description": "Gets wallets for user identified by fiscal code in auth token"
+			},
+			"response": []
+		}
+	],
+	"variable": []
+}
