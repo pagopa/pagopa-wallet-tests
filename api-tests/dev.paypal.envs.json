@@ -92,7 +92,7 @@
 		},
 		{
 			"key": "AUTH_TOKEN",
-			"value": "",
+			"value": "mocked_authentication",
 			"type": "default",
 			"enabled": true
 		},
