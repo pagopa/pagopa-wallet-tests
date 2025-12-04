@@ -8,6 +8,12 @@
 			"enabled": true
 		},
 		{
+			"key": "FAKE_RECAPTCHA",
+			"value": "123456789AAbbCC",
+			"type": "default",
+			"enabled": true
+		},
+		{
 			"key": "SERVICE",
 			"value": "/io-payment-wallet/v1",
 			"type": "default",

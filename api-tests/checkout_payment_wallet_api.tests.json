@@ -1,0 +1,62 @@
+{
+	"info": {
+		"_postman_id": "560f4612-3b61-4f9d-85bd-904733c973e6",
+		"name": "pagoPA Checkout Payment Wallet API",
+		"description": "API to test checkout payment wallet endpoints for retrieving user wallets by fiscal code",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22960470"
+	},
+	"item": [
+		{
+			"name": "Get wallets by user fiscal code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[Checkout Wallet] Wallets retrieved successfully by fiscal code with GET /users/wallets\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    var wallets = pm.response.json().wallets;",
+							"    pm.expect(wallets.length).to.be.greaterThan(0);",
+							"    pm.expect(wallets.filter(w => w.status == \"VALIDATED\").length).to.be.equals(wallets.length);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{AUTH_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{ENV}}{{CHECKOUT_PAYMENT_WALLET_SERVICE}}/users/wallets",
+					"host": [
+						"{{ENV}}{{CHECKOUT_PAYMENT_WALLET_SERVICE}}"
+					],
+					"path": [
+						"users",
+						"wallets"
+					]
+				},
+				"description": "Gets wallets for user identified by fiscal code in auth token"
+			},
+			"response": []
+		}
+	]
+}
