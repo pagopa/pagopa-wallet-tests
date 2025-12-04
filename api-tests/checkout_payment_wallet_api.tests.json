@@ -14,7 +14,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Checkout Wallet - CARDS] Wallets retrieved successfully by fiscal code with GET /users/wallets\", function () {",
+							"pm.test(\"[Checkout Wallet] Wallets retrieved successfully by fiscal code with GET /users/wallets\", function () {",
 							"    pm.response.to.have.status(200);",
 							"    var wallets = pm.response.json().wallets;",
 							"    pm.expect(wallets.length).to.be.greaterThan(0);",
