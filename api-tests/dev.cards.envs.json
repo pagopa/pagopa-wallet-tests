@@ -131,24 +131,6 @@
 			"value": "05b47118-ac54-4324-90f0-59a784972184",
 			"type": "default",
 			"enabled": true
-		},
-		{
-			"key": "CHECKOUT_PAYMENT_WALLET_SERVICE",
-			"value": "/checkout/payment-wallet/v1",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "AUTH_TOKEN",
-			"value": "mocked_authentication",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "USER_FISCAL_CODE",
-			"value": "JHNDOE00A01F205N",
-			"type": "default",
-			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",

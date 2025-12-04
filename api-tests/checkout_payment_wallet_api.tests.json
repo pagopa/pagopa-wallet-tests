@@ -1,9 +1,10 @@
 {
 	"info": {
-		"_postman_id": "b2d4f8a1-3e5c-4f9b-8d2g-9c6b7e4f8a1b",
-		"name": "pagoPA Checkout Payment Wallet API - PAYPAL",
-		"description": "API to test checkout payment wallet endpoints for retrieving user wallets by fiscal code (PAYPAL)",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"_postman_id": "560f4612-3b61-4f9d-85bd-904733c973e6",
+		"name": "pagoPA Checkout Payment Wallet API",
+		"description": "API to test checkout payment wallet endpoints for retrieving user wallets by fiscal code",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22960470"
 	},
 	"item": [
 		{
@@ -13,22 +14,12 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[Wallet for onboarding - PAYPAL] Wallets retrieved successfully by fiscal code with GET /users/wallets\", function () {",
+							"pm.test(\"[Checkout Wallet - CARDS] Wallets retrieved successfully by fiscal code with GET /users/wallets\", function () {",
 							"    pm.response.to.have.status(200);",
 							"    var wallets = pm.response.json().wallets;",
 							"    pm.expect(wallets.length).to.be.greaterThan(0);",
 							"    pm.expect(wallets.filter(w => w.status == \"VALIDATED\").length).to.be.equals(wallets.length);",
 							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -67,6 +58,5 @@
 			},
 			"response": []
 		}
-	],
-	"variable": []
+	]
 }
