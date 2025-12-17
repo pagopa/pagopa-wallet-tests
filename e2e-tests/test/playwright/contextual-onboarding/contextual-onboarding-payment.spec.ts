@@ -124,6 +124,9 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
       pspId
     );
 
+    const urlParams = new URLSearchParams(authUrl);
+    const webViewSessionToken = urlParams.get('sessionToken');
+
     console.log('=== Phase 7: Navigating to GDI check ===');
     await page.goto(authUrl);
 
@@ -154,7 +157,7 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
             {
               method: 'GET',
               headers: {
-                'Authorization': `Bearer ${sessionToken}`,
+                'Authorization': `Bearer ${webViewSessionToken}`,
               },
             }
           );

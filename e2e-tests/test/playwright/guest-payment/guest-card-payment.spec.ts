@@ -107,6 +107,9 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
       fee,
       pspId
     );
+    
+    const urlParams = new URLSearchParams(authUrl);
+    const webViewSessionToken = urlParams.get('sessionToken');
 
     console.log('=== Phase 6: GDI check and final outcome ===');
     await page.goto(authUrl);
@@ -134,7 +137,7 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
             {
               method: 'GET',
               headers: {
-                'Authorization': `Bearer ${sessionToken}`,
+                'Authorization': `Bearer ${webViewSessionToken}`,
               },
             }
           );
