@@ -8,7 +8,6 @@ const PAYPAL_WALLET_PAYMENT_PSP_ID = String(process.env.PAYPAL_WALLET_PAYMENT_PS
 const PAYMENT_USER_ID = String(process.env.PAYMENT_USER_ID);
 
 
-
 describe('wallet npg payment', () => {
   /**
    * Increase default test timeout (1 minutes)
@@ -19,6 +18,9 @@ describe('wallet npg payment', () => {
   jest.retryTimes(1);
   page.setDefaultNavigationTimeout(timeout);
   page.setDefaultTimeout(timeout);
+  afterEach(async () => {
+    await jestPuppeteer.resetPage();
+  });
 
   it('Onboarded card payment should redirect with outcome 0 on success', async () => {
 

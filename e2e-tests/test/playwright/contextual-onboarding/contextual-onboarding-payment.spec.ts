@@ -188,7 +188,7 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
     expect(finalOutcome).toBe(0);
     console.log('✓ Payment outcome verified: outcome=0');
 
-console.log('=== Phase 9: Verifying wallet status ===');
+    console.log('=== Phase 9: Verifying wallet status ===');
     let walletStatus: string | undefined;
     let walletValidationErrorCode: string | undefined;
     const walletValidated = await pollForCondition(
