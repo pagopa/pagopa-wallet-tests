@@ -27,7 +27,7 @@ import {
   pollForCondition,
 } from '../utils/helpers';
 
-const PAYMENT_USER_ID = String(process.env.PAYMENT_USER_ID);
+const ONBOARDING_USER_ID = String(process.env.ONBOARDING_USER_ID);
 
 const CONTEXTUAL_ONBOARDING_CARD_DATA = {
   number: '4242424242424242',
@@ -39,7 +39,7 @@ const CONTEXTUAL_ONBOARDING_CARD_DATA = {
 test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
   test.beforeEach(async () => {
     clearInterceptedOutcomes();
-    deleteAllUserWallets(PAYMENT_USER_ID);
+    deleteAllUserWallets(ONBOARDING_USER_ID);
   });
 
   test('should complete contextual onboarding and payment flow with outcome=0', async ({
@@ -47,7 +47,7 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
   }) => {
     console.log('=== Phase 1: Creating payment session ===');
     const rptId = generateRandomRptId();
-    const sessionToken = await startEcommerceSession(PAYMENT_USER_ID);
+    const sessionToken = await startEcommerceSession(ONBOARDING_USER_ID);
     const { amount } = await getPaymentInfo(sessionToken, rptId);
 
     // Get payment method ID and redirect URL
