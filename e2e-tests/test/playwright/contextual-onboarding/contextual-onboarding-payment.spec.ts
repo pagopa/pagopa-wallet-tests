@@ -9,8 +9,9 @@ import {
 import {
   calculateFeesByWalletId,
   createWalletAuthorizationRequest,
+  deleteAllUserWallets,
+  deleteWallet,
   getWalletById,
-  deleteWallet
 } from '../utils/contextualOnboardingHelpers';
 import {
   registerOutcomeInterceptor,
@@ -38,6 +39,7 @@ const CONTEXTUAL_ONBOARDING_CARD_DATA = {
 test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
   test.beforeEach(async () => {
     clearInterceptedOutcomes();
+    deleteAllUserWallets(PAYMENT_USER_ID);
   });
 
   test('should complete contextual onboarding and payment flow with outcome=0', async ({
@@ -190,16 +192,12 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
 
     console.log('=== Phase 9: Verifying wallet status ===');
     let walletStatus: string | undefined;
-    let walletValidationErrorCode: string | undefined;
     const walletValidated = await pollForCondition(
       async () => {
         try {
           const wallet = await getWalletById(sessionToken, walletId);
           walletStatus = wallet.status;
-          walletValidationErrorCode = wallet.validationErrorCode; 
-          const isValidated = walletStatus === 'VALIDATED';
-          const isAlreadyOnboarded = walletValidationErrorCode === 'WALLET_ALREADY_ONBOARDED_FOR_USER';
-          return isValidated || isAlreadyOnboarded;
+          return walletStatus === 'VALIDATED';
         } catch (e) {
           return false;
         }
@@ -209,9 +207,9 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
     );
 
     if (!walletValidated) {
-      throw new Error(`Test failed: Wallet was not validated within the expected time. Wallet status: [${walletStatus}, validation error code: ${walletValidationErrorCode}]`);
+      throw new Error(`Test failed: Wallet was not validated within the expected time. Wallet status: [${walletStatus}]`);
     }
-    console.log(`✓ Wallet status verified. Wallet status: [${walletStatus}, validation error code: ${walletValidationErrorCode}]`);
+    console.log(`✓ Wallet status verified. Wallet status: [${walletStatus}]`);
     console.log('=== Phase 10: Cleaning up ===');
     await deleteWallet(sessionToken, walletId);
     console.log('✓ Test passed');

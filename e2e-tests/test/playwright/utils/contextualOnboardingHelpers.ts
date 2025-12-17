@@ -4,6 +4,8 @@
  * Contextual onboarding = Save card + Pay in one flow
  */
 
+import { startEcommerceSession } from "./paymentFlowsHelpers";
+
 const WALLET_HOST = String(process.env.WALLET_HOST);
 
 /**
@@ -171,6 +173,33 @@ export const getWalletById = async (
 };
 
 /**
+ * Get wallet details by walletId to verify onboarding status
+ *
+ * @param sessionToken - Session token from startEcommerceSession
+ * @returns Wallet object with status, paymentMethodId, and details
+ */
+export const getWallets = async (
+  sessionToken: string
+): Promise<any> => {
+  const url = `${WALLET_HOST}/io-payment-wallet/v1/wallets`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
+    },
+  });
+
+  if (response.status !== 200) {
+    throw new Error(
+      `Failed to get wallet by ID: ${response.status} - ${JSON.stringify(await response.json())}`
+    );
+  }
+
+  return await response.json();
+};
+
+/**
  * Delete a wallet by its ID
  * Useful for cleaning up test wallets after onboarding tests
  *
@@ -195,3 +224,13 @@ export const deleteWallet = async (sessionToken: string, walletId: string): Prom
 
   console.log(`✓ Test wallet deleted: ${walletId}`);
 };
+
+export const deleteAllUserWallets = async(userId: string): Promise<void> =>{
+   console.log("Deleting all wallets for testing user");
+   const sessionToken = await startEcommerceSession(userId);
+   console.log(`UserId: [${userId}], generated sessionToken: [${sessionToken}]`);
+   const getWalletsResponse = await getWallets(sessionToken);
+   console.log(`Found user wallets: [${JSON.stringify(getWalletsResponse)}]`);
+   getWalletsResponse.wallets.forEach(async wallet =>  await deleteWallet(sessionToken, wallet.walletId)
+   );
+}

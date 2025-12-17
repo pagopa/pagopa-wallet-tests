@@ -1,7 +1,7 @@
 import { randomIntFromInterval } from "../utils/numbers";
 
 
-export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
+export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId, userId) => {
   const urlStartSession = `${walletHost}/session-wallet/mock/v1/session`;
   const responseStartSession = await fetch(urlStartSession, {
     method: "POST",
@@ -9,7 +9,7 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      userId: "415f36b1-c321-4e6f-a91d-1c8dcc22461f",
+      userId: userId,
       expiryInMinutes: 60
     }),
   });

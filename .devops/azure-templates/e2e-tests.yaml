@@ -50,7 +50,6 @@ steps:
   - script: |
       cd e2e-tests && yarn pw:test:guest
     displayName: 'Playwright E2E tests - Guest payment by card flow'
-    condition: eq('${{parameters.RUN_TEST_FOR}}', 'ALL')
     continueOnError: true
 
   - script: |

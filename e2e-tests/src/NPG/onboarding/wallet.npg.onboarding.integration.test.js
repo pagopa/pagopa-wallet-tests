@@ -1,9 +1,10 @@
 import { getOutcomeUrlForTest, registerOutcomeInterceptor, registerPageOutcomeTracker } from '../../utils/outcomeUrlInterceptor';
-import { fillCardDataForm, retrieveValidRedirectUrl, getOutcome, waitUntilUrlContains, clickPaypalButton, checkAndClickPaypalFirstPsps, fillPaypalAuthAndPay, cleanWalletOnboarded, getWalletId, getWalletAlreadyOnboarded, fillPaypalAuthAndCancel } from '../helper';
+import { fillCardDataForm, retrieveValidRedirectUrl, getOutcome, waitUntilUrlContains, clickPaypalButton, checkAndClickPaypalFirstPsps, fillPaypalAuthAndPay, cleanWalletOnboarded, getWalletId, fillPaypalAuthAndCancel } from '../helper';
 
 describe('Credit Card Wallet: onboarding with NPG', () => {
   const WALLET_HOST = String(process.env.WALLET_HOST);
   const PAYMENT_METHOD_ID = String(process.env.CREDIT_CARD_PAYMENT_METHOD_ID);
+  const ONBOARDING_USER_ID = String(process.env.ONBOARDING_USER_ID);
   const ONBOARDED_VALID_CARD_DATA = {
     number: '5255000260000014',
     expirationDate: '1230',
@@ -24,8 +25,9 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
     await jestPuppeteer.resetPage();
   });
 
+
   it('should redirect with outcome 0 (success) or 15 (already onboarded) using an valid card', async () => {
-      const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
+      const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID, ONBOARDING_USER_ID);
       console.log(`Redirect url for card success onboarding: ${redirectUrl}`);
       await page.goto(redirectUrl);
       await registerOutcomeInterceptor(page);
@@ -53,7 +55,7 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
       ccv: '123',
       holderName: "TEST TEST",
     };
-    const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
+    const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID, ONBOARDING_USER_ID);
     console.log(`Redirect url for not valid card onboarding: ${redirectUrl}`);
     await page.goto(redirectUrl);
     await registerOutcomeInterceptor(page);
@@ -100,7 +102,7 @@ describe('Paypal Wallet: onboarding with NPG', () => {
   });  
 
   it('should redirect with outcome 0 (success) success using paypal account', async () => {
-    const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
+    const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID, ONBOARDING_USER_ID);
     await registerOutcomeInterceptor(page);
     const testId = await registerPageOutcomeTracker(page);
     console.log(`Redirect url for Paypal onboarding: ${redirectUrl}`);
@@ -134,7 +136,7 @@ describe('Paypal Wallet: onboarding with NPG', () => {
   });
 
   it('should redirect with outcome greater than 0 cancelling paypal onboarding', async () => {
-    const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID);
+    const redirectUrl = await retrieveValidRedirectUrl(WALLET_HOST, PAYMENT_METHOD_ID, ONBOARDING_USER_ID);
     console.log(`Redirect url for Paypal onboarding (user cancel): ${redirectUrl}`);
     await registerOutcomeInterceptor(page);
     const testId = await registerPageOutcomeTracker(page);
