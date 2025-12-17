@@ -80,6 +80,7 @@ describe('Credit Card Wallet: onboarding with NPG', () => {
 describe('Paypal Wallet: onboarding with NPG', () => {
   const WALLET_HOST = String(process.env.WALLET_HOST);
   const PAYMENT_METHOD_ID = String(process.env.PAYMENT_METHOD_ID_PAYPAL);
+  const ONBOARDING_USER_ID = String(process.env.ONBOARDING_USER_ID);
   const PAYPAL_ACCOUNT_DATA = {
     username: 'buyerpaypal@icbpi.it',
     password: 'buyerpaypal'
