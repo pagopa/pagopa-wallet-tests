@@ -26,7 +26,7 @@ import {
   pollForCondition,
 } from '../utils/helpers';
 
-const PAYMENT_USER_ID = '21c6d8b5-1407-49aa-b39c-a635a1b186ce'; // must be valid and not randomly generated
+const PAYMENT_USER_ID = String(process.env.PAYMENT_USER_ID);
 
 const CONTEXTUAL_ONBOARDING_CARD_DATA = {
   number: '4242424242424242',
