@@ -1,7 +1,7 @@
 import { randomIntFromInterval } from "../utils/numbers";
 
 
-export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
+export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId, userId) => {
   const urlStartSession = `${walletHost}/session-wallet/mock/v1/session`;
   const responseStartSession = await fetch(urlStartSession, {
     method: "POST",
@@ -9,7 +9,7 @@ export const retrieveValidRedirectUrl = async (walletHost, paymentMethodId) => {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      userId: "415f36b1-c321-4e6f-a91d-1c8dcc22461f",
+      userId: userId,
       expiryInMinutes: 60
     }),
   });
@@ -372,7 +372,7 @@ export const getWalletAlreadyOnboarded = async (walletHost, lastFourDigitsOnboar
  * This function wait for deleting a wallet by its id. 
  * It is useful when we test an onboarding and we want to reply the test without changing card data or wallet token
  */
-export const cleanWalletOnboarded = async (walletHost, walletId) => {
+export const cleanWalletOnboarded = async (walletHost, walletId, userId) => {
   console.debug(`Deleting wallet ${walletId}`)
   const urlStartSession = `${walletHost}/session-wallet/mock/v1/session`;
   const responseStartSession = await fetch(urlStartSession, {
@@ -381,7 +381,7 @@ export const cleanWalletOnboarded = async (walletHost, walletId) => {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      userId: "415f36b1-c321-4e6f-a91d-1c8dcc22461f",
+      userId: userId,
       expiryInMinutes: 60
     }),
   });

@@ -25,7 +25,8 @@ import {
   pollForCondition,
 } from '../utils/helpers';
 
-const PAYMENT_USER_ID = '21c6d8b5-1407-49aa-b39c-a635a1b186ce'; // must be valid and not randomly generated
+
+const PAYMENT_USER_ID = String(process.env.PAYMENT_USER_ID);
 
 // test card to get outcome 0
 const GUEST_CARD_DATA = {
@@ -107,6 +108,9 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
       fee,
       pspId
     );
+    
+    const urlParams = new URLSearchParams(authUrl);
+    const webViewSessionToken = urlParams.get('sessionToken');
 
     console.log('=== Phase 6: GDI check and final outcome ===');
     await page.goto(authUrl);
@@ -134,7 +138,7 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
             {
               method: 'GET',
               headers: {
-                'Authorization': `Bearer ${sessionToken}`,
+                'Authorization': `Bearer ${webViewSessionToken}`,
               },
             }
           );
