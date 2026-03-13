@@ -4,7 +4,8 @@ import {
   generateRandomRptId,
   getPaymentInfo,
   getAllPaymentMethods,
-  getPaymentMethodRedirectUrl
+  getPaymentMethodRedirectUrl,
+  postWallet
 } from '../utils/paymentFlowsHelpers';
 import {
   calculateFeesByWalletId,
@@ -26,6 +27,7 @@ import {
   getTransactionId,
   pollForCondition,
 } from '../utils/helpers';
+import { afterEach } from 'node:test';
 
 const ONBOARDING_USER_ID = String(process.env.ONBOARDING_USER_ID);
 
@@ -51,7 +53,7 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
     const { amount } = await getPaymentInfo(sessionToken, rptId);
 
     // Get payment method ID and redirect URL
-    const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS');
+    const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS', "ECOMMERCE");
     const authorizationUrl = await getPaymentMethodRedirectUrl(sessionToken, paymentMethodId, rptId, amount);
 
     await registerOutcomeInterceptor(page);
@@ -215,3 +217,127 @@ test.describe('Contextual Onboarding Payment - Save Card + Pay', () => {
     console.log('✓ Test passed');
   });
 });
+
+test.describe('Contextual Onboarding Payment - Save Card', () => {
+  test.beforeEach(async () => {
+    clearInterceptedOutcomes();
+    deleteAllUserWallets(ONBOARDING_USER_ID);
+  });
+
+  test('should complete onboarding flow with outcome=0', async ({
+    page,
+  }) => {
+    console.log('=== Phase 1: Creating wallet session ===');
+    const sessionToken = await startEcommerceSession(ONBOARDING_USER_ID);
+
+    // Get payment method ID and redirect URL
+    const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS', "WALLET");
+    const walletUrl = await postWallet(sessionToken, paymentMethodId, ONBOARDING_USER_ID)
+
+    await registerOutcomeInterceptor(page);
+    const testId = await registerPageOutcomeTracker(page);
+
+    console.log('=== Phase 2: Navigating to card save choice page ===');
+    await page.goto(walletUrl);
+
+    console.log('=== Phase 3: Waiting for navigation to card entry page ===');
+    await page.waitForURL('**/onboarding/creditcard**', { timeout: 10000 });
+   //
+    const APIM_HOST = String(process.env.APIM_HOST);
+
+    const storage = await page.evaluate(() => window.sessionStorage);
+    const walletId = storage.walletId;
+    const webViewSessionToken = storage.sessionToken;
+    await page.waitForResponse(`${APIM_HOST}/webview-payment-wallet/v1/wallets/${walletId}/sessions`);
+    const storagenew = await page.evaluate(() => window.sessionStorage);
+    const orderId = storagenew.orderId;
+
+    console.log("walletId " + walletId);
+    console.log("orderId " + orderId);
+    console.log("webViewSessionToken " + webViewSessionToken);
+
+    console.log('=== Phase 4: Filling card data for wallet onboarding ===');
+    await fillCardDataForm(page, CONTEXTUAL_ONBOARDING_CARD_DATA);
+
+    console.log('Waiting for GDI check to complete and redirect to /esito...');
+    await page.waitForURL('**/esito', { timeout: 60000 });
+    console.log('✓ Redirected to /esito page');
+
+    console.log('=== Phase 8: Waiting for 3DS and payment completion ===');
+
+    // try to find and click the button (non-blocking)
+    try {
+      const continueButton = await page.waitForSelector('text="Continua sull\'app IO"', { timeout: 10000 });
+      await continueButton.click();
+      console.log('✓ Button found and clicked.');
+    } catch (error) {
+      console.log('Button not found or not shown in time (non-blocking, proceeding to verify outcome)');
+    }
+
+    console.log('Polling for final outcome from webview endpoint...');
+    let finalOutcome: number | undefined;
+    const webviewOutcomeAvailable = await pollForCondition(
+      async () => {
+        try {
+          const response = await fetch(
+            `${APIM_HOST}/webview-payment-wallet/v1/wallets/${walletId}/sessions/${orderId}`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${webViewSessionToken}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`Webview outcome: ${data.outcome}, isFinalOutcome: ${data.isFinalOutcome}`);
+
+            if (data.isFinalOutcome === true) {
+              finalOutcome = data.outcome;
+              return true;
+            }
+          }
+          return false;
+        } catch (error) {
+          return false;
+        }
+      },
+      30000,
+      2000
+    );
+
+    if (!webviewOutcomeAvailable || finalOutcome === undefined) {
+      throw new Error('Timeout waiting for final outcome from webview endpoint');
+    }
+
+    console.log('✓ Final outcome received from webview endpoint');
+    expect(finalOutcome).toBe(0);
+    console.log('✓ Payment outcome verified: outcome=0');
+
+    console.log('=== Phase 9: Verifying wallet status ===');
+    let walletStatus: string | undefined;
+    const walletValidated = await pollForCondition(
+      async () => {
+        try {
+          const wallet = await getWalletById(sessionToken, walletId);
+          walletStatus = wallet.status;
+          return walletStatus === 'VALIDATED';
+        } catch (e) {
+          return false;
+        }
+      },
+      30000,
+      5000
+    );
+
+    if (!walletValidated) {
+      throw new Error(`Test failed: Wallet was not validated within the expected time. Wallet status: [${walletStatus}]`);
+    }
+    console.log(`✓ Wallet status verified. Wallet status: [${walletStatus}]`);
+    console.log('=== Phase 10: Cleaning up ===');
+    await deleteWallet(sessionToken, walletId);
+    console.log('✓ Test passed');
+  });
+});
+

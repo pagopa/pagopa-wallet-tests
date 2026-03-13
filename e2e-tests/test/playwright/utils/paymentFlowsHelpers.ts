@@ -124,9 +124,10 @@ export const getPaymentMethodRedirectUrl = async (
  */
 export const getAllPaymentMethods = async (
   sessionToken: string,
-  paymentMethodName: string = 'CARDS'
+  paymentMethodName: string = 'CARDS',
+  service: "WALLET" | "ECOMMERCE"
 ): Promise<string> => {
-  const url = `${WALLET_HOST}/ecommerce/io/v2/payment-methods`;
+  const url = service === "WALLET" ? `${WALLET_HOST}/ecommerce/io/v2/payment-methods` : `${WALLET_HOST}/io-payment-wallet/v1/payment-methods`;
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -160,4 +161,34 @@ export const getAllPaymentMethods = async (
 
   console.log(`✓ Payment method ID retrieved (${paymentMethodName})`);
   return targetPaymentMethod.id;
+};
+
+/**
+ * Payment Flow - Start new session
+ */
+export const postWallet = async (sessionToken: string = '', paymentMethodId: string = '', userId: string = ''): Promise<string> => {
+  const url = `${WALLET_HOST}/io-payment-wallet/v1/wallets`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json' ,  
+      Authorization: `Bearer ${sessionToken}`,
+      'x-user-id': userId
+    },
+    body: JSON.stringify({
+      paymentMethodId: paymentMethodId,
+      applications: ["PAGOPA"],
+      useDiagnosticTracing: "true"
+    }),
+  });
+
+  if (response.status !== 201) {
+    throw new Error(
+      `Failed to create wallet: ${response.status} - ${JSON.stringify(await response.json())}`
+    );
+  }
+
+  const data = await response.json();
+  console.log('✓ Wallet created started');
+  return data.redirectUrl;
 };

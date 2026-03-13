@@ -48,7 +48,7 @@ test.describe.only('Guest Card Payment - Card Save Choice', () => {
     const { amount } = await getPaymentInfo(sessionToken, rptId);
 
     // Get payment method ID and redirect URL
-    const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS');
+    const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS', "ECOMMERCE");
     const authorizationUrl = await getPaymentMethodRedirectUrl(sessionToken, paymentMethodId, rptId, amount);
 
     await registerOutcomeInterceptor(page);
