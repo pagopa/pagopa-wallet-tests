@@ -193,7 +193,7 @@ export const retrieveGuestPaymentAuthUrl = async (
   const { amount } = await getPaymentInfo(sessionToken, rptId);
 
   // Step 3: Get redirect URL
-  const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS');
+  const paymentMethodId = await getAllPaymentMethods(sessionToken, 'CARDS', "ECOMMERCE");
   const redirectUrl = await getPaymentMethodRedirectUrl(sessionToken, paymentMethodId, rptId, amount);
 
   console.log('✓ Redirect URL generated - ready to navigate to choice page');
