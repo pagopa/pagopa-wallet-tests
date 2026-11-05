@@ -1,0 +1,190 @@
+{
+  "info": {
+    "_postman_id": "8f31c972-76a9-4d85-9d6c-74fa4266c914",
+    "name": "pagoPA Payment Wallet Contract deactivation API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "46676989"
+  },
+  "item": [
+    {
+      "name": "Create a new wallet",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"[Contract deactivation] New wallet created successfully with POST /wallets\", function () {\n    pm.response.to.have.status(201);\n    const redirectUrl = pm.response.json().redirectUrl;\n    pm.expect(redirectUrl).to.be.a(\"string\");\n    pm.expect(redirectUrl).to.be.include(pm.environment.get(\"REDIRECT_URL_MARKER\"));\n    const fragment = redirectUrl.split(\"#\")[1];\n    const fragmentSplits = fragment.split(\"&\");\n    const walletId = fragmentSplits[0].split(\"=\")[1];\n    const useDiagnosticTracing = fragmentSplits[1].split(\"=\")[1];\n    const paymentMethodId = fragmentSplits[2].split(\"=\")[1];\n    pm.expect(walletId).to.be.not.null;\n    pm.expect(useDiagnosticTracing).to.be.not.null;\n    pm.expect(useDiagnosticTracing).to.be.eq(pm.environment.get(\"USE_DIAGNOSTIC_TRACING\"));\n    pm.expect(paymentMethodId).to.be.eq(pm.environment.get(\"PAYMENT_METHOD_ID\"));\n    pm.environment.set(\"WALLET_ID\", walletId);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{WALLET_SERVICE_API_KEY}}"
+          },
+          {
+            "key": "x-user-id",
+            "value": "{{x-user-id}}"
+          },
+          {
+            "key": "x-client-id",
+            "value": "IO"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"paymentMethodId\": \"{{PAYMENT_METHOD_ID}}\",\n  \"applications\": [\n    \"PAGOPA\"\n  ],\n  \"useDiagnosticTracing\": \"{{USE_DIAGNOSTIC_TRACING}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{ENV}}/wallets",
+          "host": [
+            "{{ENV}}"
+          ],
+          "path": [
+            "wallets"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create a new session wallet",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"[Contract deactivation] New wallet session created successfully with POST /wallets/{walletId}/sessions\", function () {\n    pm.response.to.have.status(200);\n    const response = pm.response.json();\n    const sessionData = response.sessionData;\n    const expectedPaymentMethodType = pm.environment.get(\"EXPECTED_SESSION_PAYMENT_METHOD_TYPE\");\n    pm.expect(sessionData.paymentMethodType).to.be.eq(expectedPaymentMethodType);\n    pm.expect(sessionData.redirectUrl).to.be.not.null;\n    if (expectedPaymentMethodType === \"apm\") {\n        pm.expect(sessionData.redirectUrl).to.be.a(\"string\");\n    }\n    pm.expect(response.orderId).to.be.a(\"string\");\n});\n\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{WALLET_SERVICE_API_KEY}}"
+          },
+          {
+            "key": "x-user-id",
+            "value": "{{x-user-id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{SESSION_REQUEST_BODY}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{ENV}}/wallets/{{WALLET_ID}}/sessions",
+          "host": [
+            "{{ENV}}"
+          ],
+          "path": [
+            "wallets",
+            "{{WALLET_ID}}",
+            "sessions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete wallet by id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"[Contract deactivation] Wallet deleted successfully with DELETE /wallets/{walletId}\", function () {\n    pm.response.to.have.status(204);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{WALLET_SERVICE_API_KEY}}"
+          },
+          {
+            "key": "x-user-id",
+            "value": "{{x-user-id}}"
+          }
+        ],
+        "url": {
+          "raw": "{{ENV}}/wallets/{{WALLET_ID}}",
+          "host": [
+            "{{ENV}}"
+          ],
+          "path": [
+            "wallets",
+            "{{WALLET_ID}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Deactivate contract",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"[Contract deactivation] Contract deactivated successfully with DELETE /wallets/{WalletId}/contract\", function () {\n    pm.response.to.have.status(204);\n});\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{WALLET_SERVICE_API_KEY}}"
+          }
+        ],
+        "url": {
+          "raw": "{{ENV}}/wallets/{{WALLET_ID}}/contract",
+          "host": [
+            "{{ENV}}"
+          ],
+          "path": [
+            "wallets",
+            "{{WALLET_ID}}",
+            "contract"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

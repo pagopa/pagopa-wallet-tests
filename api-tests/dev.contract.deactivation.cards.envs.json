@@ -1,0 +1,70 @@
+{
+	"id": "3c8df967-3ab4-45fa-a13b-1740271e0d51",
+	"name": "Wallet DEV internal - Contract deactivation - CARDS",
+	"values": [
+		{
+			"key": "ENV",
+			"value": "https://itndev.pay-wallet.internal.dev.platform.pagopa.it/pagopa-wallet-service",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "WALLET_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "PAYMENT_METHOD_ID",
+			"value": "f25399bf-c56f-4bd2-adc9-7aef87410609",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "SESSION_REQUEST_BODY",
+			"value": "{\"paymentMethodType\":\"cards\"}",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "EXPECTED_SESSION_PAYMENT_METHOD_TYPE",
+			"value": "cards",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "REDIRECT_URL_MARKER",
+			"value": "creditcard",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "USE_DIAGNOSTIC_TRACING",
+			"value": "true",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "x-user-id",
+			"value": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "WALLET_TOKEN_TEST",
+			"value": "",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "WALLET_SERVICE_API_KEY",
+			"value": "",
+			"type": "secret",
+			"enabled": true
+		}
+	],
+	"color": null,
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2026-10-26T14:09:55.534Z",
+	"_postman_exported_using": "Postman/12.33.4"
+}

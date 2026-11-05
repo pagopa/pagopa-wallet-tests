@@ -1,0 +1,70 @@
+{
+	"id": "eacf8191-65ee-4bfc-851b-29d7576a2a8b",
+	"name": "Wallet DEV internal - Contract deactivation - PAYPAL",
+	"values": [
+		{
+			"key": "ENV",
+			"value": "https://itndev.pay-wallet.internal.dev.platform.pagopa.it/pagopa-wallet-service",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "WALLET_ID",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "PAYMENT_METHOD_ID",
+			"value": "0d1450f4-b993-4f89-af5a-1770a45f5d71",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "SESSION_REQUEST_BODY",
+			"value": "{\"paymentMethodType\":\"paypal\",\"pspId\":\"BCITITMM\"}",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "EXPECTED_SESSION_PAYMENT_METHOD_TYPE",
+			"value": "apm",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "REDIRECT_URL_MARKER",
+			"value": "apm",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "USE_DIAGNOSTIC_TRACING",
+			"value": "true",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "x-user-id",
+			"value": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "WALLET_TOKEN_TEST",
+			"value": "",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "WALLET_SERVICE_API_KEY",
+			"value": "",
+			"type": "secret",
+			"enabled": true
+		}
+	],
+	"color": null,
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2026-10-26T15:04:21.715Z",
+	"_postman_exported_using": "Postman/12.33.4"
+}
